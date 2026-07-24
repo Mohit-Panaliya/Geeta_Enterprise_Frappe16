@@ -666,28 +666,16 @@ function sd_stacked_bars(el, labels, series, rawData) {
 	s += '</g>';
 	s += '</svg>';
 
-	// Tooltip div
-	s += '<div id="' + uid + '-tip" style="display:none;position:fixed;z-index:9999;background:#1e293b;color:#fff;padding:12px 16px;border-radius:10px;font-size:10px;line-height:1.7;pointer-events:none;box-shadow:0 12px 32px rgba(0,0,0,0.25);max-width:240px;border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(8px);"></div>';
+	// Tooltip removed — using native <title> on bars
 
 	el.setAttribute('data-raw', JSON.stringify(rawData));
 	el.setAttribute('data-uid', uid);
 	el.style.position = 'relative';
 	el.innerHTML = s;
 
-	// Attach hover/click events
+	// Attach click events only
 	var svg = el.querySelector('svg');
 	svg.querySelectorAll('rect[data-idx]').forEach(function (rect) {
-		var idx = parseInt(rect.getAttribute('data-idx'));
-		var label = rect.getAttribute('data-label');
-		rect.addEventListener('mouseenter', function (e) { sd_bc_hover(e.currentTarget, label, idx, e); });
-		rect.addEventListener('mousemove', function (e) {
-			var tip = document.getElementById(svg.parentElement.getAttribute('data-uid') + '-tip');
-			if (tip && tip.style.display !== 'none') {
-				tip.style.left = (e.clientX) + 'px';
-				tip.style.top = (e.clientY) + 'px';
-			}
-		});
-		rect.addEventListener('mouseleave', function (e) { sd_bc_leave(e.currentTarget); });
 		rect.addEventListener('click', function (e) { sd_bc_click(e.currentTarget); });
 	});
 
@@ -709,64 +697,6 @@ function sd_stacked_bars(el, labels, series, rawData) {
 			});
 		});
 	}, 50);
-}
-
-function sd_bc_hover(el, label, idx, ev) {
-	el.style.filter = 'url(#' + el.closest('svg').querySelector('filter').id.split('-')[0] + '-glow)';
-	el.style.opacity = '0.85';
-	var svg = el.closest('svg');
-	if (!svg) return;
-	var uid = svg.parentElement.getAttribute('data-uid');
-	var tip = document.getElementById(uid + '-tip');
-	if (!tip) return;
-
-	var raw = JSON.parse(svg.parentElement.getAttribute('data-raw') || '[]');
-	var d = raw[idx] || {};
-	var totalLit = (d.avail_qty || 0) + (d.unreserved_qty || 0) + (d.reserved_qty || 0);
-	var totalNos = (d.avail_nos || 0) + (d.unreserved_nos || 0) + (d.reserved_nos || 0);
-	var html = '<div style="font-weight:800;margin-bottom:6px;font-size:12px;color:#f1f5f9;">' + (d.company || label) + '</div>';
-	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Available: <b style="color:#93c5fd;">' + sd_n(d.avail_nos || 0) + ' · ' + sd_n(d.avail_qty || 0) + ' L</b></div>';
-	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Unreserved: <b style="color:#6ee7b7;">' + sd_n(d.unreserved_nos || 0) + ' · ' + sd_n(d.unreserved_qty || 0) + ' L</b></div>';
-	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Reserved: <b style="color:#fcd34d;">' + sd_n(d.reserved_nos || 0) + ' · ' + sd_n(d.reserved_qty || 0) + ' L</b></div>';
-	html += '<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:5px;padding-top:5px;color:#cbd5e1;font-size:11px;">Total: <b>' + sd_n(totalNos) + ' · ' + sd_n(totalLit) + ' L</b></div>';
-	html += '<div style="color:#94a3b8;font-size:9px;margin-top:3px;">Value: ' + sd_k(d.total_value || 0) + ' · Items: ' + (d.item_count || 0) + '</div>';
-	tip.innerHTML = html;
-	tip.style.position = 'fixed';
-	tip.style.display = 'block';
-	tip.style.width = 'auto';
-	tip.style.maxWidth = '220px';
-	tip.style.margin = '0';
-	if (ev) {
-		tip.style.left = ev.clientX + 'px';
-		tip.style.top = ev.clientY + 'px';
-	}
-
-	// Dim other companies, show percentage labels
-	var allBars = svg.querySelectorAll('rect[data-idx]');
-	allBars.forEach(function (b) {
-		if (b.getAttribute('data-idx') !== String(idx)) {
-			b.style.opacity = '0.2';
-		} else {
-			// Show percentage label for this company
-			var lblId = b.id + '-lbl';
-			var lbl = document.getElementById(lblId);
-			if (lbl) lbl.style.opacity = '1';
-		}
-	});
-}
-
-function sd_bc_leave(el) {
-	el.style.filter = 'url(#' + el.closest('svg').querySelector('filter').id.split('-')[0] + '-shadow)';
-	el.style.opacity = '1';
-	var svg = el.closest('svg');
-	if (!svg) return;
-	var uid = svg.parentElement.getAttribute('data-uid');
-	var tip = document.getElementById(uid + '-tip');
-	if (tip) { tip.style.display = 'none'; tip.style.position = ''; }
-	var allBars = svg.querySelectorAll('rect[data-idx]');
-	allBars.forEach(function (b) { b.style.opacity = '1'; });
-	// Hide all percentage labels
-	svg.querySelectorAll('text[id$="-lbl"]').forEach(function (t) { t.style.opacity = '0'; });
 }
 
 function sd_bc_click(el) {

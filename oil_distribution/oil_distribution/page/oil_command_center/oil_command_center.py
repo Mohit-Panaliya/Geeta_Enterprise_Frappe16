@@ -60,7 +60,6 @@ def get_kpis():
         "available_stock": 0,
         "reserved_stock": 0,
         "negative_alerts": 0,
-        "intercompany_volume": 0,
         "sales_by_company": [],
         "procurement_by_company": [],
         "profit_loss_by_company": [],
@@ -282,15 +281,18 @@ def get_kpis():
     ict_co, ict_co_args = _ict_co_where()
     ict_fy_cond, ict_fy_args = _fy_only_condition("it")
     ict = frappe.db.sql(
-        """SELECT COALESCE(SUM(it.total_qty), 0) as qty
+        """SELECT COALESCE(SUM(iti.qty), 0) as qty_nos,
+                  COALESCE(SUM(iti.qty * COALESCE(uom.conversion_factor, 1)), 0) as qty_litres
         FROM `tabInter Company Transfer` it
         JOIN `tabInter Company Transfer Item` iti ON iti.parent = it.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = iti.item_code AND uom.uom = 'Litre'
         WHERE it.docstatus = 1 """
         + ict_fy_cond + ict_co + it_ict,
         tuple(ict_fy_args) + tuple(ict_co_args) + tuple(it_args_ict),
         as_dict=True,
     )
-    result["intercompany_volume"] = flt(ict[0].qty) if ict else 0
+    result["intercompany_volume_nos"] = flt(ict[0].qty_nos) if ict else 0
+    result["intercompany_volume_litres"] = flt(ict[0].qty_litres) if ict else 0
 
     # --- ICT extended KPIs (FY-level) ---
     it_ext, it_args_ext = _item_filter("iti")
@@ -327,11 +329,13 @@ def get_kpis():
     route_fy_cond, route_fy_args = _fy_only_condition("it")
     routes = frappe.db.sql(
         "SELECT it.company, it.to_company, COUNT(*) as cnt,"
-        " COALESCE(SUM(it.total_qty), 0) as qty,"
+        " COALESCE(SUM(iti.qty), 0) as qty_nos,"
+        " COALESCE(SUM(iti.qty * COALESCE(uom.conversion_factor, 1)), 0) as qty_litres,"
         " COALESCE(SUM(it.grand_total), 0) as value,"
         " GROUP_CONCAT(DISTINCT iti.item_code) as item_list"
         " FROM `tabInter Company Transfer` it"
         " JOIN `tabInter Company Transfer Item` iti ON iti.parent = it.name"
+        " LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = iti.item_code AND uom.uom = 'Litre'"
         " WHERE it.docstatus = 1 "
         + route_fy_cond + ict_co_route + " " + it_route
         + " GROUP BY it.company, it.to_company ORDER BY cnt DESC",
@@ -857,10 +861,13 @@ def get_recent_icts():
     fy_cond, fy_args = _fy_only_condition("it")
 
     return frappe.db.sql(
-        """SELECT it.name, it.company, it.to_company, it.total_qty, it.grand_total,
-               it.posting_date, it.status
+        """SELECT it.name, it.company, it.to_company, it.grand_total,
+               it.posting_date, it.status,
+               COALESCE(SUM(iti.qty), 0) as total_nos,
+               COALESCE(SUM(iti.qty * COALESCE(uom.conversion_factor, 1)), 0) as total_litres
         FROM `tabInter Company Transfer` it
         JOIN `tabInter Company Transfer Item` iti ON iti.parent = it.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = iti.item_code AND uom.uom = 'Litre'
         WHERE it.docstatus = 1 """
         + fy_cond + ict_co + it_filter + " GROUP BY it.name ORDER BY it.posting_date DESC LIMIT 10",
         tuple(fy_args) + tuple(ict_co_args) + tuple(it_args),
@@ -963,12 +970,15 @@ def get_ict_chain():
     fy_cond, fy_args = _fy_only_condition("it")
 
     return frappe.db.sql(
-        """SELECT it.name, it.company, it.to_company, it.total_qty, it.grand_total,
+        """SELECT it.name, it.company, it.to_company, it.grand_total,
                 it.posting_date, it.status, iti.item_code,
                 GROUP_CONCAT(DISTINCT iti.item_code) as item_list,
-                COUNT(DISTINCT iti.item_code) as item_count
+                COUNT(DISTINCT iti.item_code) as item_count,
+                COALESCE(SUM(iti.qty), 0) as total_nos,
+                COALESCE(SUM(iti.qty * COALESCE(uom.conversion_factor, 1)), 0) as total_litres
         FROM `tabInter Company Transfer` it
         JOIN `tabInter Company Transfer Item` iti ON iti.parent = it.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = iti.item_code AND uom.uom = 'Litre'
         WHERE it.docstatus = 1 """
         + fy_cond + ict_co + it_filter + " GROUP BY it.name ORDER BY it.grand_total DESC LIMIT 10",
         tuple(fy_args) + tuple(ict_co_args) + tuple(it_args),

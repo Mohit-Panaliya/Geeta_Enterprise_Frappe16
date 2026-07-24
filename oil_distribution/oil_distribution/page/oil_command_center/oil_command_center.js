@@ -351,7 +351,7 @@ function get_dashboard_html() {
 
 		.oz-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; box-shadow: 0 1px 3px rgba(0,20,40,0.04); }
 
-		.top-bars { position: sticky; top: var(--page-head-height, 48px); z-index: 50; background: #f0f4f8; border-radius: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; padding: 6px; }
+		.top-bars { position: sticky; top: var(--page-head-height, 48px); z-index: 100; background: #f0f4f8; border-radius: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; padding: 6px; }
 
 		/* Bar */
 		.oz-bar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; flex-wrap: wrap; }
@@ -455,7 +455,7 @@ function get_dashboard_html() {
 		.oz-tl-dot { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; position: relative; z-index: 1; }
 
 		/* Tooltip */
-		.oz-tip { position: fixed; background: #1e293b; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 10px; pointer-events: none; z-index: 9999; white-space: nowrap; box-shadow: 0 12px 32px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); opacity: 0; transition: opacity 0.15s; }
+		.oz-tip { position: absolute; background: #1e293b; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 10px; pointer-events: none; z-index: 9999; white-space: nowrap; box-shadow: 0 12px 32px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); opacity: 0; transition: opacity 0.15s; }
 		.oz-tip.show { opacity: 1; }
 		/* Progress bar */
 		.oz-prog { height: 4px; border-radius: 4px; background: #f1f5f9; overflow: hidden; }
@@ -570,7 +570,8 @@ function get_dashboard_html() {
 				<div id="oz-compare-fy" class="oz-cs" style="display:none;"></div>
 			</div>
 		</div>
-</div>
+		</div>
+
 		<!-- ═══ PANEL 1: SALES & PROCUREMENT ═══ -->
 		<div id="oz-panel-sales" class="oz-tab-panel">
 
@@ -728,32 +729,31 @@ function get_dashboard_html() {
 				<div id="oz-table-neg"></div>
 			</div>
 		</div>
-		</div>
 
 		<!-- ═══ PANEL 3: ICT ═══ -->
 		<div id="oz-panel-ict" class="oz-tab-panel" style="display:none;">
 
-			<!-- ICT KPIs Row 1: Volume, Count, Value -->
+			<!-- KPI Row: Volume (Nos/L), Count, Value -->
 			<div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.06s">
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Inter Company Transfer',{docstatus:1})">
 					<div class="oz-kpi-icon" style="background:#cffafe;color:#0891b2;">🔄</div>
 					<div class="oz-kpi-info">
 						<div class="oz-kpi-val" id="oz-kpi-ict2" style="color:#0891b2;">--</div>
-						<div class="oz-kpi-lbl">ICT Volume MTD</div>
+						<div class="oz-kpi-lbl">ICT Volume</div>
 					</div>
 				</div>
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Inter Company Transfer',{docstatus:1})">
 					<div class="oz-kpi-icon" style="background:#cffafe;color:#0891b2;">📋</div>
 					<div class="oz-kpi-info">
 						<div class="oz-kpi-val" id="oz-kpi-ict-count" style="color:#0891b2;">--</div>
-						<div class="oz-kpi-lbl">ICT Count MTD</div>
+						<div class="oz-kpi-lbl">ICT Count</div>
 					</div>
 				</div>
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Inter Company Transfer',{docstatus:1})">
 					<div class="oz-kpi-icon" style="background:#cffafe;color:#0891b2;">💰</div>
 					<div class="oz-kpi-info">
 						<div class="oz-kpi-val" id="oz-kpi-ict-val" style="color:#0891b2;">--</div>
-						<div class="oz-kpi-lbl">ICT Value MTD</div>
+						<div class="oz-kpi-lbl">ICT Value</div>
 					</div>
 				</div>
 			</div>
@@ -762,29 +762,28 @@ function get_dashboard_html() {
 			<div class="oz-chart-card oz-anim" style="animation-delay:0.1s;">
 				<div class="oz-chart-head">
 					<div class="oz-chart-icon" style="background:#f0fdf4;color:#16a34a;">🔀</div>
-					<div><div class="oz-chart-title">Routes Breakdown</div><div class="oz-chart-sub">Transfers between companies</div></div>
+					<div><div class="oz-chart-title">Routes Breakdown</div><div class="oz-chart-sub">Transfers between companies with Nos/Litres</div></div>
 				</div>
 				<div id="oz-routes-breakdown"></div>
 			</div>
 
-
-			<!-- ICT Chain Visualization -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.12s">
-				<div class="oz-chart-head">
-					<div class="oz-chart-icon" style="background:#cffafe;color:#0891b2;">🔗</div>
-					<div style="flex:1;"><div class="oz-chart-title">ICT Chain Detail</div><div class="oz-chart-sub">Transfer items and status</div></div>
+			<!-- 2-col: ICT Chain + Recent Transfers -->
+			<div class="oz-grid-2 oz-anim" style="animation-delay:0.14s">
+				<div class="oz-chart-card" style="margin-bottom:0;">
+					<div class="oz-chart-head">
+						<div class="oz-chart-icon" style="background:#cffafe;color:#0891b2;">🔗</div>
+						<div style="flex:1;"><div class="oz-chart-title">ICT Chain Detail</div><div class="oz-chart-sub">Top transfers by value</div></div>
+					</div>
+					<div id="oz-ict-chain"></div>
 				</div>
-				<div id="oz-ict-chain"></div>
-			</div>
-
-			<!-- ICT Table -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.14s">
-				<div class="oz-chart-head">
-					<div class="oz-chart-icon" style="background:#cffafe;color:#0891b2;">🔄</div>
-					<div style="flex:1;"><div class="oz-chart-title">Recent Transfers</div></div>
-					<a class="oz-link" onclick="frappe.set_route('List','Inter Company Transfer')">View All →</a>
+				<div class="oz-chart-card" style="margin-bottom:0;">
+					<div class="oz-chart-head">
+						<div class="oz-chart-icon" style="background:#cffafe;color:#0891b2;">🔄</div>
+						<div style="flex:1;"><div class="oz-chart-title">Recent Transfers</div></div>
+						<a class="oz-link" onclick="frappe.set_route('List','Inter Company Transfer')">View All →</a>
+					</div>
+					<div id="oz-table-ict"></div>
 				</div>
-				<div id="oz-table-ict"></div>
 			</div>
 
 			<!-- Activity Feed -->
@@ -800,7 +799,7 @@ function get_dashboard_html() {
 		<!-- ═══ PANEL: RESERVATIONS ═══ -->
 		<div id="oz-panel-reservations" class="oz-tab-panel" style="display:none;">
 
-			<!-- KPI Row: Active Reservations | Reserved Qty | Total Released -->
+			<!-- KPI Row: Active Reservations | Reserved Qty (Nos/L) | Total Released (Nos/L) -->
 			<div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.06s">
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">
 					<div class="oz-kpi-icon" style="background:#fef3c7;color:#d97706;">🔒</div>
@@ -825,26 +824,26 @@ function get_dashboard_html() {
 				</div>
 			</div>
 
-			<!-- Reservations Table -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.08s">
-				<div class="oz-chart-head">
-					<div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🛡</div>
-					<div style="flex:1;"><div class="oz-chart-title">Active Reservations</div><div class="oz-chart-sub">Swastik reserved stock</div></div>
-					<a class="oz-link" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">View All →</a>
+			<!-- 2-col: Reservations Table + Release Activity -->
+			<div class="oz-grid-2 oz-anim" style="animation-delay:0.1s">
+				<div class="oz-chart-card" style="margin-bottom:0;">
+					<div class="oz-chart-head">
+						<div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🛡</div>
+						<div style="flex:1;"><div class="oz-chart-title">Active Reservations</div><div class="oz-chart-sub">Swastik reserved stock</div></div>
+						<a class="oz-link" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">View All →</a>
+					</div>
+					<div id="oz-table-res"></div>
 				</div>
-				<div id="oz-table-res"></div>
-			</div>
-
-			<!-- Release Activity -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.12s;margin-top:12px;">
-				<div class="oz-chart-head">
-					<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📤</div>
-					<div><div class="oz-chart-title">Release Activity</div><div class="oz-chart-sub">Recent stock releases from reserved stock</div></div>
+				<div class="oz-chart-card" style="margin-bottom:0;">
+					<div class="oz-chart-head">
+						<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📤</div>
+						<div><div class="oz-chart-title">Release Activity</div><div class="oz-chart-sub">Recent stock releases</div></div>
+					</div>
+					<div id="oz-release-activity"></div>
 				</div>
-				<div id="oz-release-activity"></div>
 			</div>
 		</div>
-		</div>
+	</div>
 
 	</div>`;
 }
@@ -1279,14 +1278,16 @@ function oz_build_stacked_bar(container, labels, sales, purchase, variance, vari
 				'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Procurement: <b style="color:#6ee7b7;">' + oz_n(pv) + '</b></div>' +
 				'<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:4px;display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:' + vColor + ';display:inline-block;"></span> Variance: <b style="color:' + vColor + ';">' + (v >= 0 ? '+' : '') + oz_n(v) + ' (' + vPct + '%)</b></div>' +
 				(change !== null ? '<div style="border-top:1px solid rgba(255,255,255,0.08);margin-top:4px;padding-top:4px;color:#94a3b8;font-size:10px;">vs Previous: <b style="color:' + changeColor + ';">' + (change >= 0 ? '+' : '') + change + '% ' + changeArrow + '</b></div>' : '<div style="border-top:1px solid rgba(255,255,255,0.08);margin-top:4px;padding-top:4px;color:#94a3b8;font-size:10px;">vs Previous: <b style="color:#64748b;">N/A</b></div>');
-			tip.style.position = 'fixed';
+			tip.style.position = 'absolute';
 			tip.style.display = 'block';
 			tip.style.margin = '0';
 			tip.style.width = 'auto';
 			tip.style.maxWidth = '200px';
 			tip.style.transform = 'none';
-			tip.style.left = e.clientX + 'px';
-			tip.style.top = e.clientY + 'px';
+			var cr = container.getBoundingClientRect();
+			var br = rect.getBoundingClientRect();
+			tip.style.left = (br.right - cr.left + 8) + 'px';
+			tip.style.top = (br.top - cr.top) + 'px';
 			tip.classList.add('show');
 
 			// Dim other bars
@@ -1295,10 +1296,7 @@ function oz_build_stacked_bar(container, labels, sales, purchase, variance, vari
 			});
 		});
 		rect.addEventListener('mousemove', function (e) {
-			if (tip.style.display !== 'none') {
-				tip.style.left = e.clientX + 'px';
-				tip.style.top = e.clientY + 'px';
-			}
+			// Tooltip is positioned at right of container, no need to follow cursor
 		});
 		rect.addEventListener('mouseleave', function () {
 			tip.classList.remove('show');
@@ -1500,10 +1498,10 @@ function load_all_data() {
 	// Update period labels
 	$('#oz-period-sales,#oz-period-proc,#oz-period-pl').text(period);
 
-			$('#oz-kpi-sales,#oz-kpi-proc,#oz-kpi-pl,#oz-kpi-ict2,#oz-kpi-ict-count,#oz-kpi-ict-val,#oz-kpi-reserved2,#oz-kpi-resqty,#oz-kpi-res-val,#oz-kpi-res-items,#oz-kpi-res-util,#oz-kpi-res-companies,#oz-kpi-release-qty,#oz-kpi-unreserved,#oz-kpi-uom-nos,#oz-kpi-uom-litres,#oz-kpi-uom-neg').text('--');
+			$('#oz-kpi-sales,#oz-kpi-proc,#oz-kpi-pl,#oz-kpi-ict2,#oz-kpi-ict-count,#oz-kpi-ict-val,#oz-kpi-reserved2,#oz-kpi-resqty,#oz-kpi-release-qty,#oz-kpi-uom-nos,#oz-kpi-uom-litres,#oz-kpi-uom-neg').text('--');
 			$('#oz-kpi-sales-change,#oz-kpi-proc-change,#oz-kpi-pl-change').text('').css('color', '');
 			window.oz_kpi_data = {};
-			$('#oz-bar-chart,#oz-monthly-table,#oz-table-res,#oz-table-ict,#oz-table-neg,#oz-activity,#oz-top-items,#oz-top-customers,#oz-company-compare,#oz-ict-chain,#oz-routes-breakdown,#oz-res-by-company,#oz-release-trend,#oz-top-released-items,#oz-uom-stock,#oz-release-activity,#oz-uom-companies').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
+			$('#oz-bar-chart,#oz-monthly-table,#oz-table-res,#oz-table-ict,#oz-table-neg,#oz-activity,#oz-top-items,#oz-top-customers,#oz-company-compare,#oz-ict-chain,#oz-routes-breakdown,#oz-uom-stock,#oz-release-activity,#oz-uom-companies').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
 			$('#oz-spark-sales,#oz-spark-proc,#oz-spark-pl').html('');
 			$('#oz-sales-breakdown,#oz-proc-breakdown,#oz-pl-breakdown').html('');
 
@@ -1569,8 +1567,7 @@ function load_all_data() {
 			setTimeout(function () { document.getElementById('oz-kpi-reserved').textContent = oz_n(d.reserved_stock) + ' L'; }, 1300);
 			oz_count(document.getElementById('oz-kpi-neg'), d.negative_alerts, '', '');
 			setTimeout(function () { document.getElementById('oz-kpi-neg').textContent = d.negative_alerts + ' Alerts'; }, 1300);
-			oz_count(document.getElementById('oz-kpi-ict2'), Math.round(d.intercompany_volume), '', ' L');
-			setTimeout(function () { document.getElementById('oz-kpi-ict2').textContent = oz_n(d.intercompany_volume) + ' L'; }, 1300);
+			document.getElementById('oz-kpi-ict2').innerHTML = oz_n(d.intercompany_volume_nos || 0) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(d.intercompany_volume_litres || 0) + ' <span style="font-size:10px;color:#94a3b8;">L</span>';
 
 			// Company breakdown helper with per-company change %
 			function render_breakdown(containerId, data, color, total, prevData) {
@@ -1664,7 +1661,7 @@ function load_all_data() {
 				{ l: 'Procurement', v: oz_k(d.procurement_mtd), c: '#10b981' },
 				{ l: 'Available', v: oz_n(d.available_stock) + ' L', c: '#7c3aed' },
 				{ l: 'Reserved', v: oz_n(d.reserved_stock) + ' L', c: '#f59e0b' },
-				{ l: 'ICTs', v: oz_n(d.intercompany_volume) + ' L', c: '#0891b2' },
+				{ l: 'ICTs', v: oz_n(d.intercompany_volume_nos || 0) + ' Nos / ' + oz_n(d.intercompany_volume_litres || 0) + ' L', c: '#0891b2' },
 				{ l: 'Alerts', v: d.negative_alerts, c: '#ef4444' }
 			].forEach(function (s) {
 				ms += '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:3px;background:' + s.c + '08;">';
@@ -1855,44 +1852,22 @@ function load_all_data() {
 			if (!r.message) return;
 			var d = r.message;
 
-			// Release KPIs
-			oz_count(document.getElementById('oz-kpi-release-qty'), Math.round(d.total_released_qty), '', ' L');
-			setTimeout(function () { document.getElementById('oz-kpi-release-qty').textContent = oz_n(d.total_released_qty) + ' L'; }, 1300);
-			oz_count(document.getElementById('oz-kpi-unreserved'), Math.round(d.total_unreserved), '', ' L');
-			setTimeout(function () { document.getElementById('oz-kpi-unreserved').textContent = oz_n(d.total_unreserved) + ' L'; }, 1300);
+			// Release KPI: Total Released (Nos/L)
+			document.getElementById('oz-kpi-release-qty').innerHTML = oz_n(d.total_released_nos || 0) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(d.total_released_litres || 0) + ' <span style="font-size:10px;color:#94a3b8;">L</span>';
 
-			// Release Trend - bar chart
-			var trendEl = document.getElementById('oz-release-trend');
-			if (trendEl && d.release_trend && d.release_trend.length) {
-				var maxQty = Math.max.apply(null, d.release_trend.map(function(x) { return x.qty; })) || 1;
-				var th = '<div style="display:flex;align-items:end;gap:3px;height:100px;padding:8px 0;border-bottom:1px solid #f1f5f9;">';
-				d.release_trend.forEach(function (m) {
-					var pct = (m.qty / maxQty) * 100;
-					var label = m.month ? m.month.slice(5) : '';
-					th += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
-					th += '<span style="font-size:8px;font-weight:700;color:#059669;">' + oz_n(m.qty) + '</span>';
-					th += '<div style="width:100%;height:' + pct + 'px;max-height:80px;background:linear-gradient(180deg,#34d399,#059669);border-radius:3px 3px 0 0;min-height:2px;transition:height 0.5s;"></div>';
-					th += '<span style="font-size:7px;font-weight:600;color:#94a3b8;">' + label + '</span>';
-					th += '</div>';
-				});
-				th += '</div>';
-				trendEl.innerHTML = th;
-			} else if (trendEl) {
-				trendEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No release data</div>';
-			}
-
-			// Release by Company bars
+			// Release by Company table + Unreserved stock
 			var relByCo = document.getElementById('oz-release-activity');
 			if (relByCo && d.release_by_company && d.release_by_company.length) {
 				var colors = { 'Geeta Enterprise': '#3b82f6', 'Global Export': '#10b981', 'Shubham Enterprise': '#f59e0b' };
-				var totalRel = d.total_released_qty || 1;
-				var rh = '<table class="oz-table"><thead><tr><th>Company</th><th style="text-align:right;">Released</th><th style="text-align:right;">Releases</th><th style="width:120px;">Share</th></tr></thead><tbody>';
+				var totalRel = d.total_released_nos || 1;
+				var rh = '<table class="oz-table"><thead><tr><th>Company</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Releases</th><th style="width:120px;">Share</th></tr></thead><tbody>';
 				d.release_by_company.forEach(function (row) {
-					var pct = totalRel > 0 ? ((row.total_released_qty / totalRel) * 100).toFixed(1) : 0;
+					var pct = totalRel > 0 ? ((row.total_released_nos / totalRel) * 100).toFixed(1) : 0;
 					var c = colors[row.company] || '#64748b';
 					rh += '<tr>';
 					rh += '<td><span class="oz-badge" style="color:' + c + ';background:' + c + '15;">' + row.company + '</span></td>';
-					rh += '<td style="text-align:right;font-weight:800;color:#1e293b;">' + oz_n(row.total_released_qty) + '</td>';
+					rh += '<td style="text-align:right;font-weight:800;color:#1e293b;">' + oz_n(row.total_released_nos || 0) + '</td>';
+					rh += '<td style="text-align:right;font-weight:800;color:#059669;">' + oz_n(row.total_released_litres || 0) + ' L</td>';
 					rh += '<td style="text-align:right;">' + row.release_count + '</td>';
 					rh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:' + c + ';"></div></div><span style="font-size:8px;font-weight:700;color:' + c + ';min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td>';
 					rh += '</tr>';
@@ -1908,34 +1883,33 @@ function load_all_data() {
 						var c = colors[u.company] || '#64748b';
 						rh += '<div style="flex:1;background:' + c + '08;border:1px solid ' + c + '20;border-radius:8px;padding:8px;text-align:center;">';
 						rh += '<div style="font-size:9px;font-weight:700;color:' + c + ';">' + u.company + '</div>';
-						rh += '<div style="font-size:13px;font-weight:800;color:#1e293b;margin-top:2px;">' + oz_n(u.qty) + ' L</div>';
+						rh += '<div style="font-size:13px;font-weight:800;color:#1e293b;margin-top:2px;">' + oz_n(u.qty_nos || 0) + ' Nos / ' + oz_n(u.qty_litres || 0) + ' L</div>';
 						rh += '</div>';
 					});
 					rh += '</div></div>';
 				}
 
+				// Top Released Items
+				if (d.top_released_items && d.top_released_items.length) {
+					var maxItem = Math.max.apply(null, d.top_released_items.map(function(x) { return x.total_released_nos; })) || 1;
+					rh += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;">';
+					rh += '<div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px;">Top Released Items</div>';
+					rh += '<table class="oz-table"><thead><tr><th>Item</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="width:80px;">Share</th></tr></thead><tbody>';
+					d.top_released_items.forEach(function (row) {
+						var pct = (row.total_released_nos / maxItem) * 100;
+						rh += '<tr>';
+						rh += '<td style="font-weight:700;color:#1e293b;">' + (row.item_name || row.item) + '</td>';
+						rh += '<td style="text-align:right;font-weight:800;color:#1e293b;">' + oz_n(row.total_released_nos) + '</td>';
+						rh += '<td style="text-align:right;font-weight:800;color:#059669;">' + oz_n(row.total_released_litres) + ' L</td>';
+						rh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#34d399,#059669);"></div></div><span style="font-size:8px;font-weight:700;color:#059669;min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td>';
+						rh += '</tr>';
+					});
+					rh += '</tbody></table></div>';
+				}
+
 				relByCo.innerHTML = rh;
 			} else if (relByCo) {
 				relByCo.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No release activity</div>';
-			}
-
-			// Top Released Items
-			var topRelEl = document.getElementById('oz-top-released-items');
-			if (topRelEl && d.top_released_items && d.top_released_items.length) {
-				var maxItem = Math.max.apply(null, d.top_released_items.map(function(x) { return x.total_released; })) || 1;
-				var ih = '<table class="oz-table"><thead><tr><th>Item</th><th style="text-align:right;">Released</th><th style="width:80px;">Share</th></tr></thead><tbody>';
-				d.top_released_items.forEach(function (row) {
-					var pct = (row.total_released / maxItem) * 100;
-					ih += '<tr>';
-					ih += '<td style="font-weight:700;color:#1e293b;">' + (row.item_name || row.item) + '</td>';
-					ih += '<td style="text-align:right;font-weight:800;color:#059669;">' + oz_n(row.total_released) + '</td>';
-					ih += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#34d399,#059669);"></div></div><span style="font-size:8px;font-weight:700;color:#059669;min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td>';
-					ih += '</tr>';
-				});
-				ih += '</tbody></table>';
-				topRelEl.innerHTML = ih;
-			} else if (topRelEl) {
-				topRelEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No releases yet</div>';
 			}
 		}
 	});
@@ -2043,7 +2017,8 @@ function load_all_data() {
 				s += '<span class="oz-chain-step oz-chain-active">' + (row.to_company || '') + '</span>';
 				s += '<span style="margin-left:auto;font-size:9px;color:#94a3b8;">' + (row.item_list || row.items || '') + '</span></div>';
 				s += '<div style="display:flex;gap:12px;font-size:9px;color:#94a3b8;margin-top:4px;">';
-				s += '<span>' + oz_n(row.total_qty) + ' L</span>';
+				s += '<span>' + oz_n(row.total_nos || 0) + ' Nos</span>';
+				s += '<span>' + oz_n(row.total_litres || 0) + ' L</span>';
 				s += '<span>' + (row.item_count || 0) + ' items</span>';
 				s += '<span>' + frappe.datetime.str_to_user(row.posting_date) + '</span>';
 				s += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;">' + (row.status || '') + '</span></div>';
@@ -2078,13 +2053,14 @@ function load_all_data() {
 		args: args,
 		callback: function (r) {
 			if (!r.message || !r.message.length) { $('#oz-table-ict').html('<div style="text-align:center;padding:20px;color:#94a3b8;">No transfers yet</div>'); return; }
-			var h = '<table class="oz-table"><thead><tr><th>ID</th><th>From</th><th>To</th><th>Qty</th><th>Value</th><th>Date</th></tr></thead><tbody>';
+			var h = '<table class="oz-table"><thead><tr><th>ID</th><th>From</th><th>To</th><th>Nos</th><th>Litres</th><th>Value</th><th>Date</th></tr></thead><tbody>';
 			r.message.forEach(function (row) {
 				h += '<tr onclick="frappe.set_route(\'Form\',\'Inter Company Transfer\',\'' + row.name + '\')">';
 				h += '<td style="font-weight:700;color:#0891b2;">' + row.name + '</td>';
 				h += '<td>' + (row.company || '') + '</td>';
 				h += '<td>' + (row.to_company || '') + '</td>';
-				h += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.total_qty) + '</td>';
+				h += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.total_nos || 0) + '</td>';
+				h += '<td style="font-weight:800;color:#059669;">' + oz_n(row.total_litres || 0) + ' L</td>';
 				h += '<td style="font-weight:700;color:#059669;">' + oz_k(row.grand_total) + '</td>';
 				h += '<td style="color:#94a3b8;">' + frappe.datetime.str_to_user(row.posting_date) + '</td></tr>';
 			});
@@ -2150,7 +2126,7 @@ function load_all_data() {
 				h += '<div class="oz-tl-dot" style="background:#ecfeff;color:#0891b2;">🔄</div>';
 				h += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + row.company + ' → ' + row.to_company + '</div>';
 				h += '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="font-size:8px;font-weight:700;color:#94a3b8;">' + frappe.datetime.str_to_user(row.posting_date) + '</span>';
-				h += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;margin-left:auto;">' + oz_n(row.total_qty) + ' L</span></div></div></div>';
+				h += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;margin-left:auto;">' + oz_n(row.total_nos || 0) + ' Nos / ' + oz_n(row.total_litres || 0) + ' L</span></div></div></div>';
 			});
 			h += '</div>';
 			$('#oz-activity').html(h);
@@ -2210,7 +2186,7 @@ function oz_render_routes_breakdown(data) {
 		html += '<div style="display:flex;gap:16px;margin-bottom:10px;">';
 		html += '<div style="flex:1;">';
 		html += '<div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Volume</div>';
-		html += '<div style="font-size:14px;font-weight:800;color:#0891b2;">' + oz_n(r.qty) + ' <span style="font-size:9px;font-weight:600;color:#94a3b8;">L</span></div>';
+		html += '<div style="font-size:14px;font-weight:800;color:#0891b2;">' + oz_n(r.qty_nos || 0) + ' <span style="font-size:9px;font-weight:600;color:#94a3b8;">Nos</span><br><span style="font-size:12px;">' + oz_n(r.qty_litres || 0) + ' <span style="font-size:8px;font-weight:600;color:#94a3b8;">L</span></span></div>';
 		html += '</div>';
 		html += '<div style="flex:1;">';
 		html += '<div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Value</div>';
