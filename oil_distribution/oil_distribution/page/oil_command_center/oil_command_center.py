@@ -645,14 +645,21 @@ def get_negative_stock():
 @frappe.whitelist()
 def get_recent_reservations():
     company, item = _get_filters()
-    it_filter, it_args = _item_filter("sr", "item")
+    it_filter, it_args = _item_filter("sri", "item")
     sr_co, sr_co_args = _co_where("sr.company")
 
     return frappe.db.sql(
-        """SELECT sr.name, sr.company, sr.item, sr.reserved_qty, sr.reserved_for, sr.status
+        """SELECT sr.name, sr.company, GROUP_CONCAT(DISTINCT sri.item SEPARATOR ', ') as item,
+            COALESCE(SUM(sri.qty), 0) as reserved_nos,
+            COALESCE(SUM(sri.qty * COALESCE(uom.conversion_factor, 1)), 0) as reserved_litres,
+            sr.reserved_for, sr.status, COUNT(DISTINCT sri.item) as item_count
         FROM `tabStock Reservation` sr
+        LEFT JOIN `tabStock Reservation Item` sri ON sri.parent = sr.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = sri.item AND uom.uom = 'Litre'
         WHERE sr.docstatus = 1 AND sr.status = 'Reserved' """
-        + sr_co + it_filter + " ORDER BY sr.creation DESC LIMIT 10",
+        + sr_co + it_filter +
+        """ GROUP BY sr.name, sr.company, sr.reserved_for, sr.status
+        ORDER BY sr.creation DESC LIMIT 10""",
         tuple(sr_co_args) + tuple(it_args),
         as_dict=True,
     )
@@ -662,32 +669,44 @@ def get_recent_reservations():
 def get_release_overview():
     company, item = _get_filters()
 
-    # Total released qty from Stock Release (submitted)
-    release_cond = "docstatus = 1"
+    # Build conditions
+    co_cond = ""
     if company != "All":
         companies = _parse_csv(company)
-        release_cond += " AND company IN ({})".format(",".join(frappe.db.escape(c) for c in companies))
+        co_cond = "AND sr.company IN ({})".format(",".join(frappe.db.escape(c) for c in companies))
 
+    item_cond = ""
+    if item != "All":
+        items = _parse_csv(item)
+        item_cond = "AND sri.item IN ({})".format(",".join(frappe.db.escape(i) for i in items))
+
+    # Total released with dual UOM
     release_data = frappe.db.sql("""
         SELECT
-            COALESCE(SUM(total_release_qty), 0) as total_released_qty,
-            COUNT(*) as release_count
-        FROM `tabStock Release`
-        WHERE {cond}
-    """.format(cond=release_cond), as_dict=True)
+            COUNT(DISTINCT sr.name) as release_count,
+            COALESCE(SUM(sri.qty), 0) as total_released_nos,
+            COALESCE(SUM(sri.qty * COALESCE(uom.conversion_factor, 1)), 0) as total_released_litres
+        FROM `tabStock Release` sr
+        LEFT JOIN `tabStock Release Item` sri ON sri.parent = sr.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = sri.item AND uom.uom = 'Litre'
+        WHERE sr.docstatus = 1 {co_cond} {item_cond}
+    """.format(co_cond=co_cond, item_cond=item_cond), as_dict=True)
 
     # Released by company
     release_by_company = frappe.db.sql("""
         SELECT
-            company,
-            COALESCE(SUM(total_release_qty), 0) as total_released_qty,
-            COUNT(*) as release_count
-        FROM `tabStock Release`
-        WHERE {cond}
-        GROUP BY company
-    """.format(cond=release_cond), as_dict=True)
+            sr.company,
+            COALESCE(SUM(sri.qty), 0) as total_released_nos,
+            COALESCE(SUM(sri.qty * COALESCE(uom.conversion_factor, 1)), 0) as total_released_litres,
+            COUNT(DISTINCT sr.name) as release_count
+        FROM `tabStock Release` sr
+        LEFT JOIN `tabStock Release Item` sri ON sri.parent = sr.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = sri.item AND uom.uom = 'Litre'
+        WHERE sr.docstatus = 1 {co_cond} {item_cond}
+        GROUP BY sr.company
+    """.format(co_cond=co_cond, item_cond=item_cond), as_dict=True)
 
-    # Stock in Unreserved WH (already released stock)
+    # Stock in Unreserved WH
     unreserved_cond = "1=1"
     if company != "All":
         companies = _parse_csv(company)
@@ -696,56 +715,58 @@ def get_release_overview():
     unreserved_stock = frappe.db.sql("""
         SELECT
             wh.company,
-            COALESCE(SUM(b.actual_qty), 0) as qty
+            COALESCE(SUM(b.actual_qty * COALESCE(uom.conversion_factor, 1)), 0) as qty_litres,
+            COALESCE(SUM(b.actual_qty), 0) as qty_nos
         FROM `tabBin` b
         INNER JOIN `tabWarehouse` wh ON wh.name = b.warehouse
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = b.item_code AND uom.uom = 'Litre'
         WHERE wh.warehouse_name = 'Unreserved WH' AND {cond}
         GROUP BY wh.company
     """.format(cond=unreserved_cond), as_dict=True)
 
-    total_unreserved = sum(r.qty for r in unreserved_stock) if unreserved_stock else 0
+    total_unreserved_nos = sum(r.qty_nos for r in unreserved_stock) if unreserved_stock else 0
+    total_unreserved_litres = sum(r.qty_litres for r in unreserved_stock) if unreserved_stock else 0
 
     # Monthly release trend (last 12 months)
     trend = frappe.db.sql("""
         SELECT
-            DATE_FORMAT(posting_date, '%Y-%m') as month,
-            COALESCE(SUM(total_release_qty), 0) as qty
-        FROM `tabStock Release`
-        WHERE {cond}
-            AND posting_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-        GROUP BY DATE_FORMAT(posting_date, '%Y-%m')
+            DATE_FORMAT(sr.posting_date, '%Y-%m') as month,
+            COALESCE(SUM(sri.qty), 0) as qty_nos,
+            COALESCE(SUM(sri.qty * COALESCE(uom.conversion_factor, 1)), 0) as qty_litres
+        FROM `tabStock Release` sr
+        LEFT JOIN `tabStock Release Item` sri ON sri.parent = sr.name
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = sri.item AND uom.uom = 'Litre'
+        WHERE sr.docstatus = 1 {co_cond}
+            AND sr.posting_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY DATE_FORMAT(sr.posting_date, '%Y-%m')
         ORDER BY month
-    """.format(cond=release_cond), as_dict=True)
+    """.format(co_cond=co_cond), as_dict=True)
 
-    # Add item filter support
-    item_cond = ""
-    if item != "All":
-        items = _parse_csv(item)
-        item_cond = " AND sri.item IN ({})".format(",".join(frappe.db.escape(i) for i in items))
-
+    # Top released items
     release_items = frappe.db.sql("""
         SELECT
             sri.item,
             i.item_name,
-            COALESCE(SUM(sri.qty), 0) as total_released
+            COALESCE(SUM(sri.qty), 0) as total_released_nos,
+            COALESCE(SUM(sri.qty * COALESCE(uom.conversion_factor, 1)), 0) as total_released_litres
         FROM `tabStock Release Item` sri
         INNER JOIN `tabStock Release` sr ON sr.name = sri.parent
         LEFT JOIN `tabItem` i ON i.name = sri.item
+        LEFT JOIN `tabUOM Conversion Detail` uom ON uom.parent = sri.item AND uom.uom = 'Litre'
         WHERE sr.docstatus = 1 {co_cond} {item_cond}
-        GROUP BY sri.item
-        ORDER BY total_released DESC
+        GROUP BY sri.item, i.item_name
+        ORDER BY total_released_nos DESC
         LIMIT 10
-    """.format(
-        co_cond="AND sr.company IN ({})".format(",".join(frappe.db.escape(c) for c in _parse_csv(company))) if company != "All" else "",
-        item_cond=item_cond
-    ), as_dict=True)
+    """.format(co_cond=co_cond, item_cond=item_cond), as_dict=True)
 
     return {
-        "total_released_qty": release_data[0].total_released_qty if release_data else 0,
+        "total_released_nos": release_data[0].total_released_nos if release_data else 0,
+        "total_released_litres": release_data[0].total_released_litres if release_data else 0,
         "release_count": release_data[0].release_count if release_data else 0,
         "release_by_company": release_by_company,
         "unreserved_stock": unreserved_stock,
-        "total_unreserved": total_unreserved,
+        "total_unreserved_nos": total_unreserved_nos,
+        "total_unreserved_litres": total_unreserved_litres,
         "release_trend": trend,
         "top_released_items": release_items
     }

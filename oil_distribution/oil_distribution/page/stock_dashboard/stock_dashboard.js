@@ -671,11 +671,23 @@ function sd_stacked_bars(el, labels, series, rawData) {
 
 	el.setAttribute('data-raw', JSON.stringify(rawData));
 	el.setAttribute('data-uid', uid);
+	el.style.position = 'relative';
 	el.innerHTML = s;
 
-	// Attach click events for navigation
+	// Attach hover/click events
 	var svg = el.querySelector('svg');
 	svg.querySelectorAll('rect[data-idx]').forEach(function (rect) {
+		var idx = parseInt(rect.getAttribute('data-idx'));
+		var label = rect.getAttribute('data-label');
+		rect.addEventListener('mouseenter', function (e) { sd_bc_hover(e.currentTarget, label, idx, e); });
+		rect.addEventListener('mousemove', function (e) {
+			var tip = document.getElementById(svg.parentElement.getAttribute('data-uid') + '-tip');
+			if (tip && tip.style.display !== 'none') {
+				tip.style.left = (e.clientX) + 'px';
+				tip.style.top = (e.clientY) + 'px';
+			}
+		});
+		rect.addEventListener('mouseleave', function (e) { sd_bc_leave(e.currentTarget); });
 		rect.addEventListener('click', function (e) { sd_bc_click(e.currentTarget); });
 	});
 
@@ -699,7 +711,7 @@ function sd_stacked_bars(el, labels, series, rawData) {
 	}, 50);
 }
 
-function sd_bc_hover(el, label, idx) {
+function sd_bc_hover(el, label, idx, ev) {
 	el.style.filter = 'url(#' + el.closest('svg').querySelector('filter').id.split('-')[0] + '-glow)';
 	el.style.opacity = '0.85';
 	var svg = el.closest('svg');
@@ -722,8 +734,12 @@ function sd_bc_hover(el, label, idx) {
 	tip.style.position = 'fixed';
 	tip.style.display = 'block';
 	tip.style.width = 'auto';
-	tip.style.maxWidth = '260px';
+	tip.style.maxWidth = '220px';
 	tip.style.margin = '0';
+	if (ev) {
+		tip.style.left = ev.clientX + 'px';
+		tip.style.top = ev.clientY + 'px';
+	}
 
 	// Dim other companies, show percentage labels
 	var allBars = svg.querySelectorAll('rect[data-idx]');

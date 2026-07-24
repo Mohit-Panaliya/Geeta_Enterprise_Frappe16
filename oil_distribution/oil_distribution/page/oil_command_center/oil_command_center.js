@@ -7,7 +7,7 @@ frappe.pages['oil-command-center'].on_page_load = function (wrapper) {
 
 	window.oz_company = 'All';
 	window.oz_item = 'All';
-	window.oz_period = 'MTD';
+	window.oz_period = 'YTD';
 	window.oz_months = 6;
 
 	page.main.html(get_dashboard_html());
@@ -544,11 +544,11 @@ function get_dashboard_html() {
 		<!-- Period Selector -->
 		<div id="oz-period-bar" class="oz-bar oz-period-bar oz-anim" style="animation-delay:0.06s;">
 			<label>Period</label>
-			<button class="oz-period-btn oz-period-active" data-period="MTD">MTD</button>
+			<button class="oz-period-btn" data-period="MTD">MTD</button>
 			<button class="oz-period-btn" data-period="QTD">QTD</button>
-			<button class="oz-period-btn" data-period="YTD">YTD</button>
-			<!-- MTD: Month chips (Apr-Mar of FY) -->
-			<div id="oz-month-controls" class="oz-period-controls">
+			<button class="oz-period-btn oz-period-active" data-period="YTD">YTD</button>
+
+			<div id="oz-month-controls" class="oz-period-controls" style="display:none;">
 				<span class="oz-period-label">Months:</span>
 				<div id="oz-month-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
 			</div>
@@ -558,7 +558,7 @@ function get_dashboard_html() {
 				<div id="oz-qtr-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
 			</div>
 			<!-- YTD: FY selector (only if multiple FYs) -->
-			<div id="oz-ytd-controls" class="oz-period-controls" style="display:none;">
+			<div id="oz-ytd-controls" class="oz-period-controls">
 				<span class="oz-period-label">FY:</span>
 				<div id="oz-ytd-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
 			</div>
@@ -633,7 +633,6 @@ function get_dashboard_html() {
 					</div>
 				</div>
 				<div id="oz-bar-chart" style="position:relative;min-height:240px;"></div>
-				<div id="oz-bar-tooltip" class="oz-tip"></div>
 			</div>
 
 			<!-- Top Items + Top Customers -->
@@ -801,7 +800,7 @@ function get_dashboard_html() {
 		<!-- ═══ PANEL: RESERVATIONS ═══ -->
 		<div id="oz-panel-reservations" class="oz-tab-panel" style="display:none;">
 
-			<!-- Reservations KPIs Row 1 -->
+			<!-- KPI Row: Active Reservations | Reserved Qty | Total Released -->
 			<div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.06s">
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">
 					<div class="oz-kpi-icon" style="background:#fef3c7;color:#d97706;">🔒</div>
@@ -811,99 +810,33 @@ function get_dashboard_html() {
 					</div>
 				</div>
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">
-					<div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">📊</div>
+					<div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
 					<div class="oz-kpi-info">
 						<div class="oz-kpi-val" id="oz-kpi-resqty" style="color:#7c3aed;">--</div>
 						<div class="oz-kpi-lbl">Reserved Quantity</div>
 					</div>
 				</div>
-				<div class="oz-kpi-card" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">
-					<div class="oz-kpi-icon" style="background:#d1fae5;color:#059669;">💰</div>
-					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-res-val" style="color:#059669;">--</div>
-						<div class="oz-kpi-lbl">Reserved Value</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Reservations KPIs Row 2 -->
-			<div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.08s">
 				<div class="oz-kpi-card">
-					<div class="oz-kpi-icon" style="background:#dbeafe;color:#3b82f6;">📦</div>
+					<div class="oz-kpi-icon" style="background:#d1fae5;color:#059669;">📤</div>
 					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-res-items" style="color:#3b82f6;">--</div>
-						<div class="oz-kpi-lbl">Reserved Items</div>
+						<div class="oz-kpi-val" id="oz-kpi-release-qty" style="color:#059669;">--</div>
+						<div class="oz-kpi-lbl">Total Released</div>
 					</div>
 				</div>
-				<div class="oz-kpi-card">
-					<div class="oz-kpi-icon" style="background:#fce7f3;color:#db2777;">📈</div>
-					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-res-util" style="color:#db2777;">--</div>
-						<div class="oz-kpi-lbl">Utilization</div>
-					</div>
-				</div>
-				<div class="oz-kpi-card">
-					<div class="oz-kpi-icon" style="background:#ecfeff;color:#0891b2;">🏢</div>
-					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-res-companies" style="color:#0891b2;">--</div>
-						<div class="oz-kpi-lbl">Companies</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Reserved by Company -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.1s">
-				<div class="oz-chart-head">
-					<div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🏢</div>
-					<div><div class="oz-chart-title">Reserved by Company</div><div class="oz-chart-sub">Stock reserved per company</div></div>
-				</div>
-				<div id="oz-res-by-company"></div>
 			</div>
 
 			<!-- Reservations Table -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.12s">
+			<div class="oz-chart-card oz-anim" style="animation-delay:0.08s">
 				<div class="oz-chart-head">
 					<div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🛡</div>
 					<div style="flex:1;"><div class="oz-chart-title">Active Reservations</div><div class="oz-chart-sub">Swastik reserved stock</div></div>
 					<a class="oz-link" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">View All →</a>
 				</div>
 				<div id="oz-table-res"></div>
-
-			<!-- Release KPI: single card -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.16s;margin-top:12px;padding:12px 18px;">
-				<div style="display:flex;align-items:center;gap:16px;">
-					<div style="background:#ecfdf5;color:#059669;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">📤</div>
-					<div style="flex:1;">
-						<div style="font-size:10px;font-weight:600;color:#64748b;">Total Released Qty</div>
-						<div style="font-size:20px;font-weight:800;color:#059669;" id="oz-kpi-release-qty">--</div>
-					</div>
-					<div style="text-align:right;">
-						<div style="font-size:9px;font-weight:600;color:#64748b;">Unreserved Stock</div>
-						<div style="font-size:14px;font-weight:700;color:#3b82f6;" id="oz-kpi-unreserved">--</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Release Trend + Top Released Items -->
-			<div class="oz-grid-2 oz-anim" style="animation-delay:0.20s">
-				<div class="oz-chart-card" style="margin-bottom:0;">
-					<div class="oz-chart-head">
-						<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📈</div>
-						<div><div class="oz-chart-title">Release Trend</div><div class="oz-chart-sub">Monthly releases (last 12 months)</div></div>
-					</div>
-					<div id="oz-release-trend"></div>
-				</div>
-				<div class="oz-chart-card" style="margin-bottom:0;">
-					<div class="oz-chart-head">
-						<div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🏆</div>
-						<div><div class="oz-chart-title">Top Released Items</div></div>
-					</div>
-					<div id="oz-top-released-items"></div>
-				</div>
 			</div>
 
 			<!-- Release Activity -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.24s;margin-top:12px;">
+			<div class="oz-chart-card oz-anim" style="animation-delay:0.12s;margin-top:12px;">
 				<div class="oz-chart-head">
 					<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📤</div>
 					<div><div class="oz-chart-title">Release Activity</div><div class="oz-chart-sub">Recent stock releases from reserved stock</div></div>
@@ -1206,7 +1139,7 @@ function oz_sparkline_with_pct(el, values, color, prevVal) {
 
 /* ═══════════ STACKED BAR CHART WITH VARIANCE ═══════════ */
 
-function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, variance, variance_change) {
+function oz_build_stacked_bar(container, labels, sales, purchase, variance, variance_change) {
 	if (!labels || !labels.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">No data</div>'; return; }
 
 	// Use container width for full-width chart
@@ -1266,15 +1199,17 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 		// Sales (bottom)
 		var salesY = P.t + ch - sh;
 		s += '<g class="oz-bar-group" data-idx="' + i + '" data-type="sales">';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + salesY + '" width="' + barW + '" height="' + sh + '" rx="0" fill="url(#salesGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"><title>Sales: ' + oz_n(sv) + '</title></rect>';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" style="cursor:pointer;"><title>Sales: ' + oz_n(sv) + '</title></rect>';
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + salesY + '" width="' + barW + '" height="' + sh + '" rx="0" fill="url(#salesGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"></rect>';
 		s += '</g>';
 
 		// Procurement (top, stacked on sales)
 		var procY = salesY - ph;
 		s += '<g class="oz-bar-group" data-idx="' + i + '" data-type="purchase">';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + procY + '" width="' + barW + '" height="' + ph + '" rx="3" fill="url(#procGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"><title>Procurement: ' + oz_n(pv) + '</title></rect>';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" style="cursor:pointer;"><title>Procurement: ' + oz_n(pv) + '</title></rect>';
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + procY + '" width="' + barW + '" height="' + ph + '" rx="3" fill="url(#procGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"></rect>';
+		s += '</g>';
+
+		// Unified transparent overlay for combined tooltip
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" data-idx="' + i + '" style="cursor:pointer;"></rect>';
 		s += '</g>';
 
 		// Month label
@@ -1324,18 +1259,20 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 
 	container.innerHTML = s;
 
-	// Custom tooltip
-	var tip = tooltip;
-	container.querySelectorAll('.oz-bar-group').forEach(function (g) {
-		g.addEventListener('mouseenter', function (e) {
-			var idx = parseInt(g.getAttribute('data-idx'));
-			var sv = sales[idx] || 0;
-			var pv = purchase[idx] || 0;
+	// Create tooltip inside container
+	var tip = document.createElement('div');
+	tip.className = 'oz-tip';
+	tip.style.display = 'none';
+	container.appendChild(tip);
+	container.querySelectorAll('rect[data-idx]').forEach(function (rect) {
+		var idx = parseInt(rect.getAttribute('data-idx'));
+		rect.addEventListener('mouseenter', function (e) {
+			var sv = sales[idx] || 0, pv = purchase[idx] || 0;
 			var v = variance && variance[idx] !== undefined ? variance[idx] : sv - pv;
 			var vPct = sv > 0 ? ((v / sv) * 100).toFixed(1) : '0.0';
 			var vColor = v >= 0 ? '#10b981' : '#ef4444';
 			var change = variance_change && variance_change[idx] !== null && variance_change[idx] !== undefined ? variance_change[idx] : null;
-			var changeColor = change !== null ? (change >= 0 ? '#10b981' : '#ef4444') : '#64748b';
+			var changeColor = change !== null ? (change >= 0 ? '#10b981' : '#ef4444') : '#94a3b8';
 			var changeArrow = change !== null ? (change >= 0 ? '↑' : '↓') : '';
 			tip.innerHTML = '<div style="font-weight:800;margin-bottom:6px;font-size:12px;color:#f1f5f9;">' + labels[idx] + '</div>' +
 				'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Sales: <b style="color:#93c5fd;">' + oz_n(sv) + '</b></div>' +
@@ -1346,22 +1283,27 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 			tip.style.display = 'block';
 			tip.style.margin = '0';
 			tip.style.width = 'auto';
-			tip.style.maxWidth = '260px';
+			tip.style.maxWidth = '200px';
 			tip.style.transform = 'none';
-			var x = e.clientX + 6, y = e.clientY - 10;
-			if (y < 4) y = e.clientY + 20;
-			if (x + 260 > window.innerWidth) x = window.innerWidth - 270;
-			tip.style.left = x + 'px';
-			tip.style.top = y + 'px';
+			tip.style.left = e.clientX + 'px';
+			tip.style.top = e.clientY + 'px';
 			tip.classList.add('show');
+
+			// Dim other bars
+			container.querySelectorAll('rect[data-idx]').forEach(function (r) {
+				if (parseInt(r.getAttribute('data-idx')) !== idx) r.style.opacity = '0.25';
+			});
 		});
-		g.addEventListener('mousemove', function (e) {
-			if (tip.style.display !== 'none') { tip.style.left = (e.clientX + 6) + 'px'; tip.style.top = Math.max(4, e.clientY - 10) + 'px'; }
+		rect.addEventListener('mousemove', function (e) {
+			if (tip.style.display !== 'none') {
+				tip.style.left = e.clientX + 'px';
+				tip.style.top = e.clientY + 'px';
+			}
 		});
-		g.addEventListener('mouseleave', function () {
+		rect.addEventListener('mouseleave', function () {
 			tip.classList.remove('show');
 			tip.style.display = 'none';
-			tip.style.position = '';
+			container.querySelectorAll('rect[data-idx]').forEach(function (r) { r.style.opacity = ''; });
 		});
 	});
 }
@@ -1742,7 +1684,7 @@ function load_all_data() {
 			if (!r.message) return;
 			var d = r.message;
 
-			oz_build_stacked_bar(document.getElementById('oz-bar-chart'), document.getElementById('oz-bar-tooltip'), d.labels, d.sales, d.purchase, d.variance, d.variance_change);
+			oz_build_stacked_bar(document.getElementById('oz-bar-chart'), d.labels, d.sales, d.purchase, d.variance, d.variance_change);
 
 			// Sparklines with percentage change (only when 1 period selected)
 			var salesPrevVal = (d.show_change && window.oz_kpi_data) ? window.oz_kpi_data.sales_prev : null;
@@ -1883,15 +1825,17 @@ function load_all_data() {
 		callback: function (r) {
 			var $el = $('#oz-table-res');
 			if (!r.message || !r.message.length) { $el.html('<div style="text-align:center;padding:20px;color:#94a3b8;">No active reservations</div>'); return; }
-			var totalQty = 0;
-			var h = '<table class="oz-table"><thead><tr><th>ID</th><th>Company</th><th>Item</th><th>Qty</th><th>For</th><th>Status</th></tr></thead><tbody>';
+			var totalNos = 0, totalLitres = 0;
+			var h = '<table class="oz-table"><thead><tr><th>ID</th><th>Company</th><th>Item</th><th>Nos</th><th>Litres</th><th>For</th><th>Status</th></tr></thead><tbody>';
 			r.message.forEach(function (row) {
-				totalQty += row.reserved_qty || 0;
+				totalNos += row.reserved_nos || 0;
+				totalLitres += row.reserved_litres || 0;
 				h += '<tr onclick="frappe.set_route(\'Form\',\'Stock Reservation\',\'' + row.name + '\')">';
 				h += '<td style="font-weight:700;color:#3b82f6;">' + row.name + '</td>';
 				h += '<td>' + (row.company || '') + '</td>';
-				h += '<td>' + (row.item || '') + '</td>';
-				h += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.reserved_qty) + '</td>';
+				h += '<td>' + (row.item || row.item_name || '') + '</td>';
+				h += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.reserved_nos || 0) + '</td>';
+				h += '<td style="font-weight:800;color:#059669;">' + oz_n(row.reserved_litres || 0) + ' L</td>';
 				h += '<td><span class="oz-badge" style="color:#7c3aed;background:#f5f3ff;">' + (row.reserved_for || '') + '</span></td>';
 				h += '<td><span class="oz-badge" style="color:#d97706;background:#fffbeb;">' + (row.status || '') + '</span></td></tr>';
 			});
@@ -1899,8 +1843,7 @@ function load_all_data() {
 			$el.html(h);
 			oz_count(document.getElementById('oz-kpi-reserved2'), r.message.length, '', '');
 			setTimeout(function () { document.getElementById('oz-kpi-reserved2').textContent = r.message.length + ' Active'; }, 1300);
-			oz_count(document.getElementById('oz-kpi-resqty'), Math.round(totalQty), '', ' L');
-			setTimeout(function () { document.getElementById('oz-kpi-resqty').textContent = oz_n(totalQty) + ' L'; }, 1300);
+			document.getElementById('oz-kpi-resqty').innerHTML = oz_n(totalNos) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(totalLitres) + ' <span style="font-size:10px;color:#94a3b8;">L</span>';
 		}
 	});
 
