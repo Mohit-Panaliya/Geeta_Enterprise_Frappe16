@@ -1,0 +1,102 @@
+{
+ "allow_guest_to_view": 0,
+ "autoname": "format:SR-{item}-{###}",
+ "creation": "2026-07-23 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item",
+  "item_name",
+  "stock_uom",
+  "column_break_4",
+  "qty",
+  "available_qty",
+  "already_reserved_qty",
+  "released_qty",
+  "batch_no",
+  "stock_entry"
+ ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "item.stock_uom",
+   "fieldname": "stock_uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Reserve Qty",
+   "non_negative": 1,
+   "reqd": 1
+  },
+   {
+    "fieldname": "available_qty",
+    "fieldtype": "Float",
+    "in_list_view": 1,
+    "label": "Avail Qty (Source WH)",
+    "read_only": 1
+   },
+   {
+    "fieldname": "already_reserved_qty",
+    "fieldtype": "Float",
+    "in_list_view": 1,
+    "label": "Already Reserved",
+    "read_only": 1
+   },
+  {
+   "fieldname": "released_qty",
+   "fieldtype": "Float",
+   "label": "Released Qty",
+   "read_only": 1,
+   "default": 0
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "label": "Stock Entry",
+   "options": "Stock Entry",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2026-07-23 00:00:00.000000",
+ "module": "Oil Distribution",
+ "name": "Stock Reservation Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

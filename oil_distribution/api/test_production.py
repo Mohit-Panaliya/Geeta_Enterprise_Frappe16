@@ -305,38 +305,38 @@ def execute():
     print("\n--- SECTION 4: Reports ---")
 
     def test_negative_stock_report():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.negative_stock_report.negative_stock_report.execute")()
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.negative_stock_report.negative_stock_report.execute")()
         assert len(columns) > 0
         assert isinstance(data, list)
         return True
 
     def test_available_vs_reserved_report():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.available_vs_reserved.available_vs_reserved.execute")()
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.available_vs_reserved.available_vs_reserved.execute")()
         assert len(columns) == 6
         return True
 
     def test_reserved_stock_report():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.reserved_stock.reserved_stock.execute")()
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.reserved_stock.reserved_stock.execute")()
         assert len(columns) == 10
         return True
 
     def test_iocl_procurement_report():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.iocl_procurement_report.iocl_procurement_report.execute")()
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.iocl_procurement_report.iocl_procurement_report.execute")()
         assert len(columns) == 6
         return True
 
     def test_company_wise_stock_report():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.company_wise_stock.company_wise_stock.execute")()
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.company_wise_stock.company_wise_stock.execute")()
         assert len(columns) == 6
         return True
 
     def test_intercompany_transfer_report():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.intercompany_transfer_report.intercompany_transfer_report.execute")()
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.intercompany_transfer_report.intercompany_transfer_report.execute")()
         assert len(columns) == 6
         return True
 
     def test_report_with_company_filter():
-        columns, data = frappe.get_attr("oil_distribution.dashboard_reports.report.negative_stock_report.negative_stock_report.execute")({"company": "Geeta Enterprise"})
+        columns, data = frappe.get_attr("oil_distribution.oil_distribution.report.negative_stock_report.negative_stock_report.execute")({"company": "Geeta Enterprise"})
         return True
 
     run_test("RPT-1: Negative stock report", test_negative_stock_report)

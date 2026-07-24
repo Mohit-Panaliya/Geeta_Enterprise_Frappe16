@@ -659,6 +659,175 @@ def get_recent_reservations():
 
 
 @frappe.whitelist()
+def get_release_overview():
+    company, item = _get_filters()
+
+    # Total released qty from Stock Release (submitted)
+    release_cond = "docstatus = 1"
+    if company != "All":
+        companies = _parse_csv(company)
+        release_cond += " AND company IN ({})".format(",".join(frappe.db.escape(c) for c in companies))
+
+    release_data = frappe.db.sql("""
+        SELECT
+            COALESCE(SUM(total_release_qty), 0) as total_released_qty,
+            COUNT(*) as release_count
+        FROM `tabStock Release`
+        WHERE {cond}
+    """.format(cond=release_cond), as_dict=True)
+
+    # Released by company
+    release_by_company = frappe.db.sql("""
+        SELECT
+            company,
+            COALESCE(SUM(total_release_qty), 0) as total_released_qty,
+            COUNT(*) as release_count
+        FROM `tabStock Release`
+        WHERE {cond}
+        GROUP BY company
+    """.format(cond=release_cond), as_dict=True)
+
+    # Stock in Unreserved WH (already released stock)
+    unreserved_cond = "1=1"
+    if company != "All":
+        companies = _parse_csv(company)
+        unreserved_cond = "wh.company IN ({})".format(",".join(frappe.db.escape(c) for c in companies))
+
+    unreserved_stock = frappe.db.sql("""
+        SELECT
+            wh.company,
+            COALESCE(SUM(b.actual_qty), 0) as qty
+        FROM `tabBin` b
+        INNER JOIN `tabWarehouse` wh ON wh.name = b.warehouse
+        WHERE wh.warehouse_name = 'Unreserved WH' AND {cond}
+        GROUP BY wh.company
+    """.format(cond=unreserved_cond), as_dict=True)
+
+    total_unreserved = sum(r.qty for r in unreserved_stock) if unreserved_stock else 0
+
+    # Monthly release trend (last 12 months)
+    trend = frappe.db.sql("""
+        SELECT
+            DATE_FORMAT(posting_date, '%Y-%m') as month,
+            COALESCE(SUM(total_release_qty), 0) as qty
+        FROM `tabStock Release`
+        WHERE {cond}
+            AND posting_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY DATE_FORMAT(posting_date, '%Y-%m')
+        ORDER BY month
+    """.format(cond=release_cond), as_dict=True)
+
+    # Add item filter support
+    item_cond = ""
+    if item != "All":
+        items = _parse_csv(item)
+        item_cond = " AND sri.item IN ({})".format(",".join(frappe.db.escape(i) for i in items))
+
+    release_items = frappe.db.sql("""
+        SELECT
+            sri.item,
+            i.item_name,
+            COALESCE(SUM(sri.qty), 0) as total_released
+        FROM `tabStock Release Item` sri
+        INNER JOIN `tabStock Release` sr ON sr.name = sri.parent
+        LEFT JOIN `tabItem` i ON i.name = sri.item
+        WHERE sr.docstatus = 1 {co_cond} {item_cond}
+        GROUP BY sri.item
+        ORDER BY total_released DESC
+        LIMIT 10
+    """.format(
+        co_cond="AND sr.company IN ({})".format(",".join(frappe.db.escape(c) for c in _parse_csv(company))) if company != "All" else "",
+        item_cond=item_cond
+    ), as_dict=True)
+
+    return {
+        "total_released_qty": release_data[0].total_released_qty if release_data else 0,
+        "release_count": release_data[0].release_count if release_data else 0,
+        "release_by_company": release_by_company,
+        "unreserved_stock": unreserved_stock,
+        "total_unreserved": total_unreserved,
+        "release_trend": trend,
+        "top_released_items": release_items
+    }
+
+
+@frappe.whitelist()
+def get_uom_stock_summary():
+    company, item = _get_filters()
+
+    co_cond = ""
+    if company != "All":
+        companies = _parse_csv(company)
+        co_cond = "AND wh.company IN ({})".format(",".join(frappe.db.escape(c) for c in companies))
+
+    item_cond = ""
+    if item != "All":
+        items = _parse_csv(item)
+        item_cond = "AND b.item_code IN ({})".format(",".join(frappe.db.escape(i) for i in items))
+
+    # Get stock with UOM conversion factors
+    data = frappe.db.sql("""
+        SELECT
+            b.item_code,
+            i.item_name,
+            i.stock_uom,
+            COALESCE(SUM(b.actual_qty), 0) as qty_in_nos,
+            wh.warehouse_name,
+            wh.company,
+            (
+                SELECT COALESCE(ucd.conversion_factor, 1.0)
+                FROM `tabUOM Conversion Detail` ucd
+                WHERE ucd.parent = i.name AND ucd.uom = 'Litre'
+                LIMIT 1
+            ) as litre_factor
+        FROM `tabBin` b
+        INNER JOIN `tabItem` i ON i.name = b.item_code
+        INNER JOIN `tabWarehouse` wh ON wh.name = b.warehouse
+        WHERE b.actual_qty != 0 {co_cond} {item_cond}
+        GROUP BY b.item_code, wh.company
+        ORDER BY b.item_code, wh.company
+    """.format(co_cond=co_cond, item_cond=item_cond), as_dict=True)
+
+    # Calculate summary
+    total_nos = 0
+    total_litres = 0
+    items_summary = {}
+    companies_summary = {}
+
+    for row in data:
+        nos = row.qty_in_nos
+        litre = nos * row.litre_factor
+        total_nos += nos
+        total_litres += litre
+
+        # Per-item
+        if row.item_code not in items_summary:
+            items_summary[row.item_code] = {
+                "item_code": row.item_code,
+                "item_name": row.item_name,
+                "stock_uom": row.stock_uom,
+                "qty_nos": 0,
+                "qty_litres": 0,
+                "litre_factor": row.litre_factor
+            }
+        items_summary[row.item_code]["qty_nos"] += nos
+        items_summary[row.item_code]["qty_litres"] += litre
+
+        # Per-company
+        if row.company not in companies_summary:
+            companies_summary[row.company] = {"company": row.company, "qty_nos": 0, "qty_litres": 0}
+        companies_summary[row.company]["qty_nos"] += nos
+        companies_summary[row.company]["qty_litres"] += litre
+
+    return {
+        "total_qty_nos": total_nos,
+        "total_qty_litres": total_litres,
+        "items": sorted(items_summary.values(), key=lambda x: abs(x["qty_nos"]), reverse=True),
+        "companies": sorted(companies_summary.values(), key=lambda x: abs(x["qty_nos"]), reverse=True)
+    }
+
+
+@frappe.whitelist()
 def get_recent_icts():
     company, item = _get_filters()
     it_filter, it_args = _item_filter("iti")

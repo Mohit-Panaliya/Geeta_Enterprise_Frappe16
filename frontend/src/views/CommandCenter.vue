@@ -107,6 +107,7 @@
             </div>
             <div id="oz-bar-chart" style="position:relative;min-height:240px;"></div>
             <div id="oz-bar-tooltip" class="oz-tip"></div>
+            <div id="oz-monthly-table" style="margin-top:12px;"></div>
           </div>
           <div class="oz-grid-2 oz-anim" style="animation-delay:0.16s">
             <div class="oz-chart-card" style="margin-bottom:0;">
@@ -174,7 +175,7 @@
               <div style="width:1px;height:80px;background:#f1f5f9;"></div>
               <div style="text-align:center;min-width:80px;">
                 <div id="oz-ring" style="display:flex;justify-content:center;"></div>
-                <div style="font-size:8px;font-weight:700;color:#94a3b8;margin-top:2px;">Utilization</div>
+                <div style="font-size:8px;font-weight:700;color:#64748b;margin-top:2px;">Utilization</div>
               </div>
               <div style="width:1px;height:80px;background:#f1f5f9;"></div>
               <div style="min-width:140px;">
@@ -327,57 +328,57 @@
 </template>
 
 <style>
-.oz { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #1e293b; padding: 0 20px 20px; }
+.oz { font-family: 'Montserrat', system-ui, -apple-system, sans-serif; color: #0f172a; padding: 0 20px 20px; }
 .oz * { box-sizing: border-box; }
 .oz-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; box-shadow: 0 1px 3px rgba(0,20,40,0.04); }
 .top-bars { position: sticky; top: 0; z-index: 50; background: #f0f4f8; border-radius: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; padding: 6px; }
 .oz-bar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; flex-wrap: wrap; }
-.oz-bar label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; display: flex; align-items: center; line-height: 1; margin: 0; }
-.oz-filter-tag { font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #eff6ff; color: #3b82f6; white-space: nowrap; }
+.oz-bar label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; display: flex; align-items: center; line-height: 1; margin: 0; }
+.oz-filter-tag { font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #dbeafe; color: #2563eb; white-space: nowrap; }
 .oz-tabs { display: flex; gap: 2px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 3px; width: fit-content; }
-.oz-tab-btn { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
+.oz-tab-btn { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; color: #64748b; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
 .oz-tab-btn:hover { color: #475569; background: #f8fafc; }
 .oz-tab-active { background: #3b82f6 !important; color: #fff !important; }
 .oz-period-bar { }
-.oz-period-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 9px; font-weight: 700; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
+.oz-period-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 9px; font-weight: 700; cursor: pointer; color: #64748b; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
 .oz-period-btn:hover { border-color: #3b82f6; color: #3b82f6; }
 .oz-period-active { background: #3b82f6 !important; color: #fff !important; border-color: #3b82f6 !important; }
 .oz-period-controls { display: flex; align-items: center; gap: 8px; margin-left: 16px; }
-.oz-month-chip { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 9px; font-weight: 700; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
+.oz-month-chip { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 9px; font-weight: 700; cursor: pointer; color: #64748b; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
 .oz-month-chip:hover { border-color: #3b82f6; color: #3b82f6; }
-.oz-month-chip-active { background: #dbeafe !important; color: #3b82f6 !important; border-color: #3b82f6 !important; }
-.oz-qtr-chip { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 9px; font-weight: 700; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
-.oz-qtr-chip:hover { border-color: #3b82f6; color: #3b82f6; }
-.oz-qtr-chip-active { background: #d1fae5 !important; color: #059669 !important; border-color: #059669 !important; }
+.oz-month-chip-active { background: #dbeafe !important; color: #2563eb !important; border-color: #3b82f6 !important; }
+.oz-qtr-chip { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 9px; font-weight: 700; cursor: pointer; color: #64748b; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
+.oz-qtr-chip:hover { border-color: #10b981; color: #10b981; }
+.oz-qtr-chip-active { background: #d1fae5 !important; color: #059669 !important; border-color: #10b981 !important; }
 .oz-kpi-row { display: grid; gap: 10px; margin-bottom: 14px; }
 .oz-kpi-row-3 { grid-template-columns: repeat(3, 1fr); }
 .oz-kpi-row-2 { grid-template-columns: repeat(2, 1fr); }
 .oz-kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
-.oz-kpi-card:hover { box-shadow: 0 4px 12px rgba(0,20,40,0.08); transform: translateY(-2px); }
+.oz-kpi-card:hover { box-shadow: 0 4px 14px rgba(0,20,40,0.08); transform: translateY(-2px); }
 .oz-kpi-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
 .oz-kpi-info { flex: 1; min-width: 0; }
 .oz-kpi-val { font-size: 22px; font-weight: 800; line-height: 1.1; }
-.oz-kpi-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 1px; }
+.oz-kpi-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-top: 1px; }
 .oz-kpi-spark { margin-top: 3px; }
 .oz-chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
 .oz-chart-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .oz-chart-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
-.oz-chart-title { font-size: 12px; font-weight: 700; color: #1e293b; }
-.oz-chart-sub { font-size: 9px; color: #94a3b8; }
+.oz-chart-title { font-size: 12px; font-weight: 700; color: #0f172a; }
+.oz-chart-sub { font-size: 9px; color: #64748b; }
 .oz-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.oz-table th { text-align: left; padding: 7px 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+.oz-table th { text-align: left; padding: 7px 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
 .oz-table td { padding: 8px 10px; border-bottom: 1px solid #f8fafc; color: #475569; }
 .oz-table tr { cursor: pointer; transition: background 0.15s; }
 .oz-table tr:hover { background: #f1f5f9; }
 .oz-cs { position: relative; display: inline-block; }
-.oz-cs-btn { display: flex; align-items: center; gap: 6px; padding: 4px 24px 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 9px; font-weight: 700; cursor: pointer; min-width: 80px; white-space: nowrap; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: all 0.2s; }
+.oz-cs-btn { display: flex; align-items: center; gap: 6px; padding: 4px 24px 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 9px; font-weight: 700; cursor: pointer; min-width: 80px; white-space: nowrap; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
 .oz-cs-btn:hover { border-color: #3b82f6; color: #3b82f6; background-color: #fff; }
-.oz-cs-btn.oz-cs-open { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); background-color: #fff; color: #1e293b; }
+.oz-cs-btn.oz-cs-open { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); background-color: #fff; color: #0f172a; }
 .oz-cs-panel { display: none; position: fixed; z-index: 9999; min-width: 140px; max-height: 240px; overflow-y: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,20,40,0.12); padding: 4px; }
 .oz-cs-panel.oz-cs-show { display: block; }
 .oz-cs-opt { display: flex; align-items: center; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: background 0.1s; font-size: 10px; font-weight: 600; color: #475569; }
-.oz-cs-opt:hover { background: #f1f5f9; color: #1e293b; }
-.oz-cs-opt.oz-cs-selected { background: #eff6ff; color: #3b82f6; font-weight: 700; }
+.oz-cs-opt:hover { background: #f1f5f9; color: #0f172a; }
+.oz-cs-opt.oz-cs-selected { background: #dbeafe; color: #2563eb; font-weight: 700; }
 .oz-period-label { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
 .oz-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
 .oz-link { font-size: 10px; font-weight: 600; color: #3b82f6; cursor: pointer; text-decoration: none; }
@@ -394,35 +395,35 @@
 .oz-tl-item { display: flex; gap: 8px; padding: 5px 4px; border-radius: 6px; margin-bottom: 2px; cursor: pointer; transition: all 0.15s; }
 .oz-tl-item:hover { background: #f1f5f9; }
 .oz-tl-dot { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; position: relative; z-index: 1; }
-.oz-tip { position: fixed; background: #1e293b; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 10px; pointer-events: none; z-index: 9999; white-space: nowrap; box-shadow: 0 12px 32px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); opacity: 0; transition: opacity 0.15s; }
+.oz-tip { position: fixed; background: #0f172a; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 10px; pointer-events: none; z-index: 9999; white-space: nowrap; box-shadow: 0 12px 32px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); opacity: 0; transition: opacity 0.15s; font-family: 'Montserrat', sans-serif; }
 .oz-tip.show { opacity: 1; }
 .oz-prog { height: 4px; border-radius: 4px; background: #f1f5f9; overflow: hidden; }
 .oz-prog-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
 .oz-rank { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; flex-shrink: 0; }
 .oz-chain { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 8px 0; }
 .oz-chain-step { padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; background: #f1f5f9; color: #64748b; }
-.oz-chain-active { background: #dbeafe; color: #3b82f6; }
+.oz-chain-active { background: #cffafe; color: #0891b2; }
 .oz-chain-arrow { color: #cbd5e1; font-size: 10px; }
 .oz-spark { display: inline-block; vertical-align: middle; }
 @keyframes ozFadeIn { 0%{opacity:0;transform:translateY(8px);}100%{opacity:1;transform:translateY(0);} }
 .oz-anim { animation: ozFadeIn 0.35s ease both; }
 .oz-ms { position: relative; display: inline-block; }
-.oz-ms-btn { display: flex; align-items: center; gap: 6px; padding: 5px 28px 5px 10px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer; min-width: 120px; white-space: nowrap; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: border-color 0.2s; }
+.oz-ms-btn { display: flex; align-items: center; gap: 6px; padding: 5px 28px 5px 10px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer; min-width: 120px; white-space: nowrap; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: border-color 0.2s; font-family: 'Montserrat', sans-serif; }
 .oz-ms-btn:hover { border-color: #cbd5e1; }
 .oz-ms-btn.oz-ms-open { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-.oz-ms-btn .oz-ms-count { background: #059669; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; }
+.oz-ms-btn .oz-ms-count { background: #10b981; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; }
 .oz-ms-panel { display: none; position: fixed; z-index: 9999; min-width: 220px; max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,20,40,0.12); padding: 6px; }
 .oz-ms-panel.oz-ms-show { display: block; }
-.oz-ms-search { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px; outline: none; margin-bottom: 4px; }
+.oz-ms-search { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px; outline: none; margin-bottom: 4px; font-family: 'Montserrat', sans-serif; }
 .oz-ms-search:focus { border-color: #3b82f6; }
 .oz-ms-actions { display: flex; gap: 4px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px; }
-.oz-ms-action { padding: 3px 8px; border-radius: 5px; border: none; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; color: #3b82f6; }
-.oz-ms-action:hover { background: #eff6ff; }
+.oz-ms-action { padding: 3px 8px; border-radius: 5px; border: none; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; color: #3b82f6; font-family: 'Montserrat', sans-serif; }
+.oz-ms-action:hover { background: #dbeafe; }
 .oz-ms-opt { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; cursor: pointer; transition: background 0.1s; }
 .oz-ms-opt:hover { background: #f1f5f9; }
 .oz-ms-opt input[type="checkbox"] { accent-color: #3b82f6; width: 14px; height: 14px; cursor: pointer; }
 .oz-ms-opt-label { font-size: 11px; font-weight: 600; color: #334155; flex: 1; }
-.oz-ms-opt-abbr { font-size: 9px; font-weight: 700; color: #94a3b8; }
+.oz-ms-opt-abbr { font-size: 9px; font-weight: 700; color: #64748b; }
 </style>
 
 <script setup>
@@ -525,7 +526,7 @@ function oz_ring(el, pct, c1, c2, sz) {
 
 function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, variance, variance_change) {
   if (!container) return
-  if (!labels || !labels.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">No data</div>'; return }
+  if (!labels || !labels.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;">No data</div>'; return }
   const containerW = container.offsetWidth || 700
   const W = Math.max(containerW, 400), H = 260, P = { t: 20, r: 20, b: 50, l: 55 }
   const cw = W - P.l - P.r, ch = H - P.t - P.b
@@ -547,7 +548,7 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
   for (let g = 0; g <= 5; g++) {
     const gy = P.t + (g / 5) * ch, val = Math.round(mx * (1 - g / 5))
     s += '<line x1="' + P.l + '" y1="' + gy + '" x2="' + (W - P.r) + '" y2="' + gy + '" stroke="#e2e8f0" stroke-width="0.5"/>'
-    s += '<text x="' + (P.l - 8) + '" y="' + (gy + 3) + '" text-anchor="end" fill="#94a3b8" font-size="8" font-weight="600">' + oz_k(val) + "</text>"
+    s += '<text x="' + (P.l - 8) + '" y="' + (gy + 3) + '" text-anchor="end" fill="#64748b" font-size="8" font-weight="600">' + oz_k(val) + "</text>"
   }
   labels.forEach((l, i) => {
     const cx = P.l + i * groupW + groupW / 2
@@ -565,7 +566,7 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
     if (variance && variance[i] !== undefined) {
       const vY = varScale(variance[i]), vColor = variance[i] >= 0 ? "#059669" : "#dc2626"
       const vPct = sv > 0 ? ((variance[i] / sv) * 100).toFixed(1) : "0.0"
-      if (i === 0) { const zeroY = varScale(0); s += '<line x1="' + P.l + '" y1="' + zeroY + '" x2="' + (W - P.r) + '" y2="' + zeroY + '" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="4,4"/>' }
+      if (i === 0) { const zeroY = varScale(0); s += '<line x1="' + P.l + '" y1="' + zeroY + '" x2="' + (W - P.r) + '" y2="' + zeroY + '" stroke="#64748b" stroke-width="0.5" stroke-dasharray="4,4"/>' }
       s += '<circle cx="' + cx + '" cy="' + vY + '" r="4" fill="' + vColor + '" opacity="0.9" filter="url(#barShadow)"><title>Variance: ' + (variance[i] >= 0 ? "+" : "") + oz_k(variance[i]) + " (" + vPct + "%)</title></circle>"
       if (i > 0 && variance[i - 1] !== undefined) {
         const prevX = P.l + (i - 1) * groupW + groupW / 2, prevY = varScale(variance[i - 1])
@@ -574,7 +575,7 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
       if (variance_change && variance_change[i] !== null && variance_change[i] !== undefined) {
         const change = variance_change[i], changeColor = change >= 0 ? "#059669" : "#dc2626", changeArrow = change >= 0 ? "\u2191" : "\u2193"
         s += '<text x="' + cx + '" y="' + (H - 14) + '" text-anchor="middle" fill="' + changeColor + '" font-size="8" font-weight="700">' + (change >= 0 ? "+" : "") + change + "%" + changeArrow + "</text>"
-      } else { s += '<text x="' + cx + '" y="' + (H - 14) + '" text-anchor="middle" fill="#94a3b8" font-size="8" font-weight="600">N/A</text>' }
+      } else { s += '<text x="' + cx + '" y="' + (H - 14) + '" text-anchor="middle" fill="#64748b" font-size="8" font-weight="600">N/A</text>' }
     }
     s += '<text x="' + cx + '" y="' + (procY - 5) + '" text-anchor="middle" fill="#1e293b" font-size="7" font-weight="700">' + oz_k(sv + pv) + "</text>"
   })
@@ -596,8 +597,8 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
         '<div style="border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;display:flex;align-items:center;gap:5px;"><div style="width:6px;height:6px;border-radius:50%;background:' + vColor2 + ';"></div><span style="font-size:9px;color:#64748b;">Variance</span><span style="font-size:10px;font-weight:700;color:' + vColor2 + ';margin-left:auto;">' + (v >= 0 ? "+" : "") + oz_k(v) + " (" + vPct2 + "%)</span></div>"
       if (variance_change && variance_change[idx] !== null && variance_change[idx] !== undefined) {
         const ch2 = variance_change[idx], chC = ch2 >= 0 ? "#059669" : "#dc2626", chA = ch2 >= 0 ? "\u2191" : "\u2193"
-        tooltip.innerHTML += '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;"><span style="font-size:9px;color:#94a3b8;">vs Previous</span><span style="font-size:10px;font-weight:700;color:' + chC + ';margin-left:auto;">' + (ch2 >= 0 ? "+" : "") + ch2 + "% " + chA + "</span></div>"
-      } else { tooltip.innerHTML += '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;"><span style="font-size:9px;color:#94a3b8;">vs Previous</span><span style="font-size:10px;font-weight:700;color:#94a3b8;margin-left:auto;">N/A</span></div>' }
+        tooltip.innerHTML += '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;"><span style="font-size:9px;color:#64748b;">vs Previous</span><span style="font-size:10px;font-weight:700;color:' + chC + ';margin-left:auto;">' + (ch2 >= 0 ? "+" : "") + ch2 + "% " + chA + "</span></div>"
+      } else { tooltip.innerHTML += '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;"><span style="font-size:9px;color:#64748b;">vs Previous</span><span style="font-size:10px;font-weight:700;color:#64748b;margin-left:auto;">N/A</span></div>' }
       const rect = g.getBoundingClientRect(); tooltip.style.left = (rect.left + rect.width / 2) + "px"; tooltip.style.top = (rect.top - 12) + "px"; tooltip.style.transform = "translateX(-50%) translateY(-100%)"; tooltip.classList.add("show")
     })
     g.addEventListener("mouseleave", () => { tooltip.classList.remove("show") })
@@ -607,7 +608,7 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 function oz_donut(el, data, size) {
   if (!el) return; size = size || 160
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No data</div>'; return }
+  if (total === 0) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b;">No data</div>'; return }
   const r = (size - 20) / 2, circ = 2 * Math.PI * r, ct = size / 2
   let cum = 0
   const uid = "donut-" + Math.random().toString(36).substr(2, 6)
@@ -622,12 +623,12 @@ function oz_donut(el, data, size) {
     s += "<title>" + seg.label + ": " + oz_n(seg.value) + " (" + Math.round(seg.pct * 100) + "%)</title></circle>" })
   s += "</svg>"
   s += '<div id="' + uid + '-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">'
-  s += '<span style="font-size:22px;font-weight:800;color:#1e293b;">' + total.toLocaleString() + '</span><span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;">Total</span></div></div>'
+  s += '<span style="font-size:22px;font-weight:800;color:#1e293b;">' + total.toLocaleString() + '</span><span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;">Total</span></div></div>'
   s += '<div id="' + uid + '-legend" style="display:flex;flex-direction:column;gap:6px;">'
   segs.forEach((seg, i) => { const pctStr = Math.round(seg.pct * 100) + "%"
     s += '<div class="oz-donut-leg" data-idx="' + i + '" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">'
     s += '<div style="width:10px;height:10px;border-radius:3px;background:' + seg.color + ';flex-shrink:0;"></div>'
-    s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">' + seg.label + '</div><div style="font-size:9px;color:#94a3b8;">' + oz_n(seg.value) + " (" + pctStr + ")</div></div>"
+    s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">' + seg.label + '</div><div style="font-size:9px;color:#64748b;">' + oz_n(seg.value) + " (" + pctStr + ")</div></div>"
     s += '<div style="width:40px;height:4px;border-radius:4px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + (seg.pct * 100) + "%;background:" + seg.color + ';border-radius:4px;"></div></div></div>' })
   s += "</div></div>"
   el.innerHTML = s
@@ -637,8 +638,8 @@ function oz_donut(el, data, size) {
   function highlight(idx) {
     segs_el.forEach((c, i) => { if (idx === null) { c.style.strokeWidth = "20"; c.style.opacity = "1" } else if (i === idx) { c.style.strokeWidth = "26"; c.style.opacity = "1" } else { c.style.strokeWidth = "16"; c.style.opacity = "0.35" } })
     leg_items.forEach((l, i) => { if (idx === null) { l.style.borderColor = "transparent"; l.style.background = "transparent" } else if (i === idx) { l.style.borderColor = segs[i].color; l.style.background = segs[i].color + "08" } else { l.style.borderColor = "transparent"; l.style.background = "transparent" } })
-    if (idx !== null) { center.innerHTML = '<span style="font-size:20px;font-weight:800;color:' + segs[idx].color + ';">' + Math.round(segs[idx].pct * 100) + '%</span><span style="font-size:8px;font-weight:700;color:#94a3b8;">' + segs[idx].label + "</span>" }
-    else { center.innerHTML = '<span style="font-size:22px;font-weight:800;color:#1e293b;">' + total.toLocaleString() + '</span><span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;">Total</span>' }
+    if (idx !== null) { center.innerHTML = '<span style="font-size:20px;font-weight:800;color:' + segs[idx].color + ';">' + Math.round(segs[idx].pct * 100) + '%</span><span style="font-size:8px;font-weight:700;color:#64748b;">' + segs[idx].label + "</span>" }
+    else { center.innerHTML = '<span style="font-size:22px;font-weight:800;color:#1e293b;">' + total.toLocaleString() + '</span><span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;">Total</span>' }
   }
   segs_el.forEach(c => { c.addEventListener("mouseenter", function () { highlight(parseInt(this.getAttribute("data-idx"))) }); c.addEventListener("mouseleave", () => highlight(null)) })
   leg_items.forEach(l => { l.addEventListener("mouseenter", function () { highlight(parseInt(this.getAttribute("data-idx"))) }); l.addEventListener("mouseleave", () => highlight(null)) })
@@ -671,7 +672,7 @@ function oz_render_ms_panel(container) {
   options.forEach(opt => { const checked = selected.indexOf(opt.value) !== -1 ? "checked" : ""
     const label = opt.label || opt.value, abbr = opt.abbr ? '<span class="oz-ms-opt-abbr">' + opt.abbr + "</span>" : ""
     html += '<label class="oz-ms-opt"><input type="checkbox" value="' + opt.value + '" ' + checked + '><span class="oz-ms-opt-label">' + label + "</span>" + abbr + "</label>" })
-  if (options.length === 0) html += '<div style="text-align:center;padding:12px;color:#94a3b8;font-size:10px;">Loading...</div>'
+  if (options.length === 0) html += '<div style="text-align:center;padding:12px;color:#64748b;font-size:10px;">Loading...</div>'
   panel.innerHTML = html
   panel.querySelector(".oz-ms-search").addEventListener("input", function () {
     const q = this.value.toLowerCase(); panel.querySelectorAll(".oz-ms-opt").forEach(opt => {
@@ -829,28 +830,45 @@ function _el(id) { return document.getElementById(id) }
 function _html(id, h) { const e = _el(id); if (e) e.innerHTML = h }
 function _text(id, t) { const e = _el(id); if (e) e.textContent = t }
 function _style(id, k, v) { const e = _el(id); if (e) e.style[k] = v }
-function _loading(ids) { ids.forEach(id => _html(id, '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>')) }
+function _loading(ids) { ids.forEach(id => _html(id, '<div style="text-align:center;padding:20px;color:#64748b;font-size:10px;">Loading...</div>')) }
 
 function _setChange(elemId, currVal, prevVal) {
   const el = _el(elemId); if (!el) return
-  if (prevVal === null || prevVal === undefined) { el.textContent = ""; el.style.color = "#94a3b8"; return }
-  if (prevVal === 0) { el.textContent = "N/A"; el.style.color = "#94a3b8"; return }
+  if (prevVal === null || prevVal === undefined) { el.textContent = ""; el.style.color = "#64748b"; return }
+  if (prevVal === 0) { el.textContent = "N/A"; el.style.color = "#64748b"; return }
   let chg = ((currVal - prevVal) / Math.abs(prevVal)) * 100
   chg = Math.max(-999, Math.min(999, chg)); const cr = Math.round(chg * 10) / 10
   const col = cr >= 0 ? "#059669" : "#dc2626", arrow = cr >= 0 ? "\u2191" : "\u2193"
   el.textContent = (cr >= 0 ? "+" : "") + cr + "% " + arrow; el.style.color = col
 }
 
-function _render_breakdown(containerId, data, total) {
+function _render_breakdown(containerId, data, total, prevData) {
   const el = _el(containerId); if (!el || !data) return
+  const showChange = (ozState.kpi_data || {}).show_change
   const colors = { "GE": "#3b82f6", "GEX": "#10b981", "SHE": "#f59e0b" }
   let html = ""
   data.forEach(row => {
     const c = colors[row.abbr] || "#64748b"
     const pct = total > 0 ? ((row.total / total) * 100).toFixed(0) : 0
+    let changeHtml = ""
+    if (showChange && prevData && prevData.length) {
+      const prevRow = prevData.find(x => x.abbr === row.abbr)
+      const prevVal = prevRow ? prevRow.total : 0
+      if (prevVal && prevVal !== 0) {
+        let chg = ((row.total - prevVal) / Math.abs(prevVal)) * 100
+        chg = Math.max(-999, Math.min(999, chg))
+        const cr = Math.round(chg * 10) / 10
+        const cc = cr >= 0 ? "#059669" : "#dc2626"
+        const arrow = cr >= 0 ? "\u2191" : "\u2193"
+        changeHtml = '<div style="font-size:9px;font-weight:700;color:' + cc + ';margin-top:1px;">' + (cr >= 0 ? "+" : "") + cr + "% " + arrow + "</div>"
+      } else {
+        changeHtml = '<div style="font-size:9px;font-weight:600;color:#64748b;margin-top:1px;">N/A</div>'
+      }
+    }
     html += '<div style="background:' + c + '08;border:1px solid ' + c + '20;border-radius:8px;padding:8px;text-align:center;">'
     html += '<div style="font-size:10px;font-weight:800;color:' + c + ';">' + (row.abbr || row.company) + "</div>"
     html += '<div style="font-size:12px;font-weight:800;color:#1e293b;margin-top:2px;">' + oz_k(row.total) + "</div>"
+    html += changeHtml
     html += '<div style="height:3px;border-radius:3px;background:#f1f5f9;margin-top:4px;overflow:hidden;"><div style="height:100%;width:' + pct + "%;background:" + c + ';border-radius:3px;"></div></div></div>'
   })
   el.innerHTML = html
@@ -858,14 +876,14 @@ function _render_breakdown(containerId, data, total) {
 
 function _render_top_items(data) {
   const el = _el("oz-top-items"); if (!el) return
-  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">No sales data</div>'; return }
+  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;">No sales data</div>'; return }
   const totalRev = data.reduce((s, row) => s + (row.revenue || row.total_revenue || 0), 0)
   let h = '<table class="oz-table"><thead><tr><th>#</th><th>Item</th><th>Qty</th><th style="text-align:right;">Revenue</th><th style="width:100px;">% of Total</th></tr></thead><tbody>'
   data.forEach((row, i) => {
     const rev = row.revenue || row.total_revenue || 0, qty = row.qty || row.total_qty || 0
     const pct = totalRev > 0 ? ((rev / totalRev) * 100).toFixed(1) : "0.0"
-    const rankColor = i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7f32" : "#e2e8f0"
-    const rankText = i < 3 ? "#fff" : "#94a3b8"
+    const rankColor = i === 0 ? "#f59e0b" : i === 1 ? "#64748b" : i === 2 ? "#cd7f32" : "#e2e8f0"
+    const rankText = i < 3 ? "#fff" : "#64748b"
     h += '<tr><td><span class="oz-rank" style="background:' + rankColor + ";color:" + rankText + ';">' + (i + 1) + '</span></td>'
     h += '<td style="font-weight:700;color:#1e293b;">' + row.item_code + "</td>"
     h += "<td>" + oz_n(qty) + "</td>"
@@ -875,30 +893,34 @@ function _render_top_items(data) {
   h += "</tbody></table>"; el.innerHTML = h
 }
 
-function _render_company_comparison(kpiData) {
+function _render_company_comparison(kpiData, companyCompareData) {
   const el = _el("oz-company-compare"); if (!el || !kpiData) return
   const salesByCo = kpiData.sales_by_company || [], procByCo = kpiData.procurement_by_company || []
   const coMap = {}
   salesByCo.forEach(s => { coMap[s.company] = coMap[s.company] || { company: s.company, sales: 0, purchase: 0, stock: 0 }; coMap[s.company].sales = s.total || 0; coMap[s.company].abbr = s.abbr || s.company })
   procByCo.forEach(p => { coMap[p.company] = coMap[p.company] || { company: p.company, sales: 0, purchase: 0, stock: 0 }; coMap[p.company].purchase = p.total || 0; coMap[p.company].abbr = p.abbr || p.company })
+  if (companyCompareData && companyCompareData.length) {
+    companyCompareData.forEach(c => { if (coMap[c.company]) coMap[c.company].stock = c.stock || 0 })
+  }
   const data = Object.values(coMap)
-  if (!data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;">No comparison data</div>'; return }
-  const maxVal = Math.max.apply(null, data.map(d => Math.max(d.sales, d.purchase))) || 1
+  if (!data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;">No comparison data</div>'; return }
+  const maxVal = Math.max.apply(null, data.map(d => Math.max(d.sales, d.purchase, d.stock))) || 1
   const colorMap = { "GE": { bg: "#eff6ff", accent: "#3b82f6" }, "GEX": { bg: "#ecfdf5", accent: "#10b981" }, "SHE": { bg: "#fef3c7", accent: "#f59e0b" } }
   let h = '<div style="display:grid;grid-template-columns:repeat(' + Math.min(data.length, 3) + ',1fr);gap:12px;">'
   data.forEach(d => {
     const abbr = d.abbr || d.company.substring(0, 3).toUpperCase(), c = colorMap[abbr] || { bg: "#f8fafc", accent: "#64748b" }
     h += '<div style="background:' + c.bg + ";border-radius:12px;padding:16px;\">"
-    h += '<div style="font-size:14px;font-weight:800;color:' + c.accent + ';margin-bottom:12px;">' + abbr + '<span style="font-size:9px;font-weight:600;color:#94a3b8;margin-left:4px;">' + d.company + "</span></div>"
+    h += '<div style="font-size:14px;font-weight:800;color:' + c.accent + ';margin-bottom:12px;">' + abbr + '<span style="font-size:9px;font-weight:600;color:#64748b;margin-left:4px;">' + d.company + "</span></div>"
     h += '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Sales</span><span>' + oz_k(d.sales) + '</span></div><div class="oz-prog"><div class="oz-prog-fill" style="width:' + (d.sales / maxVal * 100) + '%;background:#3b82f6;"></div></div></div>'
-    h += '<div><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Procurement</span><span>' + oz_k(d.purchase) + '</span></div><div class="oz-prog"><div class="oz-prog-fill" style="width:' + (d.purchase / maxVal * 100) + '%;background:#10b981;"></div></div></div></div>'
+    h += '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Procurement</span><span>' + oz_k(d.purchase) + '</span></div><div class="oz-prog"><div class="oz-prog-fill" style="width:' + (d.purchase / maxVal * 100) + '%;background:#10b981;"></div></div></div>'
+    h += '<div><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Stock</span><span>' + oz_n(d.stock) + ' L</span></div><div class="oz-prog"><div class="oz-prog-fill" style="width:' + (d.stock / maxVal * 100) + '%;background:#7c3aed;"></div></div></div></div>'
   })
   h += "</div>"; el.innerHTML = h
 }
 
 function oz_render_routes_breakdown(data) {
   const el = _el("oz-routes-breakdown"); if (!el) return
-  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No routes found</div>'; return }
+  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:10px;">No routes found</div>'; return }
   const grads = [["#60a5fa","#3b82f6","#eff6ff"],["#a78bfa","#8b5cf6","#f5f3ff"],["#22d3ee","#06b6d4","#ecfeff"],["#fbbf24","#f59e0b","#fffbeb"],["#34d399","#10b981","#ecfdf5"],["#f87171","#ef4444","#fef2f2"]]
   let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">'
   data.forEach((r, idx) => {
@@ -911,22 +933,22 @@ function oz_render_routes_breakdown(data) {
     html += '<div style="background:' + grad[0] + '18;border:1px solid ' + grad[0] + '30;border-radius:6px;padding:4px 10px;"><span style="font-size:11px;font-weight:800;color:' + grad[0] + ';">' + toAbbr + '</span></div></div>'
     html += '<div style="background:' + grad[0] + ';border-radius:5px;padding:5px;margin:5px;display:inline-flex;"><span style="font-size:13px;font-weight:800;color:#fff;">' + r.cnt + '</span></div></div>'
     html += '<div style="padding:12px 14px;"><div style="display:flex;gap:16px;margin-bottom:10px;">'
-    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Volume</div><div style="font-size:14px;font-weight:800;color:#0891b2;">' + oz_n(r.qty) + ' <span style="font-size:9px;font-weight:600;color:#94a3b8;">L</span></div></div>'
-    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Value</div><div style="font-size:14px;font-weight:800;color:#059669;">' + oz_k(r.value) + '</div></div></div></div></div>'
+    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Volume</div><div style="font-size:14px;font-weight:800;color:#0891b2;">' + oz_n(r.qty) + ' <span style="font-size:9px;font-weight:600;color:#64748b;">L</span></div></div>'
+    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Value</div><div style="font-size:14px;font-weight:800;color:#059669;">' + oz_k(r.value) + '</div></div></div></div></div>'
   })
   html += "</div>"; el.innerHTML = html
 }
 
 function oz_render_reserved_by_company(data) {
   const el = _el("oz-res-by-company"); if (!el) return
-  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No data</div>'; return }
+  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:10px;">No data</div>'; return }
   let maxVal = 0; data.forEach(r => { const v = r.val || r.value || 0; if (v > maxVal) maxVal = v })
   let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
   data.forEach(r => { const v = r.val || r.value || 0; const pct = maxVal > 0 ? (v / maxVal) * 100 : 0; const abbr = (r.company || "").replace(/^(\S+).*/, "$1")
     html += '<div style="flex:1;min-width:160px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;">'
     html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;font-weight:700;color:#1e293b;">' + abbr + '</span><span style="font-size:10px;font-weight:800;color:#d97706;">' + oz_n(r.qty) + ' L</span></div>'
     html += '<div style="height:4px;border-radius:4px;background:#f1f5f9;overflow:hidden;margin-bottom:4px;"><div style="height:100%;width:' + pct + '%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div></div>'
-    html += '<div style="font-size:8px;font-weight:700;color:#94a3b8;text-align:right;">' + oz_k(v) + '</div></div>' })
+    html += '<div style="font-size:8px;font-weight:700;color:#64748b;text-align:right;">' + oz_k(v) + '</div></div>' })
   html += "</div>"; el.innerHTML = html
 }
 
@@ -938,7 +960,7 @@ async function load_all_data() {
   const kpiIds = ["oz-kpi-sales","oz-kpi-proc","oz-kpi-avail","oz-kpi-reserved","oz-kpi-neg","oz-kpi-pl","oz-kpi-ict2","oz-kpi-ict-count","oz-kpi-ict-val","oz-kpi-reserved2","oz-kpi-resqty","oz-kpi-res-val","oz-kpi-res-items","oz-kpi-res-util","oz-kpi-res-companies"]
   kpiIds.forEach(id => _text(id, "--"))
   _text("oz-kpi-sales-change", ""); _text("oz-kpi-proc-change", ""); _text("oz-kpi-pl-change", "")
-  _loading(["oz-bar-chart","oz-chart-donut","oz-funnel-content","oz-ring","oz-mini-stats","oz-table-res","oz-table-ict","oz-table-neg","oz-activity","oz-top-items","oz-top-customers","oz-company-compare","oz-ict-chain","oz-warehouse-table","oz-routes-breakdown","oz-res-by-company"])
+  _loading(["oz-bar-chart","oz-monthly-table","oz-chart-donut","oz-funnel-content","oz-ring","oz-mini-stats","oz-table-res","oz-table-ict","oz-table-neg","oz-activity","oz-top-items","oz-top-customers","oz-company-compare","oz-ict-chain","oz-warehouse-table","oz-routes-breakdown","oz-res-by-company"])
   _html("oz-spark-sales", ""); _html("oz-spark-proc", ""); _html("oz-spark-pl", "")
   _html("oz-sales-breakdown", ""); _html("oz-proc-breakdown", ""); _html("oz-pl-breakdown", "")
 
@@ -952,7 +974,7 @@ async function load_all_data() {
 
   /* KPIs */
   try {
-    const d = await frappeRequest({ url: "oil_distribution.api.oil_ops.get_command_center_kpis", params: args })
+    const d = await frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_kpis", params: args })
     if (d) {
       ozState.kpi_data = d
       const abbrMap = { "Geeta Enterprise": "GE", "Global Export": "GEX", "Shubham Enterprise": "SHE" }
@@ -978,9 +1000,9 @@ async function load_all_data() {
       _style("oz-kpi-pl", "color", plColor); _style("oz-kpi-pl-icon", "background", plBg); _style("oz-kpi-pl-icon", "color", plColor)
       oz_count(_el("oz-kpi-pl"), Math.round(d.profit_loss), A, ""); setTimeout(() => _text("oz-kpi-pl", oz_k(d.profit_loss)), 1300)
 
-      _setChange("oz-kpi-sales-change", d.sales_mtd, d.sales_prev)
-      _setChange("oz-kpi-proc-change", d.procurement_mtd, d.procurement_prev)
-      _setChange("oz-kpi-pl-change", d.profit_loss, d.profit_loss_prev)
+      _setChange("oz-kpi-sales-change", d.sales_mtd, d.show_change ? d.sales_prev : null)
+      _setChange("oz-kpi-proc-change", d.procurement_mtd, d.show_change ? d.procurement_prev : null)
+      _setChange("oz-kpi-pl-change", d.profit_loss, d.show_change ? d.profit_loss_prev : null)
 
       oz_count(_el("oz-kpi-avail"), Math.round(d.available_stock), "", " L"); setTimeout(() => _text("oz-kpi-avail", oz_n(d.available_stock) + " L"), 1300)
       oz_count(_el("oz-kpi-reserved"), Math.round(d.reserved_stock), "", " L"); setTimeout(() => _text("oz-kpi-reserved", oz_n(d.reserved_stock) + " L"), 1300)
@@ -993,9 +1015,9 @@ async function load_all_data() {
       if (d.reserved_items !== undefined) { oz_count(_el("oz-kpi-res-items"), d.reserved_items, "", ""); setTimeout(() => _text("oz-kpi-res-items", d.reserved_items), 1300) }
       if (d.utilization_pct !== undefined) { oz_count(_el("oz-kpi-res-util"), d.utilization_pct, "", "%"); setTimeout(() => _text("oz-kpi-res-util", d.utilization_pct + "%"), 1300) }
 
-      _render_breakdown("oz-sales-breakdown", d.sales_by_company, d.sales_mtd)
-      _render_breakdown("oz-proc-breakdown", d.procurement_by_company, d.procurement_mtd)
-      _render_breakdown("oz-pl-breakdown", d.profit_loss_by_company, Math.abs(d.profit_loss))
+      _render_breakdown("oz-sales-breakdown", d.sales_by_company, d.sales_mtd, d.sales_prev_by_company)
+      _render_breakdown("oz-proc-breakdown", d.procurement_by_company, d.procurement_mtd, d.procurement_prev_by_company)
+      _render_breakdown("oz-pl-breakdown", d.profit_loss_by_company, Math.abs(d.profit_loss), d.profit_loss_prev_by_company)
 
       const tot = d.available_stock + d.reserved_stock
       let fh = '<div style="display:flex;flex-direction:column;gap:6px;">'
@@ -1009,12 +1031,6 @@ async function load_all_data() {
       fh += '</div>'; _html("oz-funnel-content", fh)
 
       oz_ring(_el("oz-ring"), tot > 0 ? (d.reserved_stock / tot) * 100 : 0, "#3b82f6", "#7c3aed")
-      _render_top_items(d.top_items)
-      _render_company_comparison(d)
-      if (d.reserved_by_company) oz_render_reserved_by_company(d.reserved_by_company)
-      if (d.routes_breakdown) oz_render_routes_breakdown(d.routes_breakdown)
-
-      if (d.reserved_by_company) { const rc = d.reserved_by_company.length; oz_count(_el("oz-kpi-res-companies"), rc, "", ""); setTimeout(() => _text("oz-kpi-res-companies", rc), 1300) }
 
       let ms = ""
       ;[{ l: "Sales", v: oz_k(d.sales_mtd), c: "#3b82f6" }, { l: "Procurement", v: oz_k(d.procurement_mtd), c: "#10b981" },
@@ -1022,51 +1038,78 @@ async function load_all_data() {
         { l: "ICTs", v: oz_n(d.intercompany_volume) + " L", c: "#0891b2" }, { l: "Alerts", v: d.negative_alerts, c: "#ef4444" }].forEach(s => {
         ms += '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:3px;background:' + s.c + '08;">'
         ms += '<div style="width:4px;height:18px;border-radius:2px;background:' + s.c + ';"></div>'
-        ms += '<span style="flex:1;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#94a3b8;">' + s.l + '</span>'
+        ms += '<span style="flex:1;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;">' + s.l + '</span>'
         ms += '<span style="font-size:12px;font-weight:800;color:' + s.c + ';">' + s.v + '</span></div>' })
       _html("oz-mini-stats", ms)
 
-      /* Sparklines */
-      const sparkVals = [d.sales_mtd * 0.6, d.sales_mtd * 0.75, d.sales_mtd * 0.85, d.sales_mtd * 0.95, d.sales_mtd]
-      oz_sparkline(_el("oz-spark-sales"), sparkVals, "#10b981")
-      oz_sparkline(_el("oz-spark-proc"), [d.procurement_mtd * 0.5, d.procurement_mtd * 0.7, d.procurement_mtd * 0.8, d.procurement_mtd * 0.9, d.procurement_mtd], "#f59e0b")
-      oz_sparkline_with_pct(_el("oz-spark-pl"), [0, 0, 0, 0, d.sales_mtd - d.procurement_mtd], "#3b82f6", d.sales_mtd - d.procurement_mtd)
-
-      /* Bar chart */
-      const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"]
-      const curM = new Date().getMonth(); const fyIdx = (curM - 3 + 12) % 12
-      const mLabel = months[fyIdx]
-      oz_build_stacked_bar(
-        _el("oz-bar-chart"), _el("oz-bar-tooltip"),
-        [mLabel],
-        [d.sales_mtd || 0],
-        [d.procurement_mtd || 0],
-        [d.sales_mtd - d.procurement_mtd],
-        null
-      )
+      /* Sparklines + bar chart loaded from trend endpoint in parallel section below */
     }
   } catch (e) { console.error("KPI load error:", e) }
 
-  /* Stock, ICT, Reservations - parallel */
-  const pStock = frappeRequest({ url: "oil_distribution.api.oil_ops.get_stock_kpis", params: args }).catch(() => null)
-  const pNeg = frappeRequest({ url: "oil_distribution.api.oil_ops.get_negative_stock", params: args }).catch(() => null)
-  const pIctKpi = frappeRequest({ url: "oil_distribution.api.oil_ops.get_ict_kpis", params: args }).catch(() => null)
-  const pIctRoutes = frappeRequest({ url: "oil_distribution.api.oil_ops.get_ict_routes", params: args }).catch(() => null)
-  const pIctList = frappeRequest({ url: "oil_distribution.api.oil_ops.get_ict_list", params: { ...args, limit: 30 } }).catch(() => null)
-  const pResKpi = frappeRequest({ url: "oil_distribution.api.oil_ops.get_reservation_kpis", params: args }).catch(() => null)
-  const pResByCo = frappeRequest({ url: "oil_distribution.api.oil_ops.get_reserved_by_company", params: args }).catch(() => null)
-  const pActiveRes = frappeRequest({ url: "oil_distribution.api.oil_ops.get_active_reservations", params: { ...args, limit: 30 } }).catch(() => null)
-  const pTopCust = frappeRequest({ url: "oil_distribution.api.oil_ops.get_top_customers", params: args }).catch(() => null)
-  const pWh = frappeRequest({ url: "oil_distribution.api.oil_ops.get_stock_by_warehouse", params: args }).catch(() => null)
+  /* Stock, ICT, Reservations + Trend - parallel */
+  const pNeg = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_negative_stock", params: args }).catch(() => null)
+  const pIctList = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_recent_icts", params: args }).catch(() => null)
+  const pActiveRes = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_recent_reservations", params: args }).catch(() => null)
+  const pTopCust = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_top_customers", params: args }).catch(() => null)
+  const pWh = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_warehouse_stock", params: args }).catch(() => null)
+  const pTrend = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_sales_procurement_trend", params: args }).catch(() => null)
+  const pCompanyCompare = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_company_comparison", params: args }).catch(() => null)
+  const pStockDonut = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_company_stock_distribution", params: args }).catch(() => null)
+  const pTopItems = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_top_items", params: args }).catch(() => null)
 
-  const [stockData, negData, ictKpiData, ictRoutesData, ictListData, resKpiData, resByCoData, activeResData, topCustData, whData] = await Promise.all([pStock, pNeg, pIctKpi, pIctRoutes, pIctList, pResKpi, pResByCo, pActiveRes, pTopCust, pWh])
+  const [negData, ictListData, activeResData, topCustData, whData, trendData, companyCompareData, stockDonutData, topItemsData] = await Promise.all([pNeg, pIctList, pActiveRes, pTopCust, pWh, pTrend, pCompanyCompare, pStockDonut, pTopItems])
+
+  /* Company comparison (needs KPI + parallel data) */
+  _render_company_comparison(ozState.kpi_data || {}, companyCompareData)
+  _render_top_items(topItemsData)
+
+  /* Bar chart + Sparklines from trend data */
+  if (trendData && trendData.labels && trendData.labels.length) {
+    oz_build_stacked_bar(
+      _el("oz-bar-chart"), _el("oz-bar-tooltip"),
+      trendData.labels, trendData.sales, trendData.purchase, trendData.variance, trendData.variance_change
+    )
+    const salesPrevVal = (ozState.kpi_data || {}).show_change ? (ozState.kpi_data || {}).sales_prev : null
+    const procPrevVal = (ozState.kpi_data || {}).show_change ? (ozState.kpi_data || {}).procurement_prev : null
+    const plPrevVal = (ozState.kpi_data || {}).show_change ? (ozState.kpi_data || {}).profit_loss_prev : null
+    oz_sparkline_with_pct(_el("oz-spark-sales"), trendData.sales, "#3b82f6", salesPrevVal)
+    oz_sparkline_with_pct(_el("oz-spark-proc"), trendData.purchase, "#10b981", procPrevVal)
+    const plValues = (trendData.sales || []).map((s, i) => (s || 0) - (trendData.purchase[i] || 0))
+    oz_sparkline_with_pct(_el("oz-spark-pl"), plValues, "#d97706", plPrevVal)
+
+    let th = '<table class="oz-table"><thead><tr><th>Month</th><th style="text-align:right;">Sales</th><th style="text-align:right;">Procurement</th><th style="text-align:right;">Variance</th><th style="text-align:right;">Margin %</th><th style="text-align:right;">vs Prev</th></tr></thead><tbody>'
+    for (let i = 0; i < trendData.labels.length; i++) {
+      const s = trendData.sales[i] || 0, p = trendData.purchase[i] || 0
+      const v = trendData.variance ? trendData.variance[i] : (s - p)
+      const margin = s > 0 ? ((v / s) * 100).toFixed(1) : '0.0'
+      const vc = v >= 0 ? '#059669' : '#dc2626'
+      const change = trendData.variance_change ? trendData.variance_change[i] : null
+      let changeHtml = ''
+      if (change !== null && change !== undefined) {
+        const cc = change >= 0 ? '#059669' : '#dc2626'
+        const ca = change >= 0 ? '↑' : '↓'
+        changeHtml = '<span style="font-weight:700;color:' + cc + ';">' + (change >= 0 ? '+' : '') + change + '% ' + ca + '</span>'
+      } else {
+        changeHtml = '<span style="color:#64748b;font-weight:600;">N/A</span>'
+      }
+      th += '<tr>'
+      th += '<td style="font-weight:700;color:#1e293b;">' + trendData.labels[i] + '</td>'
+      th += '<td style="text-align:right;font-weight:700;color:#3b82f6;">' + oz_k(s) + '</td>'
+      th += '<td style="text-align:right;font-weight:700;color:#10b981;">' + oz_k(p) + '</td>'
+      th += '<td style="text-align:right;font-weight:700;color:' + vc + ';">' + (v >= 0 ? '+' : '') + oz_k(v) + '</td>'
+      th += '<td style="text-align:right;font-weight:700;color:' + vc + ';">' + margin + '%</td>'
+      th += '<td style="text-align:right;">' + changeHtml + '</td>'
+      th += '</tr>'
+    }
+    th += '</tbody></table>'
+    _html("oz-monthly-table", th)
+  }
 
   /* Stock Intelligence */
   const mainKpi = ozState.kpi_data || {}
-  const sd = stockData || {}
-  const avail = sd.available_qty ?? mainKpi.available_stock ?? 0
-  const reserved = sd.reserved_qty ?? mainKpi.reserved_stock ?? 0
-  const negCnt = sd.negative_count ?? mainKpi.negative_alerts ?? 0
+  const avail = mainKpi.available_stock || 0
+  const reserved = mainKpi.reserved_stock || 0
+  const negCnt = mainKpi.negative_alerts || 0
   oz_count(_el("oz-kpi-avail"), Math.round(avail), "", " L")
   setTimeout(() => _text("oz-kpi-avail", oz_n(avail) + " L"), 1300)
   oz_count(_el("oz-kpi-reserved"), Math.round(reserved), "", " L")
@@ -1083,114 +1126,167 @@ async function load_all_data() {
     fh2 += '<span style="font-size:10px;font-weight:800;color:' + s.c + ';min-width:40px;text-align:right;">' + (s.v || 0).toLocaleString() + '</span></div>' })
   fh2 += '</div>'; _html("oz-funnel-content", fh2)
   oz_ring(_el("oz-ring"), tot2 > 0 ? (reserved / tot2) * 100 : 0, "#3b82f6", "#7c3aed")
-  /* Donut from stock by company */
-  try {
-    const stockByCo = await frappeRequest({ url: "oil_distribution.api.oil_ops.get_stock_by_company", params: args }).catch(() => null)
-    if (stockByCo && stockByCo.length) {
-      const cols = ["#3b82f6", "#10b981", "#f59e0b", "#7c3aed"]
-      const donutData = stockByCo.map((s, i) => ({ label: s.company, value: Math.round(s.avail_qty || 0), color: cols[i] || cols[3] }))
-      oz_donut(_el("oz-chart-donut"), donutData, 130)
-    }
-  } catch (e) {}
+  /* Donut from stock distribution */
+  if (stockDonutData && stockDonutData.labels && stockDonutData.labels.length) {
+    const cols = ["#3b82f6", "#10b981", "#f59e0b", "#7c3aed"]
+    const donutData = stockDonutData.labels.map((l, i) => ({ label: l, value: Math.round(stockDonutData.values[i] || 0), color: cols[i] || cols[3] }))
+    oz_donut(_el("oz-chart-donut"), donutData, 130)
+  }
 
   /* Negative stock */
   if (negData && negData.length) {
     let h = '<table class="oz-table"><thead><tr><th>Item</th><th>Warehouse</th><th>Qty</th></tr></thead><tbody>'
-    negData.forEach(row => { h += '<tr><td style="font-weight:700;">' + (row.item_code || "") + '</td><td>' + (row.warehouse || row.warehouse_name || "") + '</td><td style="font-weight:800;color:#dc2626;">' + oz_n(row.actual_qty) + '</td></tr>' })
+    negData.forEach(row => { h += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Bin\',\'' + (row.warehouse || "") + '/' + (row.item_code || "") + '\')"><td style="font-weight:700;">' + (row.item_code || "") + '</td><td>' + (row.warehouse || row.warehouse_name || "") + '</td><td style="font-weight:800;color:#dc2626;">' + oz_n(row.actual_qty) + '</td></tr>' })
     h += "</tbody></table>"; _html("oz-table-neg", h)
   } else { _html("oz-table-neg", '<div style="text-align:center;padding:20px;color:#059669;font-weight:600;">No negative stock</div>') }
 
-  /* ICT KPIs */
-  if (ictKpiData) {
-    const ik = ictKpiData
-    oz_count(_el("oz-kpi-ict2"), Math.round(ik.total_volume || 0), "", " L"); setTimeout(() => _text("oz-kpi-ict2", oz_n(ik.total_volume || 0) + " L"), 1300)
-    oz_count(_el("oz-kpi-ict-count"), ik.ict_count || 0, "", ""); setTimeout(() => _text("oz-kpi-ict-count", ik.ict_count || 0), 1300)
-    oz_count(_el("oz-kpi-ict-val"), Math.round(ik.ict_value || 0), A, ""); setTimeout(() => _text("oz-kpi-ict-val", oz_k(ik.ict_value || 0)), 1300)
+  /* ICT KPIs - already loaded from get_kpis */
+  const ikData = ozState.kpi_data || {}
+  if (ikData.intercompany_volume !== undefined) {
+    oz_count(_el("oz-kpi-ict2"), Math.round(ikData.intercompany_volume || 0), "", " L"); setTimeout(() => _text("oz-kpi-ict2", oz_n(ikData.intercompany_volume || 0) + " L"), 1300)
+  }
+  if (ikData.ict_count_mtd !== undefined) {
+    oz_count(_el("oz-kpi-ict-count"), ikData.ict_count_mtd || 0, "", ""); setTimeout(() => _text("oz-kpi-ict-count", ikData.ict_count_mtd || 0), 1300)
+  }
+  if (ikData.ict_value_mtd !== undefined) {
+    oz_count(_el("oz-kpi-ict-val"), Math.round(ikData.ict_value_mtd || 0), A, ""); setTimeout(() => _text("oz-kpi-ict-val", oz_k(ikData.ict_value_mtd || 0)), 1300)
   }
 
-  /* ICT Routes */
-  if (ictRoutesData) oz_render_routes_breakdown(ictRoutesData)
+  /* ICT Routes - already loaded from get_kpis */
+  if (ikData.routes_breakdown) oz_render_routes_breakdown(ikData.routes_breakdown)
 
   /* ICT List */
   if (ictListData && ictListData.length) {
     let ht = '<table class="oz-table"><thead><tr><th>ID</th><th>From</th><th>To</th><th>Qty</th><th>Value</th><th>Date</th></tr></thead><tbody>'
     ictListData.forEach(row => {
-      ht += '<tr><td style="font-weight:700;color:#0891b2;">' + row.name + "</td>"
+      ht += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Inter Company Transfer\',\'' + row.name + '\')">'
+      ht += '<td style="font-weight:700;color:#0891b2;">' + row.name + "</td>"
       ht += "<td>" + (row.company || "") + "</td><td>" + (row.to_company || "") + "</td>"
       ht += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.total_qty) + "</td>"
       ht += '<td style="font-weight:700;color:#059669;">' + oz_k(row.grand_total) + "</td>"
-      ht += '<td style="color:#94a3b8;">' + (row.posting_date || "") + "</td></tr>" })
+      ht += '<td style="color:#64748b;">' + (row.posting_date || "") + "</td></tr>" })
     ht += "</tbody></table>"; _html("oz-table-ict", ht)
     /* Chain detail */
     let hc = ""
-    ictListData.slice(0, 5).forEach(row => {
-      hc += '<div style="border:1px solid #f1f5f9;border-radius:10px;padding:12px;margin-bottom:8px;">'
-      hc += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
-      hc += '<span style="font-weight:700;color:#0891b2;font-size:11px;">' + row.name + "</span>"
-      hc += '<span class="oz-badge" style="color:#059669;background:#ecfdf5;">' + oz_k(row.grand_total) + "</span></div>"
-      hc += '<div class="oz-chain"><span class="oz-chain-step oz-chain-active">' + (row.company || "") + "</span>"
-      hc += '<span class="oz-chain-arrow">\u2192</span><span class="oz-chain-step oz-chain-active">' + (row.to_company || "") + "</span></div>"
-      hc += '<div style="font-size:9px;color:#94a3b8;">' + oz_n(row.total_qty) + " L | " + (row.status || "") + "</div></div>" })
-    if (!hc) hc = '<div style="text-align:center;padding:20px;color:#94a3b8;">No ICT data</div>'
+    const topChain = ictListData.slice(0, 3)
+    const restChain = ictListData.slice(3)
+    function ictRow(row) {
+      let r = '<div style="border:1px solid #f1f5f9;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Inter Company Transfer\',\'' + row.name + '\')">'
+      r += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+      r += '<span style="font-weight:700;color:#0891b2;font-size:11px;">' + row.name + "</span>"
+      r += '<span class="oz-badge" style="color:#059669;background:#ecfdf5;">' + oz_k(row.grand_total) + "</span></div>"
+      r += '<div class="oz-chain"><span class="oz-chain-step oz-chain-active">' + (row.company || "") + "</span>"
+      r += '<span class="oz-chain-arrow">\u2192</span><span class="oz-chain-step oz-chain-active">' + (row.to_company || "") + "</span></div>"
+      r += '<div style="display:flex;align-items:center;gap:6px;font-size:9px;color:#64748b;margin-top:4px;">'
+      r += '<span>' + oz_n(row.total_qty) + " L</span>"
+      if (row.item_list) r += '<span style="margin-left:auto;font-size:9px;color:#64748b;">' + row.item_list + '</span>'
+      r += '</div>'
+      r += '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">'
+      if (row.item_count) r += '<span style="font-size:8px;color:#64748b;">' + row.item_count + ' items</span>'
+      if (row.posting_date) r += '<span style="font-size:8px;color:#64748b;">' + row.posting_date + '</span>'
+      r += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;margin-left:auto;">' + (row.status || "") + "</span>"
+      r += '</div></div>'
+      return r
+    }
+    topChain.forEach(row => { hc += ictRow(row) })
+    if (restChain.length > 0) {
+      hc += '<div id="oz-ict-more-wrap">'
+      hc += '<a id="oz-ict-toggle" style="cursor:pointer;font-size:10px;font-weight:700;color:#0891b2;padding:6px 0;display:block;">Show ' + restChain.length + ' more \u25bc</a>'
+      hc += '<div id="oz-ict-extra" style="display:none;">'
+      restChain.forEach(row => { hc += ictRow(row) })
+      hc += '</div></div>'
+    }
+    if (!hc) hc = '<div style="text-align:center;padding:20px;color:#64748b;">No ICT data</div>'
     _html("oz-ict-chain", hc)
+    if (restChain.length > 0) {
+      setTimeout(() => {
+        const toggle = document.getElementById("oz-ict-toggle")
+        if (toggle) toggle.addEventListener("click", function() {
+          const ex = document.getElementById("oz-ict-extra")
+          if (ex.style.display === 'none') { ex.style.display = 'block'; this.textContent = 'Show less \u25b2' }
+          else { ex.style.display = 'none'; this.textContent = 'Show ' + restChain.length + ' more \u25bc' }
+        })
+      }, 100)
+    }
     /* Activity feed */
     let ha = '<div class="oz-tl">'
     ictListData.slice(0, 8).forEach(row => {
       ha += '<div class="oz-tl-item"><div class="oz-tl-dot" style="background:#ecfeff;color:#0891b2;">\u21BB</div>'
       ha += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:600;color:#1e293b;">' + (row.company || "") + " \u2192 " + (row.to_company || "") + "</div>"
-      ha += '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="font-size:8px;font-weight:700;color:#94a3b8;">' + (row.posting_date || "") + "</span>"
+      ha += '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="font-size:8px;font-weight:700;color:#64748b;">' + (row.posting_date || "") + "</span>"
       ha += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;margin-left:auto;">' + oz_n(row.total_qty) + " L</span></div></div></div>" })
     ha += "</div>"; _html("oz-activity", ha)
   } else {
-    _html("oz-table-ict", '<div style="text-align:center;padding:20px;color:#94a3b8;">No transfers yet</div>')
-    _html("oz-ict-chain", '<div style="text-align:center;padding:20px;color:#94a3b8;">No ICT data</div>')
-    _html("oz-activity", '<div style="text-align:center;padding:20px;color:#94a3b8;">No recent activity</div>')
+    _html("oz-table-ict", '<div style="text-align:center;padding:20px;color:#64748b;">No transfers yet</div>')
+    _html("oz-ict-chain", '<div style="text-align:center;padding:20px;color:#64748b;">No ICT data</div>')
+    _html("oz-activity", '<div style="text-align:center;padding:20px;color:#64748b;">No recent activity</div>')
   }
 
-  /* Reservations */
-  if (resKpiData) {
-    const rk = resKpiData
-    oz_count(_el("oz-kpi-reserved2"), rk.active_count || 0, "", ""); setTimeout(() => _text("oz-kpi-reserved2", (rk.active_count || 0) + " Active"), 1300)
-    oz_count(_el("oz-kpi-resqty"), Math.round(rk.total_reserved_qty || 0), "", " L"); setTimeout(() => _text("oz-kpi-resqty", oz_n(rk.total_reserved_qty || 0) + " L"), 1300)
-    oz_count(_el("oz-kpi-res-val"), Math.round(rk.total_reserved_value || 0), A, ""); setTimeout(() => _text("oz-kpi-res-val", oz_k(rk.total_reserved_value || 0)), 1300)
-    if (rk.utilization_pct !== undefined) { oz_count(_el("oz-kpi-res-util"), rk.utilization_pct, "", "%"); setTimeout(() => _text("oz-kpi-res-util", rk.utilization_pct + "%"), 1300) }
+  /* Reservations - from KPI data */
+  const resData = ozState.kpi_data || {}
+  if (activeResData && activeResData.length) {
+    const activeCount = activeResData.length
+    const totalResQty = activeResData.reduce((s, r) => s + (r.reserved_qty || 0), 0)
+    oz_count(_el("oz-kpi-reserved2"), activeCount, "", ""); setTimeout(() => _text("oz-kpi-reserved2", activeCount + " Active"), 1300)
+    oz_count(_el("oz-kpi-resqty"), Math.round(totalResQty), "", " L"); setTimeout(() => _text("oz-kpi-resqty", oz_n(totalResQty) + " L"), 1300)
   }
-  if (resByCoData && resByCoData.length) {
-    oz_render_reserved_by_company(resByCoData)
-    oz_count(_el("oz-kpi-res-companies"), resByCoData.length, "", ""); setTimeout(() => _text("oz-kpi-res-companies", resByCoData.length), 1300)
+  if (resData.reserved_value !== undefined) {
+    oz_count(_el("oz-kpi-res-val"), Math.round(resData.reserved_value || 0), A, ""); setTimeout(() => _text("oz-kpi-res-val", oz_k(resData.reserved_value || 0)), 1300)
+  }
+  if (resData.utilization_pct !== undefined) {
+    oz_count(_el("oz-kpi-res-util"), resData.utilization_pct, "", "%"); setTimeout(() => _text("oz-kpi-res-util", resData.utilization_pct + "%"), 1300)
+  }
+  if (resData.reserved_by_company && resData.reserved_by_company.length) {
+    oz_render_reserved_by_company(resData.reserved_by_company)
+    oz_count(_el("oz-kpi-res-companies"), resData.reserved_by_company.length, "", ""); setTimeout(() => _text("oz-kpi-res-companies", resData.reserved_by_company.length), 1300)
   }
   if (activeResData && activeResData.length) {
     let hr = '<table class="oz-table"><thead><tr><th>ID</th><th>Company</th><th>Item</th><th>Qty</th><th>For</th><th>Status</th></tr></thead><tbody>'
     activeResData.forEach(row => {
-      hr += '<tr><td style="font-weight:700;color:#3b82f6;">' + row.name + "</td>"
+      hr += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Stock Reservation\',\'' + row.name + '\')">'
+      hr += '<td style="font-weight:700;color:#3b82f6;">' + row.name + "</td>"
       hr += "<td>" + (row.company || "") + "</td><td>" + (row.item || "") + "</td>"
       hr += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.reserved_qty) + "</td>"
       hr += '<td><span class="oz-badge" style="color:#7c3aed;background:#f5f3ff;">' + (row.reserved_for || "") + "</span></td>"
       hr += '<td><span class="oz-badge" style="color:#d97706;background:#fffbeb;">' + (row.status || "") + "</span></td></tr>" })
     hr += "</tbody></table>"; _html("oz-table-res", hr)
-  } else { _html("oz-table-res", '<div style="text-align:center;padding:20px;color:#94a3b8;">No active reservations</div>') }
+  } else { _html("oz-table-res", '<div style="text-align:center;padding:20px;color:#64748b;">No active reservations</div>') }
 
   /* Top customers */
   if (topCustData && topCustData.length) {
-    let htc = '<div style="display:flex;flex-direction:column;gap:8px;">'
-    topCustData.slice(0, 6).forEach((c, i) => {
-      const cols = ["#3b82f6","#10b981","#f59e0b","#7c3aed","#ef4444","#0891b2"]
-      htc += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">'
-      htc += '<span style="font-size:10px;font-weight:800;color:' + cols[i] + ';">#' + (i + 1) + '</span>'
-      htc += '<span style="flex:1;font-size:11px;font-weight:600;color:#1e293b;">' + (c.customer_name || c.customer || "") + '</span>'
-      htc += '<span style="font-size:11px;font-weight:800;color:#d97706;">' + oz_n(c.total_qty) + ' L</span></div>' })
-    htc += '</div>'; _html("oz-top-customers", htc)
-  } else { _html("oz-top-customers", '<div style="text-align:center;padding:20px;color:#94a3b8;">No data</div>') }
+    const totalAmt = topCustData.reduce((s, c) => s + (c.total_amount || 0), 0)
+    let htc = '<table class="oz-table"><thead><tr><th>#</th><th>Customer</th><th>Inv</th><th style="text-align:right;">Amount</th><th style="width:100px;">% of Total</th></tr></thead><tbody>'
+    topCustData.forEach((c, i) => {
+      const pct = totalAmt > 0 ? ((c.total_amount / totalAmt) * 100).toFixed(1) : '0.0'
+      const rankColor = i === 0 ? '#f59e0b' : i === 1 ? '#64748b' : i === 2 ? '#cd7f32' : '#e2e8f0'
+      const rankText = i <= 2 ? '#fff' : '#64748b'
+      htc += '<tr>'
+      htc += '<td><span class="oz-rank" style="background:' + rankColor + ';color:' + rankText + ';">' + (i + 1) + '</span></td>'
+      htc += '<td style="font-weight:700;color:#1e293b;">' + (c.customer_name || c.customer || "") + '</td>'
+      htc += '<td>' + (c.invoice_count || 0) + '</td>'
+      htc += '<td style="text-align:right;font-weight:700;color:#059669;">' + oz_k(c.total_amount) + '</td>'
+      htc += '<td><div style="display:flex;align-items:center;gap:6px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div><span style="font-size:9px;font-weight:700;color:#64748b;min-width:32px;text-align:right;">' + pct + '%</span></div></td>'
+      htc += '</tr>'
+    })
+    htc += '</tbody></table>'; _html("oz-top-customers", htc)
+  } else { _html("oz-top-customers", '<div style="text-align:center;padding:20px;color:#64748b;">No data</div>') }
 
   /* Warehouse table */
   if (whData && whData.length) {
-    let hwh = '<table class="oz-table"><thead><tr><th>Warehouse</th><th>Available</th><th>Reserved</th></tr></thead><tbody>'
+    const maxQty = Math.max.apply(null, whData.map(w => Math.abs(w.total_qty || 0))) || 1
+    let hwh = '<table class="oz-table"><thead><tr><th>Warehouse</th><th>Company</th><th>Items</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th><th style="width:120px;">Fill</th></tr></thead><tbody>'
     whData.forEach(w => {
-      hwh += '<tr><td style="font-weight:700;">' + (w.warehouse || w.warehouse_name || "") + '</td>'
-      hwh += '<td style="font-weight:800;color:#10b981;">' + oz_n(w.avail_qty || w.available_qty || 0) + '</td>'
-      hwh += '<td style="font-weight:700;color:#f59e0b;">' + oz_n(w.reserved_qty || 0) + '</td></tr>' })
+      const qtyColor = (w.total_qty || 0) < 0 ? '#dc2626' : '#1e293b'
+      const fillPct = Math.round((Math.abs(w.total_qty || 0) / maxQty) * 100)
+      hwh += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Warehouse\',\'' + (w.warehouse || w.warehouse_name || "") + '\')">'
+      hwh += '<td style="font-weight:700;">' + (w.warehouse || w.warehouse_name || "") + '</td>'
+      hwh += '<td><span class="oz-badge" style="color:#0891b2;background:#ecfeff;">' + (w.company || "") + '</span></td>'
+      hwh += '<td>' + (w.item_count || 0) + '</td>'
+      hwh += '<td style="text-align:right;font-weight:800;color:' + qtyColor + ';">' + oz_n(w.total_qty) + '</td>'
+      hwh += '<td style="text-align:right;font-weight:700;color:#059669;">' + oz_k(w.total_value) + '</td>'
+      hwh += '<td><div class="oz-prog"><div class="oz-prog-fill" style="width:' + fillPct + '%;background:linear-gradient(90deg,#3b82f6,#7c3aed);"></div></div></td></tr>' })
     hwh += '</tbody></table>'; _html("oz-warehouse-table", hwh)
-  } else { _html("oz-warehouse-table", '<div style="text-align:center;padding:20px;color:#94a3b8;">No data</div>') }
+  } else { _html("oz-warehouse-table", '<div style="text-align:center;padding:20px;color:#64748b;">No data</div>') }
 }
 
 onMounted(async () => {

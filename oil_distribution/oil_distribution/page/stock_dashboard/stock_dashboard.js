@@ -78,7 +78,7 @@ function get_dashboard_html() {
 		.sd-tab-active { background: #3b82f6 !important; color: #fff !important; }
 
 		/* KPI */
-		.sd-kpi-row { display: grid; gap: 10px; margin-bottom: 14px; grid-template-columns: repeat(5, 1fr); }
+		.sd-kpi-row { display: grid; gap: 10px; margin-bottom: 14px; grid-template-columns: repeat(6, 1fr); }
 		.sd-kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
 		.sd-kpi:hover { box-shadow: 0 4px 12px rgba(0,20,40,0.08); transform: translateY(-2px); }
 		.sd-kpi-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
@@ -219,14 +219,14 @@ function get_dashboard_html() {
 				<div class="sd-card" style="margin-bottom:0;">
 					<div class="sd-card-head">
 						<div class="sd-card-icon" style="background:#dbeafe;color:#3b82f6;">📊</div>
-						<div><div class="sd-card-title">Stock by Company</div><div class="sd-card-sub">Available vs Reserved</div></div>
+						<div><div class="sd-card-title">Stock by Company</div><div class="sd-card-sub">Available · Unreserved · Reserved</div></div>
 					</div>
 					<div id="sd-chart-company" style="display:flex;justify-content:center;"></div>
 				</div>
 				<div class="sd-card" style="margin-bottom:0;">
 					<div class="sd-card-head">
 						<div class="sd-card-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
-						<div><div class="sd-card-title">Utilization</div><div class="sd-card-sub">Reserved / Total Stock</div></div>
+						<div><div class="sd-card-title">Stock Distribution</div><div class="sd-card-sub">Available / Unreserved / Reserved</div></div>
 					</div>
 					<div id="sd-chart-wh" style="display:flex;justify-content:center;"></div>
 				</div>
@@ -468,23 +468,36 @@ function sd_count(el, target, pre, suf, dur) {
 
 /* ═══════════ UTILIZATION DONUT ═══════════ */
 
-function sd_donut(el, avail, reserved) {
-	var total = (avail || 0) + (reserved || 0);
+function sd_donut(el, avail_nos, reserved_nos, unreserved_nos, avail_litres, reserved_litres, unreserved_litres) {
+	if (arguments.length < 4) unreserved_nos = 0;
+	if (arguments.length < 7) { unreserved_litres = unreserved_nos; reserved_litres = reserved_nos; avail_litres = avail_nos; }
+	var avail = avail_nos || 0, reserved = reserved_nos || 0, unreserved = unreserved_nos || 0;
+	var total = avail + unreserved + reserved;
 	if (total === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:11px;">No stock data</div>'; return; }
-	var pct = Math.round((reserved / total) * 100);
 	var uid = 'sddu' + Math.random().toString(36).slice(2, 8);
 	var sz = 100, st = 14, r = (sz - st) / 2, circ = 2 * Math.PI * r, ct = sz / 2;
 
-	var agap = 0.015, cAvail = '#3b82f6', cRes = '#f59e0b';
+	var agap = 0.015;
 
-	// Available segment
-	var aDash = circ * Math.max(0, (100 - pct) / 100 - agap);
-	var aGap = circ * agap;
-	// Reserved segment
-	var rDash = circ * Math.max(0, pct / 100 - agap);
-	var rGap = circ * agap;
-	var aOff = 0;
-	var rOff = -circ * (100 - pct) / 100;
+	var litres = [avail_litres || 0, unreserved_litres || 0, reserved_litres || 0];
+
+	// 3 segments: Available (blue), Unreserved (green), Reserved (amber)
+	var segs = [
+		{ label: 'Available', val: avail, lit: litres[0], color: '#3b82f6', wh: 'Available' },
+		{ label: 'Unreserved', val: unreserved, lit: litres[1], color: '#10b981', wh: 'Unreserved' },
+		{ label: 'Reserved', val: reserved, lit: litres[2], color: '#f59e0b', wh: 'Reserved' },
+	];
+
+	var dashes = [];
+	var offset = 0;
+	segs.forEach(function (s) {
+		var p = total > 0 ? s.val / total : 0;
+		var dash = circ * Math.max(0, p - agap / segs.length);
+		var gap = circ * agap / segs.length;
+		dashes.push({ dash: dash, gap: gap, offset: -offset });
+		offset += dash + gap;
+	});
+	var rsvIdx = 2;
 
 	var s = '<div style="display:flex;align-items:center;gap:16px;justify-content:center;padding:6px 0;">';
 
@@ -492,30 +505,30 @@ function sd_donut(el, avail, reserved) {
 	s += '<div style="position:relative;width:' + sz + 'px;height:' + sz + 'px;flex-shrink:0;">';
 	s += '<svg width="' + sz + '" height="' + sz + '" style="transform:rotate(-90deg);">';
 	s += '<circle cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="#f1f5f9" stroke-width="' + st + '"/>';
-	s += '<circle data-idx="0" cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="' + cAvail + '" stroke-width="' + st + '" stroke-linecap="round" stroke-dasharray="0 ' + circ + '" data-target="' + aDash + '" style="cursor:pointer;transition:stroke-dasharray 0.6s ease,stroke-width 0.2s,opacity 0.2s;">';
-	s += '<title>Available: ' + sd_n(avail) + ' (' + (100 - pct) + '%)</title></circle>';
-	s += '<circle data-idx="1" cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="' + cRes + '" stroke-width="' + st + '" stroke-linecap="round" stroke-dasharray="0 ' + circ + '" stroke-dashoffset="' + rOff + '" data-target="' + rDash + '" style="cursor:pointer;transition:stroke-dasharray 0.6s ease,stroke-width 0.2s,opacity 0.2s;">';
-	s += '<title>Reserved: ' + sd_n(reserved) + ' (' + pct + '%)</title></circle>';
+	segs.forEach(function (seg, i) {
+		var d = dashes[i];
+		s += '<circle data-idx="' + i + '" cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="' + seg.color + '" stroke-width="' + st + '" stroke-linecap="round" stroke-dasharray="0 ' + circ + '" stroke-dashoffset="' + d.offset + '" data-target="' + d.dash + '" style="cursor:pointer;transition:stroke-dasharray 0.6s ease,stroke-width 0.2s,opacity 0.2s;">';
+		s += '<title>' + seg.label + ': ' + sd_n(seg.val) + ' (' + sd_n(seg.lit) + ' L)</title></circle>';
+	});
 	s += '</svg>';
 	s += '<div id="' + uid + '-ctr" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transition:all 0.2s;">';
-	s += '<span id="' + uid + '-pct" style="font-size:20px;font-weight:800;color:#1e293b;line-height:1;">' + pct + '%</span>';
+	s += '<span id="' + uid + '-pct" style="font-size:20px;font-weight:800;color:#1e293b;line-height:1;">' + Math.round((reserved / total) * 100) + '%</span>';
 	s += '<span id="' + uid + '-lbl" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:#94a3b8;margin-top:2px;">Reserved</span>';
 	s += '</div></div>';
 
 	// Legend
-	s += '<div id="' + uid + '-leg" style="display:flex;flex-direction:column;gap:5px;">';
-	s += '<div class="sd-donut-leg" data-idx="0" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">';
-	s += '<div style="width:8px;height:8px;border-radius:2px;background:' + cAvail + ';flex-shrink:0;"></div>';
-	s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Available</div><div style="font-size:8px;color:#94a3b8;">' + sd_n(avail) + ' L</div></div>';
-	s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + (100 - pct) + '%;background:' + cAvail + ';border-radius:3px;"></div></div></div>';
-	s += '<div class="sd-donut-leg" data-idx="1" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">';
-	s += '<div style="width:8px;height:8px;border-radius:2px;background:' + cRes + ';flex-shrink:0;"></div>';
-	s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Reserved</div><div style="font-size:8px;color:#94a3b8;">' + sd_n(reserved) + ' L</div></div>';
-	s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + cRes + ';border-radius:3px;"></div></div></div>';
+	s += '<div id="' + uid + '-leg" style="display:flex;flex-direction:column;gap:4px;">';
+	segs.forEach(function (seg, i) {
+		var spct = total > 0 ? Math.round((seg.val / total) * 100) : 0;
+		s += '<div class="sd-donut-leg" data-idx="' + i + '" style="display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">';
+		s += '<div style="width:8px;height:8px;border-radius:2px;background:' + seg.color + ';flex-shrink:0;"></div>';
+		s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">' + seg.label + '</div><div style="font-size:8px;color:#94a3b8;">' + sd_n(seg.val) + ' · ' + sd_n(seg.lit) + ' L</div></div>';
+		s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + spct + '%;background:' + seg.color + ';border-radius:3px;"></div></div></div>';
+	});
 	s += '<div style="display:flex;align-items:center;gap:6px;padding:2px 8px;margin-top:2px;border-top:1px solid #f1f5f9;">';
 	s += '<div style="width:8px;height:8px;border-radius:2px;background:#cbd5e1;flex-shrink:0;"></div>';
 	s += '<div style="font-size:9px;font-weight:600;color:#64748b;flex:1;">Total</div>';
-	s += '<div style="font-size:10px;font-weight:700;color:#1e293b;">' + sd_n(total) + ' L</div>';
+	s += '<div style="font-size:10px;font-weight:700;color:#1e293b;">' + sd_n(total) + ' (' + sd_n(litres[0] + litres[1] + litres[2]) + ' L)</div>';
 	s += '</div></div></div>';
 
 	el.innerHTML = s;
@@ -530,52 +543,46 @@ function sd_donut(el, avail, reserved) {
 
 	// Interactivity
 	setTimeout(function () {
-		var segs = el.querySelectorAll('circle[data-idx]');
+		var circles = el.querySelectorAll('circle[data-idx]');
 		var legs = el.querySelectorAll('.sd-donut-leg');
-		var ctr = document.getElementById(uid + '-ctr');
 		var pctEl = document.getElementById(uid + '-pct');
 		var lblEl = document.getElementById(uid + '-lbl');
-		var colors = [cAvail, cRes];
-		var labels = ['Available', 'Reserved'];
-		var vals = [avail, reserved];
-		var pcts = [100 - pct, pct];
 
 		function hl(idx) {
-			segs.forEach(function (c, i) {
+			circles.forEach(function (c, i) {
 				if (idx === null) { c.style.strokeWidth = st; c.style.opacity = 1; }
 				else if (i === idx) { c.style.strokeWidth = st + 4; c.style.opacity = 1; }
 				else { c.style.strokeWidth = st - 4; c.style.opacity = 0.3; }
 			});
 			legs.forEach(function (l, i) {
 				if (idx === null) { l.style.borderColor = 'transparent'; l.style.background = 'transparent'; }
-				else if (i === idx) { l.style.borderColor = colors[i]; l.style.background = colors[i] + '0c'; }
+				else if (i === idx) { l.style.borderColor = segs[i].color; l.style.background = segs[i].color + '0c'; }
 				else { l.style.borderColor = 'transparent'; l.style.background = 'transparent'; }
 			});
 			if (idx !== null && pctEl) {
-				pctEl.textContent = pcts[idx] + '%';
-				pctEl.style.color = colors[idx];
-				lblEl.textContent = labels[idx];
+				var spct = total > 0 ? Math.round((segs[idx].val / total) * 100) : 0;
+				pctEl.textContent = spct + '%';
+				pctEl.style.color = segs[idx].color;
+				lblEl.textContent = segs[idx].label;
 			} else if (pctEl) {
-				pctEl.textContent = pct + '%';
+				pctEl.textContent = Math.round((reserved / total) * 100) + '%';
 				pctEl.style.color = '#1e293b';
 				lblEl.textContent = 'Reserved';
 			}
 		}
 
-		segs.forEach(function (c, i) {
+		circles.forEach(function (c, i) {
 			c.addEventListener('mouseenter', function () { hl(i); });
 			c.addEventListener('mouseleave', function () { hl(null); });
 			c.addEventListener('click', function () {
-				var wh = i === 0 ? 'Available' : 'Reserved';
-				frappe.set_route('List', 'Bin', { warehouse: ['like', wh + ' WH%'] });
+				frappe.set_route('List', 'Bin', { warehouse: ['like', segs[i].wh + ' WH%'] });
 			});
 		});
 		legs.forEach(function (l, i) {
 			l.addEventListener('mouseenter', function () { hl(i); });
 			l.addEventListener('mouseleave', function () { hl(null); });
 			l.addEventListener('click', function () {
-				var wh = i === 0 ? 'Available' : 'Reserved';
-				frappe.set_route('List', 'Bin', { warehouse: ['like', wh + ' WH%'] });
+				frappe.set_route('List', 'Bin', { warehouse: ['like', segs[i].wh + ' WH%'] });
 			});
 		});
 	}, 100);
@@ -635,14 +642,11 @@ function sd_stacked_bars(el, labels, series, rawData) {
 			var pct = totalPerCompany[i] > 0 ? Math.round((v / totalPerCompany[i]) * 100) : 0;
 
 			s += '<rect id="' + barId + '" x="' + (cx - barW / 2) + '" y="' + (P.t + ch) + '" width="' + barW + '" height="0" fill="url(#' + uid + '-g' + si + ')" rx="3" filter="url(#' + uid + '-shadow)" style="cursor:pointer;transition:all 0.3s cubic-bezier(.4,0,.2,1);"';
-			s += ' data-target-y="' + y + '" data-target-h="' + Math.max(1, h) + '" data-idx="' + i + '" data-series="' + si + '" data-pct="' + pct + '"';
-			s += ' onmouseenter="sd_bc_hover(this,\'' + l + '\',' + i + ')" onmouseleave="sd_bc_leave(this)" onclick="sd_bc_click(this)">';
+			s += ' data-target-y="' + y + '" data-target-h="' + Math.max(1, h) + '" data-idx="' + i + '" data-series="' + si + '" data-pct="' + pct + '" data-label="' + l + '">';
 			s += '<title>' + l + '\n' + ser.name + ': ' + sd_n(v) + ' L (' + pct + '%)</title></rect>';
 
-			// Percentage label on bar segment (only if tall enough and > 5%)
-			if (h > 18 && pct > 5) {
-				s += '<text id="' + barId + '-lbl" x="' + cx + '" y="' + (P.t + ch) + '" text-anchor="middle" fill="#fff" font-size="8" font-weight="800" style="pointer-events:none;opacity:0;transition:opacity 0.3s;">' + pct + '%</text>';
-			}
+			// Percentage label on every bar segment (animates in with bar)
+			s += '<text id="' + barId + '-lbl" x="' + cx + '" y="' + (P.t + ch) + '" text-anchor="middle" fill="' + (pct > 5 ? '#fff' : '#1e293b') + '" font-size="7" font-weight="800" style="pointer-events:none;opacity:0;transition:opacity 0.3s;">' + pct + '%</text>';
 			cumY += h;
 		});
 
@@ -669,6 +673,12 @@ function sd_stacked_bars(el, labels, series, rawData) {
 	el.setAttribute('data-uid', uid);
 	el.innerHTML = s;
 
+	// Attach click events for navigation
+	var svg = el.querySelector('svg');
+	svg.querySelectorAll('rect[data-idx]').forEach(function (rect) {
+		rect.addEventListener('click', function (e) { sd_bc_click(e.currentTarget); });
+	});
+
 	// Animate bars in with stagger
 	setTimeout(function () {
 		labels.forEach(function (_, i) {
@@ -680,6 +690,9 @@ function sd_stacked_bars(el, labels, series, rawData) {
 				setTimeout(function () {
 					bar.setAttribute('y', ty);
 					bar.setAttribute('height', th);
+					// Show percentage label after bar animates
+					var lbl = document.getElementById(uid + '-' + i + '-' + si + '-lbl');
+					if (lbl) { lbl.setAttribute('y', ty + th / 2 + 2.5); setTimeout(function () { lbl.style.opacity = '0.85'; }, 200); }
 				}, i * 60 + si * 30);
 			});
 		});
@@ -697,17 +710,20 @@ function sd_bc_hover(el, label, idx) {
 
 	var raw = JSON.parse(svg.parentElement.getAttribute('data-raw') || '[]');
 	var d = raw[idx] || {};
-	var total = (d.avail_qty || 0) + (d.reserved_qty || 0);
+	var totalLit = (d.avail_qty || 0) + (d.unreserved_qty || 0) + (d.reserved_qty || 0);
+	var totalNos = (d.avail_nos || 0) + (d.unreserved_nos || 0) + (d.reserved_nos || 0);
 	var html = '<div style="font-weight:800;margin-bottom:6px;font-size:12px;color:#f1f5f9;">' + (d.company || label) + '</div>';
-	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Available: <b style="color:#93c5fd;">' + sd_n(d.avail_qty || 0) + ' L</b></div>';
-	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Reserved: <b style="color:#fcd34d;">' + sd_n(d.reserved_qty || 0) + ' L</b></div>';
-	html += '<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:5px;padding-top:5px;color:#cbd5e1;font-size:11px;">Total: <b>' + sd_n(total) + ' L</b></div>';
+	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Available: <b style="color:#93c5fd;">' + sd_n(d.avail_nos || 0) + ' · ' + sd_n(d.avail_qty || 0) + ' L</b></div>';
+	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Unreserved: <b style="color:#6ee7b7;">' + sd_n(d.unreserved_nos || 0) + ' · ' + sd_n(d.unreserved_qty || 0) + ' L</b></div>';
+	html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Reserved: <b style="color:#fcd34d;">' + sd_n(d.reserved_nos || 0) + ' · ' + sd_n(d.reserved_qty || 0) + ' L</b></div>';
+	html += '<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:5px;padding-top:5px;color:#cbd5e1;font-size:11px;">Total: <b>' + sd_n(totalNos) + ' · ' + sd_n(totalLit) + ' L</b></div>';
 	html += '<div style="color:#94a3b8;font-size:9px;margin-top:3px;">Value: ' + sd_k(d.total_value || 0) + ' · Items: ' + (d.item_count || 0) + '</div>';
 	tip.innerHTML = html;
+	tip.style.position = 'fixed';
 	tip.style.display = 'block';
-	var rect = el.getBoundingClientRect();
-	tip.style.left = (rect.right + 12) + 'px';
-	tip.style.top = rect.top + 'px';
+	tip.style.width = 'auto';
+	tip.style.maxWidth = '260px';
+	tip.style.margin = '0';
 
 	// Dim other companies, show percentage labels
 	var allBars = svg.querySelectorAll('rect[data-idx]');
@@ -730,7 +746,7 @@ function sd_bc_leave(el) {
 	if (!svg) return;
 	var uid = svg.parentElement.getAttribute('data-uid');
 	var tip = document.getElementById(uid + '-tip');
-	if (tip) tip.style.display = 'none';
+	if (tip) { tip.style.display = 'none'; tip.style.position = ''; }
 	var allBars = svg.querySelectorAll('rect[data-idx]');
 	allBars.forEach(function (b) { b.style.opacity = '1'; });
 	// Hide all percentage labels
@@ -794,9 +810,13 @@ function load_all() {
 			if (!r.message) return;
 			var d = r.message;
 			var kpiHtml = '';
+			function sd_kpi_stock(nos, lit) {
+				return '<div style="line-height:1.2;">' + sd_n(nos) + '<span style="font-size:8px;font-weight:600;color:#94a3b8;margin-left:3px;">Nos</span></div><div style="font-size:9px;font-weight:600;color:#94a3b8;">' + sd_n(lit) + ' L</div>';
+			}
 			[
-				{ val: sd_n(d.available_stock || d.available_qty) + ' L', lbl: 'Available Stock', icon: '📦', bg: '#ede9fe', color: '#7c3aed', route: "List','Bin',{warehouse:['like','Available WH%']}" },
-				{ val: sd_n(d.reserved_stock || d.reserved_qty) + ' L', lbl: 'Swastik Reserved', icon: '🔒', bg: '#fef3c7', color: '#d97706', route: "List','Stock Reservation',{status:'Reserved'}" },
+				{ val: sd_kpi_stock(d.available_nos, d.available_qty), lbl: 'Available Stock', icon: '📦', bg: '#ede9fe', color: '#7c3aed', route: "List','Bin',{warehouse:['like','Available WH%']}" },
+				{ val: sd_kpi_stock(d.reserved_nos, d.reserved_qty), lbl: 'Swastik Reserved', icon: '🔒', bg: '#fef3c7', color: '#d97706', route: "List','Stock Reservation',{status:'Reserved'}" },
+				{ val: sd_kpi_stock(d.unreserved_nos, d.unreserved_qty), lbl: 'Unreserved Stock', icon: '📤', bg: '#ecfdf5', color: '#059669', route: "List','Bin',{warehouse:['like','Unreserved WH%']}" },
 				{ val: d.items_count, lbl: 'Items in Stock', icon: '📋', bg: '#dbeafe', color: '#3b82f6', route: "List','Item'" },
 				{ val: d.warehouse_count, lbl: 'Active Warehouses', icon: '🏭', bg: '#d1fae5', color: '#059669', route: "List','Warehouse'" },
 				{ val: d.negative_count, lbl: 'Negative Alerts', icon: '⚠', bg: '#fef2f2', color: '#dc2626', route: "List','Bin',{actual_qty:['<',0]}" }
@@ -811,27 +831,28 @@ function load_all() {
 			// Animate values
 			setTimeout(function () {
 				var els = $('#sd-kpis .sd-kpi-val');
-				els.eq(0).text(sd_n(d.available_stock || d.available_qty) + ' L');
-				els.eq(1).text(sd_n(d.reserved_stock || d.reserved_qty) + ' L');
-				els.eq(2).text(d.items_count);
-				els.eq(3).text(d.warehouse_count);
-				els.eq(4).text(d.negative_count);
+				els.eq(0).html(sd_kpi_stock(d.available_nos, d.available_qty));
+				els.eq(1).html(sd_kpi_stock(d.reserved_nos, d.reserved_qty));
+				els.eq(2).html(sd_kpi_stock(d.unreserved_nos, d.unreserved_qty));
+				els.eq(3).text(d.items_count);
+				els.eq(4).text(d.warehouse_count);
+				els.eq(5).text(d.negative_count);
 			}, 1300);
 
 			// Utilization donut
-			sd_donut(document.getElementById('sd-chart-wh'), d.available_stock || d.available_qty || 0, d.reserved_stock || d.reserved_qty || 0);
+			sd_donut(document.getElementById('sd-chart-wh'), d.available_nos || d.available_qty || 0, d.reserved_nos || d.reserved_qty || 0, d.unreserved_nos || d.unreserved_qty || 0, d.available_qty, d.reserved_qty, d.unreserved_qty);
 
 			$('#sd-wh-breakdown').html('');
 
 			// Quick Stats card
 			var qsHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
 			var qs = [
-				{ lbl: 'Total Stock', val: sd_n(d.total_stock) + ' L', color: '#1e293b', bg: '#f8fafc' },
+				{ lbl: 'Total Nos', val: sd_n(d.total_nos), color: '#1e293b', bg: '#f8fafc' },
+				{ lbl: 'Total Litres', val: sd_n(d.total_stock) + ' L', color: '#1e293b', bg: '#f8fafc' },
 				{ lbl: 'Total Value', val: sd_k(d.total_value), color: '#1e293b', bg: '#f8fafc' },
 				{ lbl: 'Available Value', val: sd_k(d.available_value), color: '#3b82f6', bg: '#eff6ff' },
 				{ lbl: 'Reserved Value', val: sd_k(d.reserved_value), color: '#f59e0b', bg: '#fffbeb' },
 				{ lbl: 'Items', val: d.items_count, color: '#7c3aed', bg: '#ede9fe' },
-				{ lbl: 'Warehouses', val: d.warehouse_count, color: '#059669', bg: '#d1fae5' },
 			];
 			qs.forEach(function (q) {
 				qsHtml += '<div style="padding:6px 8px;background:' + q.bg + ';border-radius:6px;">';
@@ -852,6 +873,7 @@ function load_all() {
 			var labels = r.message.map(function (d) { return d.company.replace(' Enterprise', '').replace(' Export', ''); });
 			sd_stacked_bars(document.getElementById('sd-chart-company'), labels, [
 				{ name: 'Available', values: r.message.map(function (d) { return d.avail_qty; }), color: '#3b82f6' },
+				{ name: 'Unreserved', values: r.message.map(function (d) { return d.unreserved_qty || 0; }), color: '#10b981' },
 				{ name: 'Reserved', values: r.message.map(function (d) { return d.reserved_qty; }), color: '#f59e0b' }
 			], r.message);
 
@@ -860,8 +882,9 @@ function load_all() {
 			var dh = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">';
 			r.message.forEach(function (d) {
 				var s = colors[d.company] || { bg: '#f8fafc', accent: '#64748b', abbr: d.company.substring(0, 3).toUpperCase() };
-				var total = d.avail_qty + d.reserved_qty;
+				var total = d.avail_qty + d.reserved_qty + (d.unreserved_qty || 0);
 				var availPct = total > 0 ? Math.round((d.avail_qty / total) * 100) : 0;
+				var unreservedPct = total > 0 ? Math.round(((d.unreserved_qty || 0) / total) * 100) : 0;
 
 				dh += '<div class="sd-card" style="margin-bottom:0;border-left:3px solid ' + s.accent + ';padding:14px;">';
 				// Header
@@ -870,14 +893,17 @@ function load_all() {
 				dh += '<div><div style="font-size:11px;font-weight:700;color:#1e293b;">' + d.company + '</div>';
 				dh += '<div style="font-size:8px;color:#94a3b8;">' + d.item_count + ' items</div></div>';
 				dh += '</div>';
-				// Bar + value
-				dh += '<div style="height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-bottom:4px;">';
-				dh += '<div style="height:100%;width:' + availPct + '%;background:linear-gradient(90deg,#3b82f6,#7c3aed);border-radius:2px;"></div></div>';
-				dh += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:8px;color:#94a3b8;">' + availPct + '% avail</span><span style="font-size:9px;font-weight:700;color:' + s.accent + ';">' + sd_k(d.total_value) + '</span></div>';
-				// Stats
-				dh += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
-				dh += '<div style="padding:6px;background:#eff6ff;border-radius:6px;text-align:center;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">AVAILABLE</div><div style="font-size:13px;font-weight:800;color:#3b82f6;">' + sd_n(d.avail_qty) + '</div></div>';
-				dh += '<div style="padding:6px;background:#fffbeb;border-radius:6px;text-align:center;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">RESERVED</div><div style="font-size:13px;font-weight:800;color:#f59e0b;">' + sd_n(d.reserved_qty) + '</div></div>';
+				// Stacked bar: Available | Unreserved | Reserved
+				dh += '<div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-bottom:4px;display:flex;">';
+				dh += '<div style="height:100%;width:' + availPct + '%;background:#3b82f6;border-radius:3px 0 0 3px;min-width:2px;"></div>';
+				dh += '<div style="height:100%;width:' + unreservedPct + '%;background:#10b981;min-width:2px;"></div>';
+				dh += '<div style="flex:1;height:100%;background:#f59e0b;border-radius:0 3px 3px 0;min-width:2px;"></div></div>';
+				dh += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:8px;color:#94a3b8;">' + availPct + '% avail · ' + unreservedPct + '% unrsv</span><span style="font-size:9px;font-weight:700;color:' + s.accent + ';">' + sd_k(d.total_value) + '</span></div>';
+				// Stats: 3 columns — Nos / Litres
+				dh += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">';
+				dh += '<div style="padding:6px;background:#eff6ff;border-radius:6px;text-align:center;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">AVAIL</div><div style="font-size:12px;font-weight:800;color:#3b82f6;">' + sd_n(d.avail_nos) + '</div><div style="font-size:7px;color:#93c5fd;">' + sd_n(d.avail_qty) + ' L</div></div>';
+				dh += '<div style="padding:6px;background:#ecfdf5;border-radius:6px;text-align:center;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">UNRSV</div><div style="font-size:12px;font-weight:800;color:#10b981;">' + sd_n(d.unreserved_nos || 0) + '</div><div style="font-size:7px;color:#6ee7b7;">' + sd_n(d.unreserved_qty || 0) + ' L</div></div>';
+				dh += '<div style="padding:6px;background:#fffbeb;border-radius:6px;text-align:center;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">RSV</div><div style="font-size:12px;font-weight:800;color:#f59e0b;">' + sd_n(d.reserved_nos) + '</div><div style="font-size:7px;color:#fcd34d;">' + sd_n(d.reserved_qty) + ' L</div></div>';
 				dh += '</div>';
 				dh += '</div>';
 			});
@@ -886,58 +912,63 @@ function load_all() {
 		}
 	});
 
-	/* ── Negative alerts ── */
-	frappe.call({
-		method: 'oil_distribution.oil_distribution.page.stock_dashboard.stock_dashboard.get_negative_stock',
-		args: args,
-		callback: function (r) {
-			if (!r.message || !r.message.length) { $('#sd-neg-alerts').html('<div style="text-align:center;padding:20px;color:#059669;font-weight:600;">✓ All clear — no negative stock</div>'); return; }
+		/* ── Negative alerts ── */
+		frappe.call({
+			method: 'oil_distribution.oil_distribution.page.stock_dashboard.stock_dashboard.get_negative_stock',
+			args: args,
+			callback: function (r) {
+				if (!r.message || !r.message.length) { $('#sd-neg-alerts').html('<div style="text-align:center;padding:20px;color:#059669;font-weight:600;">✓ All clear — no negative stock</div>'); return; }
 
-			// Summary row
-			var totalNeg = r.message.length;
-			var totalVal = r.message.reduce(function (s, row) { return s + Math.abs(row.stock_value || 0); }, 0);
-			var h = '<div style="display:flex;gap:10px;margin-bottom:10px;">';
-			h += '<div style="flex:1;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">';
-			h += '<div style="font-size:8px;font-weight:700;color:#94a3b8;">ALERTS</div>';
-			h += '<div style="font-size:18px;font-weight:800;color:#dc2626;">' + totalNeg + '</div></div>';
-			h += '<div style="flex:1;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">';
-			h += '<div style="font-size:8px;font-weight:700;color:#94a3b8;">NEGATIVE VALUE</div>';
-			h += '<div style="font-size:18px;font-weight:800;color:#dc2626;">' + sd_k(totalVal) + '</div></div>';
-			h += '</div>';
-
-			// Detail cards by company
-			var byCo = {};
-			r.message.forEach(function (row) {
-				if (!byCo[row.company]) byCo[row.company] = [];
-				byCo[row.company].push(row);
-			});
-
-			Object.keys(byCo).forEach(function (co) {
-				var rows = byCo[co];
-				h += '<div style="border:1px solid #fecaca;border-radius:8px;padding:10px;margin-bottom:8px;background:#fffafa;">';
-				h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">';
-				h += '<div style="font-size:10px;font-weight:700;color:#dc2626;">' + co + '</div>';
-				h += '<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:4px;background:#fef2f2;color:#dc2626;">' + rows.length + ' alerts</span>';
+				// Summary row
+				var totalNeg = r.message.length;
+				var totalVal = r.message.reduce(function (s, row) { return s + Math.abs(row.stock_value || 0); }, 0);
+				var h = '<div style="display:flex;gap:10px;margin-bottom:10px;">';
+				h += '<div style="flex:1;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">';
+				h += '<div style="font-size:8px;font-weight:700;color:#94a3b8;">ALERTS</div>';
+				h += '<div style="font-size:18px;font-weight:800;color:#dc2626;">' + totalNeg + '</div></div>';
+				h += '<div style="flex:1;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">';
+				h += '<div style="font-size:8px;font-weight:700;color:#94a3b8;">NEGATIVE VALUE</div>';
+				h += '<div style="font-size:18px;font-weight:800;color:#dc2626;">' + sd_k(totalVal) + '</div></div>';
 				h += '</div>';
-				h += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
-				h += '<thead><tr>';
-				h += '<th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Warehouse</th>';
-				h += '<th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Item</th>';
-				h += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Qty</th>';
-				h += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</th>';
-				h += '</tr></thead><tbody>';
-				rows.forEach(function (row) {
-					h += '<tr onclick="frappe.set_route(\'Form\',\'Bin\',\'' + row.warehouse + '/' + row.item_code + '\')" style="cursor:pointer;">';
-					h += '<td style="padding:3px 4px;color:#64748b;border-top:1px solid #fef2f2;">' + (row.warehouse || '').replace(' - ' + (co === 'Geeta Enterprise' ? 'GE' : co === 'Global Export' ? 'GEX' : 'SHE'), '') + '</td>';
-					h += '<td style="padding:3px 4px;font-weight:700;color:#1e293b;border-top:1px solid #fef2f2;">' + (row.item_code || '') + '</td>';
-					h += '<td style="padding:3px 4px;text-align:right;font-weight:800;color:#dc2626;border-top:1px solid #fef2f2;">' + sd_n(row.actual_qty) + '</td>';
-					h += '<td style="padding:3px 4px;text-align:right;font-weight:700;color:#dc2626;border-top:1px solid #fef2f2;">' + sd_k(row.stock_value) + '</td></tr>';
+
+				// Group rows by company
+				var groups = {};
+				r.message.forEach(function (row) {
+					if (!groups[row.company]) groups[row.company] = [];
+					groups[row.company].push(row);
 				});
-				h += '</tbody></table></div>';
-			});
-			$('#sd-neg-alerts').html(h);
-		}
-	});
+				var coColors = {'Geeta Enterprise': '#3b82f6', 'Global Export': '#10b981', 'Shubham Enterprise': '#f59e0b'};
+
+				h += '<table class="sd-table">';
+				h += '<thead><tr>';
+				h += '<th style="text-align:left;width:80px;">Warehouse</th>';
+				h += '<th style="text-align:left;">Item</th>';
+				h += '<th style="text-align:right;width:45px;">Qty</th>';
+				h += '<th style="text-align:right;width:35px;">×</th>';
+				h += '<th style="text-align:right;width:55px;">Litres</th>';
+				h += '<th style="text-align:right;width:55px;">Value</th>';
+				h += '</tr></thead><tbody>';
+				Object.keys(groups).forEach(function (co, gi) {
+					var rows = groups[co];
+					var c = coColors[co] || '#64748b';
+					h += '<tr style="background:' + c + '10;"><td colspan="6" style="padding:4px 6px;font-size:9px;font-weight:800;color:' + c + ';letter-spacing:0.3px;">' + co.toUpperCase() + ' — ' + rows.length + ' alert' + (rows.length > 1 ? 's' : '') + '</td></tr>';
+					rows.forEach(function (row) {
+						var abbr = row.warehouse ? row.warehouse.split(' - ').pop() : '';
+						var whShort = row.warehouse ? row.warehouse.replace(' - ' + abbr, '') : row.warehouse;
+						var litres = row.actual_qty * (row.litre_factor || 1);
+						h += '<tr onclick="frappe.set_route(\'Form\',\'Bin\',\'' + row.warehouse + '/' + row.item_code + '\')">';
+						h += '<td style="color:#64748b;">' + whShort + '</td>';
+						h += '<td style="font-weight:700;color:#1e293b;">' + (row.item_code || '') + '</td>';
+						h += '<td style="text-align:right;font-weight:800;color:#dc2626;">' + sd_n(row.actual_qty) + '</td>';
+						h += '<td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×' + (row.litre_factor || 1).toFixed(1) + '</td>';
+						h += '<td style="text-align:right;font-weight:700;color:#dc2626;">' + sd_n(litres) + '</td>';
+						h += '<td style="text-align:right;font-weight:700;color:#dc2626;">' + sd_k(row.stock_value) + '</td></tr>';
+					});
+				});
+				h += '</tbody></table>';
+				$('#sd-neg-alerts').html(h);
+			}
+		});
 
 	/* ── By Company view ── */
 	frappe.call({
@@ -949,9 +980,10 @@ function load_all() {
 			// Group by company
 			var companies = {};
 			r.message.forEach(function (wh) {
-				if (!companies[wh.company]) companies[wh.company] = { warehouses: [], total_qty: 0, total_value: 0, total_items: 0 };
+				if (!companies[wh.company]) companies[wh.company] = { warehouses: [], total_nos: 0, total_qty: 0, total_value: 0, total_items: 0 };
 				companies[wh.company].warehouses.push(wh);
-				companies[wh.company].total_qty += wh.total_qty;
+				companies[wh.company].total_nos += wh.total_nos || 0;
+				companies[wh.company].total_qty += wh.total_qty || 0;
 				companies[wh.company].total_value += wh.total_value;
 				companies[wh.company].total_items += wh.item_count;
 			});
@@ -977,44 +1009,52 @@ function load_all() {
 				html += '<div><div style="font-size:14px;font-weight:800;color:' + s.accent + ';">' + co + '</div>';
 				html += '<div style="font-size:9px;color:#94a3b8;">' + c.warehouses.length + ' warehouses · ' + c.total_items + ' items</div></div>';
 				html += '</div>';
-				html += '<div style="display:flex;gap:16px;">';
-				html += '<div style="text-align:right;"><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Qty</div><div style="font-size:16px;font-weight:800;color:' + s.accent + ';">' + sd_n(c.total_qty) + ' L</div></div>';
-				html += '<div style="text-align:right;"><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</div><div style="font-size:16px;font-weight:800;color:' + s.accent + ';">' + sd_k(c.total_value) + '</div></div>';
+				var coFactor = c.total_nos > 0 ? (c.total_qty / c.total_nos).toFixed(2) : '—';
+				html += '<div style="display:flex;gap:12px;">';
+				html += '<div style="text-align:right;"><div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Nos</div><div style="font-size:16px;font-weight:800;color:' + s.accent + ';">' + sd_n(c.total_nos) + '</div></div>';
+				html += '<div style="text-align:right;"><div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Litres</div><div style="font-size:16px;font-weight:800;color:' + s.accent + ';">' + sd_n(c.total_qty) + '</div></div>';
+				html += '<div style="text-align:right;"><div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</div><div style="font-size:16px;font-weight:800;color:' + s.accent + ';">' + sd_k(c.total_value) + '</div></div>';
+				html += '<div style="text-align:right;display:flex;align-items:flex-end;"><span style="font-size:9px;font-weight:600;color:#94a3b8;">×' + coFactor + '</span></div>';
 				html += '</div></div>';
 
-				// Warehouse grid
-				html += '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:10px;">';
+				// Single grid — side by side — with type indicated by colored left border + tag
+				var typeMeta = {
+					'avail': { color: '#3b82f6', bg: '#eff6ff', label: 'Available' },
+					'unrsv': { color: '#10b981', bg: '#ecfdf5', label: 'Unreserved' },
+					'rsrv': { color: '#f59e0b', bg: '#fffbeb', label: 'Reserved' },
+					'other': { color: '#94a3b8', bg: '#f1f5f9', label: 'Other' }
+				};
+				function whType(wh) {
+					if (wh.warehouse.indexOf('Available WH') !== -1) return 'avail';
+					if (wh.warehouse.indexOf('Unreserved WH') !== -1) return 'unrsv';
+					if (wh.warehouse.indexOf('Reserved WH') !== -1) return 'rsrv';
+					return 'other';
+				}
 
-				// Sort: Available first, then Reserved, then others
-				var sortedWh = c.warehouses.slice().sort(function (a, b) {
-					var aA = a.warehouse.indexOf('Available WH') !== -1 ? 0 : a.warehouse.indexOf('Reserved WH') !== -1 ? 1 : 2;
-					var bA = b.warehouse.indexOf('Available WH') !== -1 ? 0 : b.warehouse.indexOf('Reserved WH') !== -1 ? 1 : 2;
-					return aA - bA;
-				});
-
-				sortedWh.forEach(function (wh) {
-					var whColor = wh.total_qty < 0 ? '#dc2626' : s.accent;
-					var isAvail = wh.warehouse.indexOf('Available WH') !== -1;
-					var isReserved = wh.warehouse.indexOf('Reserved WH') !== -1;
-					var whTag = isAvail ? 'Available' : isReserved ? 'Reserved' : 'Other';
-					var whTagColor = isAvail ? '#10b981' : isReserved ? '#f59e0b' : '#94a3b8';
-					var whTagBg = isAvail ? '#ecfdf5' : isReserved ? '#fffbeb' : '#f8fafc';
-
-					html += '<div style="border:1px solid #f1f5f9;border-radius:10px;padding:12px;transition:all 0.15s;" onmouseenter="this.style.borderColor=\'#e2e8f0\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.04)\'" onmouseleave="this.style.borderColor=\'#f1f5f9\';this.style.boxShadow=\'none\'">';
+				html += '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:12px;">';
+				var typeOrder = { 'avail': 0, 'unrsv': 1, 'rsrv': 2, 'other': 3 };
+				c.warehouses.slice().sort(function (a, b) { return typeOrder[whType(a)] - typeOrder[whType(b)]; }).forEach(function (wh) {
+					var t = whType(wh);
+					var m = typeMeta[t];
+					var whColor = wh.total_qty < 0 ? '#dc2626' : '#1e293b';
+					html += '<div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;border-left:3px solid ' + m.color + ';">';
 
 					// Warehouse header
 					html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
 					html += '<div style="display:flex;align-items:center;gap:6px;">';
 					html += '<span style="font-size:10px;font-weight:700;color:#1e293b;">' + wh.warehouse.replace(' - ' + s.abbr, '') + '</span>';
-					html += '<span style="font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;background:' + whTagBg + ';color:' + whTagColor + ';">' + whTag + '</span>';
+					html += '<span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:' + m.bg + ';color:' + m.color + ';">' + m.label + '</span>';
 					html += '</div>';
 					html += '<div style="font-size:9px;color:#94a3b8;">' + wh.item_count + ' items</div>';
 					html += '</div>';
 
-					// Stats bar
-					html += '<div style="display:flex;gap:12px;margin-bottom:8px;padding:6px 8px;background:#f8fafc;border-radius:6px;">';
-					html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#94a3b8;">QTY</div><div style="font-size:12px;font-weight:800;color:' + whColor + ';">' + sd_n(wh.total_qty) + '</div></div>';
-					html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#94a3b8;">VALUE</div><div style="font-size:12px;font-weight:800;color:' + s.accent + ';">' + sd_k(wh.total_value) + '</div></div>';
+					// Stats bar — Nos / Litres / Value
+					var whNos = wh.total_nos || wh.total_qty;
+					var whLit = wh.total_qty || 0;
+					html += '<div style="display:flex;gap:8px;margin-bottom:8px;padding:6px 8px;background:#f8fafc;border-radius:6px;">';
+					html += '<div style="flex:1;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">NOS</div><div style="font-size:11px;font-weight:800;color:' + whColor + ';">' + sd_n(whNos) + '</div></div>';
+					html += '<div style="flex:1;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">LITRES</div><div style="font-size:11px;font-weight:800;color:' + whColor + ';">' + sd_n(whLit) + '</div></div>';
+					html += '<div style="flex:1;"><div style="font-size:7px;font-weight:700;color:#94a3b8;">VALUE</div><div style="font-size:11px;font-weight:800;color:' + s.accent + ';">' + sd_k(wh.total_value) + '</div></div>';
 					html += '</div>';
 
 					// Items table
@@ -1022,16 +1062,22 @@ function load_all() {
 						html += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
 						html += '<thead><tr>';
 						html += '<th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Item</th>';
-						html += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Qty</th>';
+						html += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Nos</th>';
+						html += '<th style="text-align:center;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">×</th>';
+						html += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Litres</th>';
 						html += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Rate</th>';
 						html += '<th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</th>';
 						html += '</tr></thead><tbody>';
 
 						wh.items.forEach(function (item) {
 							var qColor = item.qty < 0 ? '#dc2626' : '#1e293b';
+							var factor = item.litre_factor || 1;
+							var litres = item.litres || (item.qty * factor);
 							html += '<tr>';
 							html += '<td style="padding:3px 4px;font-weight:700;color:#1e293b;border-top:1px solid #f8fafc;">' + item.item_code + '</td>';
 							html += '<td style="padding:3px 4px;text-align:right;font-weight:800;color:' + qColor + ';border-top:1px solid #f8fafc;">' + sd_n(item.qty) + '</td>';
+							html += '<td style="padding:3px 4px;text-align:center;font-weight:600;color:#94a3b8;font-size:8px;border-top:1px solid #f8fafc;">×' + factor.toFixed(1) + '</td>';
+							html += '<td style="padding:3px 4px;text-align:right;font-weight:700;color:' + qColor + ';border-top:1px solid #f8fafc;">' + sd_n(litres) + '</td>';
 							html += '<td style="padding:3px 4px;text-align:right;color:#64748b;border-top:1px solid #f8fafc;">' + sd_k(item.rate) + '</td>';
 							html += '<td style="padding:3px 4px;text-align:right;font-weight:700;color:' + s.accent + ';border-top:1px solid #f8fafc;">' + sd_k(item.value) + '</td>';
 							html += '</tr>';
@@ -1043,7 +1089,6 @@ function load_all() {
 
 					html += '</div>'; // warehouse card
 				});
-
 				html += '</div>'; // grid
 				html += '</div>'; // company card
 			});
@@ -1063,26 +1108,31 @@ function load_all() {
 			var coList = Object.keys(allCos).sort();
 
 			var h = '<table class="sd-table"><thead><tr><th>Item</th>';
-			coList.forEach(function (co) { h += '<th colspan="2" style="text-align:center;">' + co.replace(' Enterprise', '').replace(' Export', '') + '</th>'; });
-			h += '<th colspan="2" style="text-align:center;background:#eff6ff;">Total</th></tr><tr><th></th>';
-			coList.forEach(function () { h += '<th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th>'; });
-			h += '<th style="text-align:right;background:#eff6ff;">Qty</th><th style="text-align:right;background:#eff6ff;">Value</th></tr></thead><tbody>';
+			coList.forEach(function (co) { h += '<th colspan="3" style="text-align:center;">' + co.replace(' Enterprise', '').replace(' Export', '') + '</th>'; });
+			h += '<th colspan="3" style="text-align:center;background:#eff6ff;">Total</th></tr><tr><th></th>';
+			coList.forEach(function () { h += '<th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th>'; });
+			h += '<th style="text-align:right;background:#eff6ff;">Nos</th><th style="text-align:right;background:#eff6ff;">Litres</th><th style="text-align:right;background:#eff6ff;">Value</th></tr></thead><tbody>';
 
 			r.message.forEach(function (item) {
 				h += '<tr>';
 				h += '<td style="font-weight:700;color:#1e293b;">' + item.item_code + '</td>';
 				coList.forEach(function (co) {
 					if (item.companies[co]) {
-						var q = item.companies[co].qty;
-						var qc = q < 0 ? 'color:#dc2626;font-weight:800;' : '';
-						h += '<td style="text-align:right;' + qc + '">' + sd_n(q) + '</td>';
+						var n = item.companies[co].nos || 0;
+						var l = item.companies[co].litres || 0;
+						var nc = n < 0 ? 'color:#dc2626;font-weight:800;' : '';
+						var lc = l < 0 ? 'color:#dc2626;font-weight:800;' : '';
+						h += '<td style="text-align:right;' + nc + '">' + sd_n(n) + '</td>';
+						h += '<td style="text-align:right;' + lc + '">' + sd_n(l) + '</td>';
 						h += '<td style="text-align:right;">' + sd_k(item.companies[co].value) + '</td>';
 					} else {
-						h += '<td style="text-align:right;color:#e2e8f0;">-</td><td style="text-align:right;color:#e2e8f0;">-</td>';
+						h += '<td style="text-align:right;color:#e2e8f0;">-</td><td style="text-align:right;color:#e2e8f0;">-</td><td style="text-align:right;color:#e2e8f0;">-</td>';
 					}
 				});
-				var tqc = item.total_qty < 0 ? 'color:#dc2626;font-weight:800;' : '';
-				h += '<td style="text-align:right;background:#f8fafc;' + tqc + '">' + sd_n(item.total_qty) + '</td>';
+				var tnc = item.total_nos < 0 ? 'color:#dc2626;font-weight:800;' : '';
+				var tlc = item.total_litres < 0 ? 'color:#dc2626;font-weight:800;' : '';
+				h += '<td style="text-align:right;background:#f8fafc;' + tnc + '">' + sd_n(item.total_nos) + '</td>';
+				h += '<td style="text-align:right;background:#f8fafc;' + tlc + '">' + sd_n(item.total_litres) + '</td>';
 				h += '<td style="text-align:right;background:#f8fafc;font-weight:700;">' + sd_k(item.total_value) + '</td>';
 				h += '</tr>';
 			});
@@ -1101,8 +1151,11 @@ function load_all() {
 
 			// KPIs
 			var kpiHtml = '';
+			function sw_kpi_stock(nos, lit) {
+				return '<div style="line-height:1.2;">' + sd_n(nos) + '<span style="font-size:8px;font-weight:600;color:#94a3b8;margin-left:3px;">Nos</span></div><div style="font-size:9px;font-weight:600;color:#94a3b8;">' + sd_n(lit) + ' L</div>';
+			}
 			[
-				{ val: sd_n(d.total_qty) + ' L', lbl: 'Total Reserved', icon: '🔒', bg: '#fef3c7', color: '#d97706' },
+				{ val: sw_kpi_stock(d.total_nos, d.total_qty), lbl: 'Total Reserved', icon: '🔒', bg: '#fef3c7', color: '#d97706' },
 				{ val: sd_k(d.total_value), lbl: 'Total Value', icon: '₹', bg: '#ecfdf5', color: '#059669' },
 				{ val: d.companies_count, lbl: 'Companies', icon: '🏢', bg: '#dbeafe', color: '#3b82f6' },
 				{ val: d.items_count, lbl: 'Items Reserved', icon: '📦', bg: '#ede9fe', color: '#7c3aed' }
@@ -1114,49 +1167,58 @@ function load_all() {
 			});
 			$('#sd-swastik-kpis').html(kpiHtml);
 
-			// By company table
+			// By company table — Nos / Litres / Factor
 			if (d.by_company && d.by_company.length) {
-				var totalQty = d.total_qty || 1;
-				var ch = '<table class="sd-table"><thead><tr><th>Company</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th><th style="width:160px;">Share (of ' + sd_n(totalQty) + ' L)</th></tr></thead><tbody>';
+				var totalLit = d.total_qty || 1;
+				var ch = '<table class="sd-table"><thead><tr><th>Company</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th></tr></thead><tbody>';
 				d.by_company.forEach(function (row) {
 					var pct = d.total_qty > 0 ? (row.qty / d.total_qty * 100) : 0;
+					var factor = row.nos > 0 ? (row.qty / row.nos).toFixed(2) : '—';
 					ch += '<tr>';
 					ch += '<td style="font-weight:700;color:#1e293b;">' + (row.company || '') + '</td>';
-					ch += '<td style="text-align:right;font-weight:800;color:#d97706;">' + sd_n(row.qty) + ' L</td>';
+					ch += '<td style="text-align:right;font-weight:800;color:#d97706;">' + sd_n(row.nos) + '</td>';
+					ch += '<td style="text-align:right;font-weight:700;color:#d97706;">' + sd_n(row.qty) + ' L</td>';
 					ch += '<td style="text-align:right;font-weight:700;color:#059669;">' + sd_k(row.val) + '</td>';
-					ch += '<td><div style="display:flex;align-items:center;gap:6px;"><div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div></div><span style="font-size:9px;font-weight:700;color:#d97706;min-width:36px;text-align:right;">' + pct.toFixed(1) + '%</span></div></td>';
+					ch += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div></div><span style="font-size:8px;font-weight:700;color:#d97706;min-width:30px;text-align:right;">' + pct.toFixed(1) + '%</span></div></td>';
 					ch += '</tr>';
 				});
 				ch += '</tbody></table>';
 				$('#sd-swastik-company').html(ch);
 			}
 
-			// By item table
+			// By item table — Nos / Litres / Factor
 			if (d.by_item && d.by_item.length) {
-				var totalQty = d.total_qty || 1;
-				var ih = '<table class="sd-table"><thead><tr><th>Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th><th style="width:160px;">Share (of ' + sd_n(totalQty) + ' L)</th></tr></thead><tbody>';
+				var totalLit = d.total_qty || 1;
+				var ih = '<table class="sd-table"><thead><tr><th>Item</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">×</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th></tr></thead><tbody>';
 				d.by_item.forEach(function (row) {
 					var pct = d.total_qty > 0 ? (row.qty / d.total_qty * 100) : 0;
+					var factor = row.nos > 0 ? (row.qty / row.nos).toFixed(2) : '—';
 					ih += '<tr>';
 					ih += '<td style="font-weight:700;color:#1e293b;">' + (row.item_code || '') + '</td>';
-					ih += '<td style="text-align:right;font-weight:800;color:#d97706;">' + sd_n(row.qty) + ' L</td>';
+					ih += '<td style="text-align:right;font-weight:800;color:#d97706;">' + sd_n(row.nos) + '</td>';
+					ih += '<td style="text-align:right;font-weight:700;color:#d97706;">' + sd_n(row.qty) + ' L</td>';
+					ih += '<td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×' + factor + '</td>';
 					ih += '<td style="text-align:right;font-weight:700;color:#059669;">' + sd_k(row.val) + '</td>';
-					ih += '<td><div style="display:flex;align-items:center;gap:6px;"><div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div><span style="font-size:9px;font-weight:700;color:#7c3aed;min-width:36px;text-align:right;">' + pct.toFixed(1) + '%</span></div></td>';
+					ih += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div><span style="font-size:8px;font-weight:700;color:#7c3aed;min-width:30px;text-align:right;">' + pct.toFixed(1) + '%</span></div></td>';
 					ih += '</tr>';
 				});
 				ih += '</tbody></table>';
 				$('#sd-swastik-item').html(ih);
 			}
 
-			// Detail table
+			// Detail table — Nos / Litres / Factor
 			if (d.detail && d.detail.length) {
-				var dh = '<table class="sd-table"><thead><tr><th>Company</th><th>Item</th><th>Warehouse</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th></tr></thead><tbody>';
+				var dh = '<table class="sd-table"><thead><tr><th>Company</th><th>Item</th><th>Warehouse</th><th style="text-align:right;">Qty</th><th style="text-align:right;">×</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th></tr></thead><tbody>';
 				d.detail.forEach(function (row) {
+					var factor = row.litre_factor || 1;
+					var litres = row.qty * factor;
 					dh += '<tr>';
 					dh += '<td><span class="sd-badge" style="color:#0891b2;background:#ecfeff;">' + (row.company || '') + '</span></td>';
 					dh += '<td style="font-weight:700;">' + (row.item_code || '') + '</td>';
 					dh += '<td style="font-size:10px;color:#94a3b8;">' + (row.warehouse || '') + '</td>';
 					dh += '<td style="text-align:right;font-weight:800;color:#d97706;">' + sd_n(row.qty) + '</td>';
+					dh += '<td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×' + factor.toFixed(1) + '</td>';
+					dh += '<td style="text-align:right;font-weight:700;color:#d97706;">' + sd_n(litres) + ' L</td>';
 					dh += '<td style="text-align:right;font-weight:700;color:#059669;">' + sd_k(row.val) + '</td></tr>';
 				});
 				dh += '</tbody></table>';

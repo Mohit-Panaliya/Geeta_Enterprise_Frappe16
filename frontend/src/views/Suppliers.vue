@@ -11,20 +11,20 @@
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:6px;flex:1;">
             <input v-model="q" @input="onSearch" placeholder="Search by name, type..."
-              style="width:100%;max-width:320px;padding:6px 10px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#334155;font-size:11px;font-weight:600;outline:none;" />
+              style="width:100%;max-width:320px;padding:6px 10px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#334155;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;outline:none;" />
           </div>
           <div style="display:flex;gap:6px;font-size:9px;font-weight:700;">
-            <span style="color:#94a3b8;">{{ filtered.length }} suppliers</span>
+            <span style="color:#64748b;">{{ filtered.length }} suppliers</span>
           </div>
         </div>
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;" v-if="filtered.length">
           <table style="width:100%;border-collapse:collapse;font-size:11px;">
             <thead>
               <tr style="background:#f8fafc;">
-                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;cursor:pointer;" @click="sort('name')">Name <span v-if="sortBy==='name'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
-                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;cursor:pointer;" @click="sort('supplier_name')">Supplier Name <span v-if="sortBy==='supplier_name'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
-                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;cursor:pointer;" @click="sort('supplier_type')">Type <span v-if="sortBy==='supplier_type'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
-                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;cursor:pointer;" @click="sort('payment_terms')">Payment Terms <span v-if="sortBy==='payment_terms'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
+                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;cursor:pointer;" @click="sort('name')">Name <span v-if="sortBy==='name'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
+                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;cursor:pointer;" @click="sort('supplier_name')">Supplier Name <span v-if="sortBy==='supplier_name'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
+                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;cursor:pointer;" @click="sort('supplier_type')">Type <span v-if="sortBy==='supplier_type'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
+                <th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;cursor:pointer;" @click="sort('payment_terms')">Payment Terms <span v-if="sortBy==='payment_terms'">{{ sortDir==='asc'?'\u25B2':'\u25BC' }}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -37,7 +37,7 @@
             </tbody>
           </table>
         </div>
-        <div v-else style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:40px;text-align:center;color:#94a3b8;font-size:12px;">
+        <div v-else style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:40px;text-align:center;color:#64748b;font-size:12px;">
           No suppliers found
         </div>
       </div>

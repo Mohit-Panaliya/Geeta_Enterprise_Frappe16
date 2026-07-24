@@ -103,30 +103,20 @@
    "onboard": 0,
    "type": "Card Break"
   },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Inter Company Transfer",
-   "link_count": 0,
-   "link_to": "Inter Company Transfer",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Stock Dashboard",
-   "link_count": 0,
-   "link_to": "stock-dashboard",
-   "link_type": "Page",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Supplier",
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Inter Company Transfer",
+    "link_count": 0,
+    "link_to": "Inter Company Transfer",
+    "link_type": "DocType",
+    "onboard": 1,
+    "type": "Link"
+   },
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Supplier",
    "link_count": 0,
    "link_to": "Supplier",
    "link_type": "DocType",
@@ -147,26 +137,36 @@
    "hidden": 0,
    "icon": "warehouse",
    "is_query_report": 0,
-   "label": "Stock & Reservation",
-   "link_count": 4,
+    "label": "Stock & Reservation",
+    "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
   },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Stock Reservation",
-   "link_count": 0,
-   "link_to": "Stock Reservation",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Stock Entry",
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Stock Reservation",
+    "link_count": 0,
+    "link_to": "Stock Reservation",
+    "link_type": "DocType",
+    "onboard": 1,
+    "type": "Link"
+   },
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Stock Release",
+    "link_count": 0,
+    "link_to": "Stock Release",
+    "link_type": "DocType",
+    "onboard": 1,
+    "type": "Link"
+   },
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Stock Entry",
    "link_count": 0,
    "link_to": "Stock Entry",
    "link_type": "DocType",
@@ -197,8 +197,8 @@
    "hidden": 0,
    "icon": "bar-chart",
    "is_query_report": 0,
-   "label": "Reports",
-   "link_count": 6,
+    "label": "Reports",
+    "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -257,15 +257,35 @@
    "hidden": 0,
    "is_query_report": 1,
    "label": "Reserved Stock",
-   "link_count": 0,
-   "link_to": "Reserved Stock",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "icon": "settings",
+    "link_count": 0,
+    "link_to": "Reserved Stock",
+    "link_type": "Report",
+    "onboard": 0,
+    "type": "Link"
+   },
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Command Center",
+    "link_count": 0,
+    "link_to": "oil-command-center",
+    "link_type": "Page",
+    "onboard": 0,
+    "type": "Link"
+   },
+   {
+    "hidden": 0,
+    "is_query_report": 0,
+    "label": "Stock Dashboard",
+    "link_count": 0,
+    "link_to": "stock-dashboard",
+    "link_type": "Page",
+    "onboard": 0,
+    "type": "Link"
+   },
+   {
+    "hidden": 0,
+    "icon": "settings",
    "is_query_report": 0,
    "label": "Settings",
    "link_count": 1,

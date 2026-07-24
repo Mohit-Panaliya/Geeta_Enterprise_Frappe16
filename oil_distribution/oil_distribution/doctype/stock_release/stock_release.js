@@ -1,4 +1,4 @@
-frappe.ui.form.on('Stock Reservation', {
+frappe.ui.form.on('Stock Release', {
 	setup(frm) {
 		frm.set_query('item', 'items', function() {
 			return {
@@ -7,17 +7,8 @@ frappe.ui.form.on('Stock Reservation', {
 		});
 	},
 
-	refresh(frm) {
-		frm.trigger('set_warehouse_queries');
-		frm.trigger('fetch_swastik_breakdown');
-		frm.trigger('fetch_release_breakdown');
-	},
-
 	company(frm) {
-		frm.trigger('set_warehouse_queries');
-		if (frm.doc.warehouse) {
-			frm.set_value('warehouse', '');
-		}
+		if (!frm.doc.company) return;
 		frappe.call({
 			method: 'frappe.client.get_value',
 			args: {
@@ -28,42 +19,31 @@ frappe.ui.form.on('Stock Reservation', {
 			callback(r) {
 				if (!r.message) return;
 				const abbr = r.message.abbr;
-				frm.set_value('reserved_warehouse', `Reserved WH - ${abbr}`);
-				frm.set_value('unreserved_warehouse', `Unreserved WH - ${abbr}`);
+				frm.doc.items.forEach((row) => {
+					const child = frappe.get_doc('Stock Release Item', row.name);
+					frappe.model.set_value(child.doctype, child.name, 'reserved_warehouse', `Reserved WH - ${abbr}`);
+					frappe.model.set_value(child.doctype, child.name, 'unreserved_warehouse', `Unreserved WH - ${abbr}`);
+					if (child.item) {
+						fetch_qty_for_row(frm, child.doctype, child.name, abbr);
+					}
+				});
 				frm.trigger('fetch_swastik_breakdown');
 				frm.trigger('fetch_release_breakdown');
-
-				const reserved_wh = `Reserved WH - ${abbr}`;
-				(frm.doc.items || []).forEach(row => {
-					if (!row.item) return;
-					frm.call('get_item_reservation_data', {
-						item: row.item,
-						source_warehouse: frm.doc.warehouse,
-						reserved_warehouse: reserved_wh
-					}).then(r2 => {
-						if (r2 && r2.message) {
-							frappe.model.set_value('Stock Reservation Item', row.name, 'already_reserved_qty', r2.message.already_reserved_qty);
-						}
-					});
-				});
 			}
 		});
 	},
 
-	warehouse(frm) {
-		(frm.doc.items || []).forEach(row => {
-			if (!row.item) return;
-			frm.call('get_item_reservation_data', {
-				item: row.item,
-				source_warehouse: frm.doc.warehouse,
-				reserved_warehouse: frm.doc.reserved_warehouse
-			}).then(r => {
-				if (r && r.message) {
-					frappe.model.set_value('Stock Reservation Item', row.name, 'available_qty', r.message.available_qty);
-					frappe.model.set_value('Stock Reservation Item', row.name, 'already_reserved_qty', r.message.already_reserved_qty);
+	refresh(frm) {
+		frm.trigger('fetch_swastik_breakdown');
+		frm.trigger('fetch_release_breakdown');
+		if (frm.doc.docstatus === 1 && frm.doc.status === 'Released') {
+			frm.add_custom_button(__('View Stock Entries'), function() {
+				const entries = frm.doc.items.map(i => i.stock_entry).filter(Boolean);
+				if (entries.length) {
+					frappe.set_route('List', 'Stock Entry', { name: ['in', entries] });
 				}
 			});
-		});
+		}
 	},
 
 	items_add(frm) {
@@ -134,58 +114,62 @@ frappe.ui.form.on('Stock Reservation', {
 			html += '</tbody></table>';
 			frm.fields_dict.release_breakdown_html.$wrapper.html(html);
 		});
-	},
-
-	set_warehouse_queries(frm) {
-		if (!frm.doc.company) return;
-
-		frm.set_query('warehouse', function() {
-			return {
-				filters: {
-					company: frm.doc.company,
-					is_group: 0,
-					warehouse_name: ['not in', ['Reserved WH', 'Unreserved WH']]
-				}
-			};
-		});
 	}
 });
 
-frappe.ui.form.on('Stock Reservation Item', {
+frappe.ui.form.on('Stock Release Item', {
 	item(frm, cdt, cdn) {
 		const row = frappe.get_doc(cdt, cdn);
-		if (!row.item) return;
+		if (!row.item || !frm.doc.company) return;
 
-		frm.call('get_item_reservation_data', {
-			item: row.item,
-			source_warehouse: frm.doc.warehouse,
-			reserved_warehouse: frm.doc.reserved_warehouse
-		}).then(r => {
-			if (!r || !r.message) return;
-			const data = r.message;
-			frappe.model.set_value(cdt, cdn, 'available_qty', data.available_qty);
-			frappe.model.set_value(cdt, cdn, 'already_reserved_qty', data.already_reserved_qty);
-			if (data.available_qty) {
-				frappe.model.set_value(cdt, cdn, 'qty', data.available_qty);
+		frappe.call({
+			method: 'frappe.client.get_value',
+			args: {
+				doctype: 'Item',
+				filters: { name: row.item },
+				fieldname: ['stock_uom']
+			},
+			callback(r) {
+				if (r.message) {
+					frappe.model.set_value(cdt, cdn, 'stock_uom', r.message.stock_uom);
+				}
 			}
-			frm.trigger('fetch_swastik_breakdown');
-			frm.trigger('fetch_release_breakdown');
+		});
+
+		frappe.call({
+			method: 'frappe.client.get_value',
+			args: {
+				doctype: 'Company',
+				filters: { name: frm.doc.company },
+				fieldname: ['abbr']
+			},
+			callback(r) {
+				if (!r.message) return;
+				const abbr = r.message.abbr;
+				frappe.model.set_value(cdt, cdn, 'reserved_warehouse', `Reserved WH - ${abbr}`);
+				frappe.model.set_value(cdt, cdn, 'unreserved_warehouse', `Unreserved WH - ${abbr}`);
+				fetch_qty_for_row(frm, cdt, cdn, abbr);
+				frm.trigger('fetch_swastik_breakdown');
+				frm.trigger('fetch_release_breakdown');
+			}
 		});
 	}
 });
 
-frappe.listview_settings['Stock Reservation'] = {
-	add_fields: ["status", "docstatus"],
-	has_indicator_for_draft: 1,
-	get_indicator: function(doc) {
-		const indicators = {
-			"Draft": [__("Draft"), "orange"],
-			"Reserved": [__("Reserved"), "green"],
-			"Partially Released": [__("Partially Released"), "orange"],
-			"Released": [__("Released"), "gray"],
-			"Sold": [__("Sold"), "blue"],
-			"Cancelled": [__("Cancelled"), "red"],
-		};
-		return indicators[doc.status] || [__("Unknown"), "gray"];
-	}
-};
+function fetch_qty_for_row(frm, cdt, cdn, abbr) {
+	const row = frappe.get_doc(cdt, cdn);
+	if (!row.item) return;
+	const reserved_wh = `Reserved WH - ${abbr}`;
+	const unreserved_wh = `Unreserved WH - ${abbr}`;
+	frappe.db.get_value('Bin', { item_code: row.item, warehouse: reserved_wh }, 'actual_qty')
+		.then(r => {
+			const reserved_qty = (r && r.message) ? r.message.actual_qty || 0 : 0;
+			frappe.db.get_value('Bin', { item_code: row.item, warehouse: unreserved_wh }, 'actual_qty')
+				.then(r2 => {
+					const released_qty = (r2 && r2.message) ? r2.message.actual_qty || 0 : 0;
+					frappe.model.set_value(cdt, cdn, 'reserved_qty', reserved_qty);
+					frappe.model.set_value(cdt, cdn, 'already_released_qty', released_qty);
+					frappe.model.set_value(cdt, cdn, 'qty', reserved_qty);
+				});
+		});
+}

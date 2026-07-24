@@ -151,8 +151,6 @@ class InterCompanyTransfer(StockController):
         pi = self.create_purchase_invoice_from_si(si_name)
         pi_name = pi.name
 
-        self.create_payment_entries(si_name, pi_name)
-
         self.status = "Transfer Created"
         self.flags.ignore_permissions = True
         self.db_set("status", "Transfer Created")
@@ -341,74 +339,6 @@ class InterCompanyTransfer(StockController):
 
         self.append_generated_doc("Purchase Invoice", pi.name, pi.company, pi.docstatus, pi.posting_date, pi.grand_total)
         return pi
-
-    # ── Step 7: Payment Entries ───────────────────────────────────────────────
-    def create_payment_entries(self, si_name, pi_name):
-        pi_outstanding = frappe.db.get_value("Purchase Invoice", pi_name, "outstanding_amount") or 0
-        if flt(pi_outstanding) > 0:
-            self.create_payment_entry(
-                company=self.to_company,
-                party_type="Supplier",
-                party=self.get_internal_supplier(self.company),
-                payment_type="Pay",
-                reference_doctype="Purchase Invoice",
-                reference_name=pi_name,
-            )
-
-        si_outstanding = frappe.db.get_value("Sales Invoice", si_name, "outstanding_amount") or 0
-        if flt(si_outstanding) > 0:
-            self.create_payment_entry(
-                company=self.company,
-                party_type="Customer",
-                party=self.get_internal_customer(self.to_company),
-                payment_type="Receive",
-                reference_doctype="Sales Invoice",
-                reference_name=si_name,
-            )
-
-    def create_payment_entry(self, company, party_type, party, payment_type, reference_doctype, reference_name):
-        pe = frappe.new_doc("Payment Entry")
-        pe.company = company
-        pe.payment_type = payment_type
-        pe.party_type = party_type
-        pe.party = party
-        pe.posting_date = self.posting_date
-        pe.mode_of_payment = frappe.db.get_value("Mode of Payment", {"type": "Bank"}, "name") or "Wire Transfer"
-        pe.paid_amount = self.grand_total
-        pe.received_amount = self.grand_total
-        pe.source_exchange_rate = 1
-        pe.target_exchange_rate = 1
-        pe.reference_no = self.name
-        pe.reference_date = self.posting_date
-
-        default_bank = frappe.db.get_value("Company", company, "default_bank_account")
-        if not default_bank:
-            frappe.throw(_("No default Bank Account set for company {0}").format(company))
-
-        if payment_type == "Pay":
-            default_payable = frappe.db.get_value("Company", company, "default_payable_account")
-            pe.paid_from = default_bank
-            pe.paid_to = default_payable
-        else:
-            default_receivable = frappe.db.get_value("Company", company, "default_receivable_account")
-            pe.paid_from = default_receivable
-            pe.paid_to = default_bank
-
-        pe.append("references", {
-            "reference_doctype": reference_doctype,
-            "reference_name": reference_name,
-            "total_amount": self.grand_total,
-            "outstanding_amount": self.grand_total,
-            "allocated_amount": self.grand_total,
-        })
-
-        pe.flags.ignore_permissions = True
-        pe.flags.ignore_links = True
-        pe.save(ignore_permissions=True)
-        pe.submit()
-
-        self.append_generated_doc("Payment Entry", pe.name, pe.company, pe.docstatus, self.posting_date, pe.paid_amount)
-        return pe
 
     # ── Helpers ───────────────────────────────────────────────────────────────
     def append_generated_doc(self, doctype, name, company, docstatus, posting_date=None, grand_total=0):

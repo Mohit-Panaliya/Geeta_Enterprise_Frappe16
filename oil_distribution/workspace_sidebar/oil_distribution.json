@@ -1,6 +1,6 @@
 {
  "app": "oil_distribution",
- "creation": "2026-07-07 12:00:00.000000",
+ "creation": "2026-07-23 14:43:13.644569",
  "docstatus": 0,
  "doctype": "Workspace Sidebar",
  "header_icon": "oil-can",
@@ -16,11 +16,35 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Section Break"
-   },
-    {
-    "child": 1,
-    "collapsible": 1,
-    "icon": "file-text",
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "layout-dashboard",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Command Center",
+   "link_to": "oil-command-center",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "layout-dashboard",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Stock Dashboard",
+   "link_to": "stock-dashboard",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "file-text",
    "indent": 0,
    "keep_closed": 0,
    "label": "IOCL Procurement Report",
@@ -89,40 +113,40 @@
    "show_arrow": 0,
    "type": "Link"
   },
-   {
-    "child": 0,
-    "collapsible": 1,
-    "icon": "layout-dashboard",
-    "indent": 0,
-    "keep_closed": 0,
-    "label": "Oil Operations",
-    "link_type": "DocType",
-    "show_arrow": 0,
-    "type": "Section Break"
-   },
-   {
-    "child": 1,
-    "collapsible": 1,
-    "icon": "layout-dashboard",
-    "indent": 0,
-    "keep_closed": 0,
-    "label": "Oil Operations Console",
-     "link_to": "/oil-ops",
-     "link_type": "URL",
-    "show_arrow": 0,
-    "type": "Link"
-   },
-   {
-    "child": 0,
-    "collapsible": 1,
-    "icon": "shopping-cart",
-    "indent": 0,
-    "keep_closed": 0,
-    "label": "Procurement",
-    "link_type": "DocType",
-    "show_arrow": 0,
-    "type": "Section Break"
-   },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "layout-dashboard",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Oil Operations",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "layout-dashboard",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Oil Operations Console",
+   "link_type": "URL",
+   "show_arrow": 0,
+   "type": "Link",
+   "url": "/oil-ops"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "shopping-cart",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Procurement",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
   {
    "child": 1,
    "collapsible": 1,
@@ -268,6 +292,18 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "undo",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Unreserve Stock",
+   "link_to": "Stock Release",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "warehouse",
    "indent": 0,
    "keep_closed": 0,
@@ -301,7 +337,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-07 12:00:00.000000",
+ "modified": "2026-07-23 14:43:13.644569",
  "modified_by": "Administrator",
  "module": "Oil Distribution",
  "name": "Oil Distribution",

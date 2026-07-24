@@ -8,7 +8,7 @@
     </ion-header>
     <ion-content>
       <div class="page anim-fade">
-        <div class="hero" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
+        <div class="hero" style="background:linear-gradient(135deg,#f59e0b 0%,#ef4444 100%)">
           <div class="hero-title">Procurement</div>
           <div class="hero-desc">Purchase orders and supplier management</div>
         </div>

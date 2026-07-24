@@ -37,10 +37,18 @@ doc_events = {
         "on_submit": "oil_distribution.api.stock_events.handle_stock_entry_submit",
         "on_cancel": "oil_distribution.api.stock_events.handle_stock_entry_cancel",
     },
-    "Stock Reservation": {
-        "on_submit": "oil_distribution.oil_distribution.doctype.stock_reservation.stock_reservation.recalculate_on_change",
-        "on_cancel": "oil_distribution.oil_distribution.doctype.stock_reservation.stock_reservation.recalculate_on_change",
-    }
+    "Delivery Note": {
+        "validate": [
+            "oil_distribution.api.stock_events.validate_reserved_wh_sale",
+            "oil_distribution.api.stock_events.validate_unreserved_wh_stock",
+        ],
+    },
+    "Sales Invoice": {
+        "validate": [
+            "oil_distribution.api.stock_events.validate_reserved_wh_sale",
+            "oil_distribution.api.stock_events.validate_unreserved_wh_stock",
+        ],
+    },
 }
 
 scheduler_events = {

@@ -1,5 +1,5 @@
 {
- "aggregate_function_based_on": "quantity",
+ "aggregate_function_based_on": "reserved_qty",
  "color": "#ffab00",
  "creation": "2026-07-07 15:19:54.503056",
  "currency": "INR",

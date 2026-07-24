@@ -1,10 +1,30 @@
 frappe.ui.form.on('Inter Company Transfer', {
+	setup(frm) {
+		frm.set_query('company', function() {
+			return {
+				filters: {
+					name: ['!=', frm.doc.to_company]
+				}
+			};
+		});
+		frm.set_query('to_company', function() {
+			return {
+				filters: {
+					name: ['!=', frm.doc.company]
+				}
+			};
+		});
+	},
+
 	refresh(frm) {
 		frm.trigger('set_warehouse_queries');
 
 		if (frm.doc.docstatus === 1 && frm.doc.status === 'Transfer Created') {
 			frm.add_custom_button(__('View All Documents'), function() {
 				frm.trigger('show_generated_documents');
+			}, __('Actions'));
+			frm.add_custom_button(__('Create Payment Entries'), function() {
+				frm.trigger('create_payment_entries');
 			}, __('Actions'));
 			frm.page.set_indicator(__('Transfer Created'), 'green');
 		} else if (frm.doc.docstatus === 1 && frm.doc.status === 'Submitted') {
@@ -15,6 +35,13 @@ frappe.ui.form.on('Inter Company Transfer', {
 	},
 
 	company(frm) {
+		frm.set_query('to_company', function() {
+			return {
+				filters: {
+					name: ['!=', frm.doc.company]
+				}
+			};
+		});
 		frm.trigger('set_warehouse_queries');
 		frm.trigger('set_defaults');
 		if (frm.doc.items) {
@@ -26,6 +53,13 @@ frappe.ui.form.on('Inter Company Transfer', {
 	},
 
 	to_company(frm) {
+		frm.set_query('company', function() {
+			return {
+				filters: {
+					name: ['!=', frm.doc.to_company]
+				}
+			};
+		});
 		frm.trigger('set_warehouse_queries');
 		if (frm.doc.items) {
 			frm.doc.items.forEach(row => {
@@ -65,6 +99,41 @@ frappe.ui.form.on('Inter Company Transfer', {
 				};
 			});
 		}
+	},
+
+	create_payment_entries(frm) {
+		const d = new frappe.ui.Dialog({
+			title: __('Create Payment Entries'),
+			fields: [
+				{
+					label: __('Posting Date'),
+					fieldname: 'posting_date',
+					fieldtype: 'Date',
+					default: frappe.datetime.get_today(),
+					reqd: 1
+				}
+			],
+			primary_action_label: __('Create'),
+			primary_action(values) {
+				d.hide();
+				frappe.call({
+					method: 'oil_distribution.api.oil_ops.create_payment_entries_for_ict',
+					args: {
+						ict_name: frm.doc.name,
+						posting_date: values.posting_date
+					},
+					callback(r) {
+						if (r.message && r.message.created && r.message.created.length) {
+							frappe.msgprint(__('Payment Entries created: {0}', [r.message.created.join(', ')]));
+							frm.reload_doc();
+						} else {
+							frappe.msgprint(__('No payment entries were created. Outstanding may already be settled.'));
+						}
+					}
+				});
+			}
+		});
+		d.show();
 	},
 
 	show_generated_documents(frm) {

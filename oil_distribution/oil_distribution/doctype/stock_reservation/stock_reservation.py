@@ -1,3 +1,5 @@
+import json
+
 import frappe
 from frappe import _
 from frappe.utils import flt, nowdate
@@ -7,14 +9,12 @@ class StockReservation(frappe.model.document.Document):
 	def validate(self):
 		self.set_missing_values()
 		self.validate_warehouse_company()
+		self.validate_warehouse_not_reserved_or_unreserved()
+		self.set_reserved_and_unreserved_warehouses()
 
 	def set_missing_values(self):
 		if not self.posting_date:
 			self.posting_date = nowdate()
-
-		if not self.stock_uom and self.item:
-			self.stock_uom = frappe.get_cached_value("Item", self.item, "stock_uom")
-
 		if not self.status:
 			self.status = "Draft"
 
@@ -24,8 +24,24 @@ class StockReservation(frappe.model.document.Document):
 			if warehouse_company != self.company:
 				frappe.throw(_("Warehouse does not belong to selected company"))
 
+	def validate_warehouse_not_reserved_or_unreserved(self):
+		if not self.warehouse:
+			return
+		wh_name = frappe.get_cached_value("Warehouse", self.warehouse, "warehouse_name")
+		wh_name_lower = (wh_name or "").strip().lower()
+		if wh_name_lower.startswith("reserved wh") or wh_name_lower.startswith("unreserved wh"):
+			frappe.throw(_("Source warehouse cannot be Reserved WH or Unreserved WH. "
+				"Select an available stock warehouse instead."))
+
+	def set_reserved_and_unreserved_warehouses(self):
+		if not self.company:
+			return
+		abbr = frappe.get_cached_value("Company", self.company, "abbr")
+		self.reserved_warehouse = f"Reserved WH - {abbr}"
+		self.unreserved_warehouse = f"Unreserved WH - {abbr}"
+
 	def before_submit(self):
-		self.validate_reserved_qty()
+		self.validate_items()
 		self.status = "Reserved"
 
 	def on_submit(self):
@@ -33,31 +49,20 @@ class StockReservation(frappe.model.document.Document):
 
 	def on_cancel(self):
 		self.status = "Cancelled"
-		self.update_stock_ledger(reserve=False)
+		self.cancel_reservation_stock_entries()
 		self.db_update()
 
-	def validate_reserved_qty(self):
-		if not self.reserved_qty:
-			frappe.throw(_("Reserved Qty is mandatory"))
+	def validate_items(self):
+		if not self.items:
+			frappe.throw(_("Please add at least one item to reserve"))
 
-		if self.reserved_qty <= 0:
-			frappe.throw(_("Reserved Qty must be greater than 0"))
-
-		available_qty = (
-			frappe.db.get_value("Bin", {"item_code": self.item, "warehouse": self.warehouse}, "actual_qty") or 0
-		)
-
-		if flt(available_qty) < flt(self.reserved_qty):
-			frappe.msgprint(
-				_("Warning: Source warehouse {0} will go negative. Available: {1}, Requested: {2}").format(
-					self.warehouse, available_qty, self.reserved_qty
-				),
-				indicator="orange",
-				alert=True,
-			)
+		for row in self.items:
+			if not row.qty:
+				frappe.throw(_("Row #{0}: Reserve Qty is mandatory").format(row.idx))
+			if flt(row.qty) <= 0:
+				frappe.throw(_("Row #{0}: Reserve Qty must be greater than 0").format(row.idx))
 
 	def get_reserved_warehouse(self):
-		"""Get the Reserved WH for this company based on naming convention."""
 		company_abbr = frappe.get_cached_value("Company", self.company, "abbr")
 		reserved_wh = f"Reserved WH - {company_abbr}"
 		if not frappe.db.exists("Warehouse", reserved_wh):
@@ -67,121 +72,128 @@ class StockReservation(frappe.model.document.Document):
 		return reserved_wh
 
 	def update_stock_ledger(self, reserve=True):
-		if not self.item or not self.warehouse or not self.company:
-			return
-
-		if self.stock_entry:
-			if not reserve:
-				se = frappe.get_doc("Stock Entry", self.stock_entry)
-				se.flags.ignore_permissions = True
-				se.flags.ignore_links = True
-				se.cancel()
-				self.db_set("stock_entry", "")
+		if not self.warehouse or not self.company or not self.items:
 			return
 
 		if reserve:
 			reserved_warehouse = self.get_reserved_warehouse()
+			for row in self.items:
+				if row.stock_entry:
+					continue
+				basic_rate = self.get_valuation_rate(row.item, self.warehouse)
+				stock_entry = frappe.new_doc("Stock Entry")
+				stock_entry.stock_entry_type = "Material Transfer"
+				stock_entry.purpose = "Material Transfer"
+				stock_entry.company = self.company
+				item_data = {
+					"item_code": row.item,
+					"s_warehouse": self.warehouse,
+					"t_warehouse": reserved_warehouse,
+					"qty": row.qty,
+					"basic_rate": basic_rate,
+				}
+				if row.batch_no:
+					item_data["batch_no"] = row.batch_no
+				stock_entry.append("items", item_data)
+				stock_entry.flags.ignore_permissions = True
+				stock_entry.flags.ignore_links = True
+				stock_entry.submit()
+				frappe.db.set_value("Stock Reservation Item", row.name, "stock_entry", stock_entry.name)
 
-			stock_entry = frappe.new_doc("Stock Entry")
-			stock_entry.stock_entry_type = "Material Transfer"
-			stock_entry.purpose = "Material Transfer"
-			stock_entry.company = self.company
-			basic_rate = self.get_valuation_rate()
-			item_data = {
-				"item_code": self.item,
-				"s_warehouse": self.warehouse,
-				"t_warehouse": reserved_warehouse,
-				"qty": self.reserved_qty,
-				"basic_rate": basic_rate,
-				"uom": self.stock_uom,
-			}
-			if self.batch_no:
-				item_data["batch_no"] = self.batch_no
-			stock_entry.append("items", item_data)
-			stock_entry.flags.ignore_permissions = True
-			stock_entry.flags.ignore_links = True
-			stock_entry.submit()
-			self.db_set("stock_entry", stock_entry.name)
-		else:
-			reserved_warehouse = self.get_reserved_warehouse()
+	def cancel_reservation_stock_entries(self):
+		for row in self.items:
+			if row.stock_entry:
+				try:
+					se = frappe.get_doc("Stock Entry", row.stock_entry)
+					se.flags.ignore_permissions = True
+					se.flags.ignore_links = True
+					se.cancel()
+					frappe.db.set_value("Stock Reservation Item", row.name, "stock_entry", "")
+				except Exception:
+					frappe.log_error(
+						f"Failed to cancel Stock Entry {row.stock_entry} for Stock Reservation Item {row.name}"
+					)
 
-			stock_entry = frappe.new_doc("Stock Entry")
-			stock_entry.stock_entry_type = "Material Transfer"
-			stock_entry.purpose = "Material Transfer"
-			stock_entry.company = self.company
-			basic_rate = self.get_valuation_rate()
-			item_data = {
-				"item_code": self.item,
-				"s_warehouse": reserved_warehouse,
-				"t_warehouse": self.warehouse,
-				"qty": self.reserved_qty,
-				"basic_rate": basic_rate,
-				"uom": self.stock_uom,
-			}
-			if self.batch_no:
-				item_data["batch_no"] = self.batch_no
-			stock_entry.append("items", item_data)
-			stock_entry.flags.ignore_permissions = True
-			stock_entry.flags.ignore_links = True
-			stock_entry.submit()
-			self.db_set("stock_entry", stock_entry.name)
-
-	def get_valuation_rate(self):
+	def get_valuation_rate(self, item_code, warehouse):
 		bin_rate = frappe.db.get_value(
-			"Bin", {"item_code": self.item, "warehouse": self.warehouse}, "valuation_rate"
+			"Bin", {"item_code": item_code, "warehouse": warehouse}, "valuation_rate"
 		)
 		if bin_rate:
 			return flt(bin_rate)
-		return flt(frappe.db.get_value("Item", self.item, "valuation_rate") or 0)
-
-	def release_reservation(self):
-		if self.docstatus != 1:
-			frappe.throw(_("Only submitted reservation can be released"))
-
-		if self.status == "Released":
-			frappe.throw(_("Reservation is already released"))
-
-		self.status = "Released"
-		self.update_stock_ledger(reserve=False)
-		self.db_update()
+		return flt(frappe.db.get_value("Item", item_code, "valuation_rate") or 0)
 
 	@frappe.whitelist()
-	def get_swastik_total_reserved(self):
-		"""Get total reserved stock from all Reserved Warehouses (actual Bin stock)."""
-		total = frappe.db.sql(
-			"""
-			SELECT COALESCE(SUM(b.actual_qty), 0)
-			FROM `tabBin` b
-			JOIN `tabWarehouse` w ON w.name = b.warehouse
-			WHERE w.name LIKE 'Reserved WH - %%'
-			AND b.actual_qty > 0
-			""",
-			as_dict=False,
-		)
-		return flt(total[0][0]) if total else 0
+	def get_swastik_breakdown(self):
+		items_raw = frappe.form_dict.get("items") or [row.item for row in self.items if row.item]
 
-	@staticmethod
-	def recalculate_all_swastik_totals():
-		"""Recalculate total_reserved_for_swastik from actual Bin stock in Reserved Warehouses.
-		Counts ALL stock (manual transfers + reservation transfers)."""
-		total = frappe.db.sql(
-			"""
-			SELECT COALESCE(SUM(b.actual_qty), 0)
-			FROM `tabBin` b
-			JOIN `tabWarehouse` w ON w.name = b.warehouse
-			WHERE w.name LIKE 'Reserved WH - %%'
-			AND b.actual_qty > 0
-			""",
-			as_dict=False,
-		)
-		total_val = flt(total[0][0]) if total else 0
-		frappe.db.sql(
-			"UPDATE `tabStock Reservation` SET total_reserved_for_swastik = %s WHERE docstatus = 1 AND status = 'Reserved'",
-			(total_val,),
-		)
-		frappe.db.commit()
+		if isinstance(items_raw, str):
+			items = json.loads(items_raw)
+		else:
+			items = items_raw
 
+		if not items:
+			return []
 
-def recalculate_on_change(doc, method):
-	"""doc_events hook: recalculate swastik totals when any Stock Reservation is submitted/cancelled."""
-	StockReservation.recalculate_all_swastik_totals()
+		companies = frappe.get_all("Company", pluck="name")
+		company_abbrs = {c: frappe.get_cached_value("Company", c, "abbr") for c in companies}
+
+		rows = []
+		for item in items:
+			row = {"item": item}
+			total = 0
+			for company, abbr in company_abbrs.items():
+				wh = f"Reserved WH - {abbr}"
+				qty = flt(frappe.db.get_value("Bin", {"item_code": item, "warehouse": wh}, "actual_qty") or 0)
+				row[company] = qty
+				total += qty
+			row["total"] = total
+			row["item_name"] = frappe.get_cached_value("Item", item, "item_name") or item
+			rows.append(row)
+
+		return rows
+
+	@frappe.whitelist()
+	def get_release_breakdown(self):
+		items_raw = frappe.form_dict.get("items") or [row.item for row in self.items if row.item]
+
+		if isinstance(items_raw, str):
+			items = json.loads(items_raw)
+		else:
+			items = items_raw
+
+		if not items:
+			return []
+
+		companies = frappe.get_all("Company", pluck="name")
+		company_abbrs = {c: frappe.get_cached_value("Company", c, "abbr") for c in companies}
+
+		rows = []
+		for item in items:
+			row = {"item": item}
+			total = 0
+			for company, abbr in company_abbrs.items():
+				wh = f"Unreserved WH - {abbr}"
+				qty = flt(frappe.db.get_value("Bin", {"item_code": item, "warehouse": wh}, "actual_qty") or 0)
+				row[company] = qty
+				total += qty
+			row["total"] = total
+			row["item_name"] = frappe.get_cached_value("Item", item, "item_name") or item
+			rows.append(row)
+
+		return rows
+
+	@frappe.whitelist()
+	def get_item_reservation_data(self, item=None, source_warehouse=None, reserved_warehouse=None):
+		result = {"available_qty": 0, "already_reserved_qty": 0}
+
+		if item and source_warehouse:
+			result["available_qty"] = flt(
+				frappe.db.get_value("Bin", {"item_code": item, "warehouse": source_warehouse}, "actual_qty") or 0
+			)
+
+		if item and reserved_warehouse:
+			result["already_reserved_qty"] = flt(
+				frappe.db.get_value("Bin", {"item_code": item, "warehouse": reserved_warehouse}, "actual_qty") or 0
+			)
+
+		return result

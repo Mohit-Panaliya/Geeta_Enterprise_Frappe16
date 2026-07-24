@@ -18,10 +18,10 @@
   "section_break_tax",
   "sales_tax_template",
   "purchase_tax_template",
-  "section_break_remarks",
-  "remarks",
-  "section_break_items",
-  "items",
+   "section_break_items",
+   "items",
+   "section_break_remarks",
+   "remarks",
   "section_break_generated",
   "generated_documents",
   "column_break_totals",
@@ -73,7 +73,7 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
+   "collapsible": 0,
    "fieldname": "section_break_tax",
    "fieldtype": "Section Break",
    "label": "Tax Templates"
@@ -90,19 +90,25 @@
    "label": "Purchase Tax Template",
    "options": "Purchase Taxes and Charges Template"
   },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "fieldname": "items",
-   "fieldtype": "Table",
-   "label": "Items",
-   "options": "Inter Company Transfer Item"
-  },
-  {
-   "fieldname": "generated_documents",
+   {
+    "fieldname": "items",
+    "fieldtype": "Table",
+    "label": "Items",
+    "options": "Inter Company Transfer Item"
+   },
+   {
+    "collapsible": 0,
+    "fieldname": "section_break_remarks",
+    "fieldtype": "Section Break",
+    "label": "Remarks"
+   },
+   {
+    "fieldname": "remarks",
+    "fieldtype": "Small Text",
+    "label": "Remarks"
+   },
+   {
+    "fieldname": "generated_documents",
    "fieldtype": "Table",
    "label": "Generated Documents",
    "options": "Inter Company Transfer Generated Document",
@@ -144,7 +150,7 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
+   "collapsible": 0,
    "fieldname": "section_break_basic",
    "fieldtype": "Section Break",
    "label": "Basic Details"
@@ -155,19 +161,13 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
-   "fieldname": "section_break_remarks",
-   "fieldtype": "Section Break",
-   "label": "Remarks"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_items",
+    "collapsible": 0,
+    "fieldname": "section_break_items",
    "fieldtype": "Section Break",
    "label": "Items"
   },
   {
-   "collapsible": 1,
+   "collapsible": 0,
    "fieldname": "section_break_generated",
    "fieldtype": "Section Break",
    "label": "Generated Documents"
@@ -214,7 +214,7 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
+ "quick_entry": 0,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

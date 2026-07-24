@@ -10,24 +10,22 @@
   "company",
   "warehouse",
   "reserved_warehouse",
+  "unreserved_warehouse",
   "posting_date",
   "reserved_for",
   "status",
   "column_break_u47y",
-  "item",
-  "batch_no",
-  "reserved_qty",
-  "section_break_swastik",
-  "total_reserved_for_swastik",
-  "amended_from",
+  "section_break_items",
+  "items",
+   "section_break_swastik",
+   "swastik_breakdown_html",
+   "section_break_release",
+   "release_breakdown_html",
+   "amended_from",
   "section_break_remarks",
   "remarks",
   "section_break_sales",
-  "sales_order",
-  "stock_entry",
-  "release_stock_entry",
-  "section_break_totals",
-  "stock_uom"
+  "sales_order"
  ],
  "fields": [
   {
@@ -40,7 +38,7 @@
   {
    "fieldname": "warehouse",
    "fieldtype": "Link",
-   "label": "Warehouse",
+   "label": "Source Warehouse",
    "options": "Warehouse",
    "reqd": 1
   },
@@ -54,73 +52,68 @@
    "fieldname": "reserved_for",
    "fieldtype": "Select",
    "label": "Reserved For",
-   "options": "\nSwastik\nSales Order\nPurchase Order\nWork Order\nInternal\nOther"
+   "options": "\nSwastik\nSales Order\nPurchase Order\nWork Order\nInternal\nOther",
+   "default": "Swastik"
   },
   {
    "fieldname": "reserved_warehouse",
    "fieldtype": "Link",
    "label": "Reserved Warehouse",
-   "options": "Warehouse"
+   "options": "Warehouse",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unreserved_warehouse",
+   "fieldtype": "Link",
+   "label": "Unreserved Warehouse",
+   "options": "Warehouse",
+   "read_only": 1
   },
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Draft\nReserved\nReleased\nSold\nCancelled",
+   "options": "Draft\nReserved\nPartially Released\nReleased\nSold\nCancelled",
    "read_only": 1
   },
   {
-   "fieldname": "item",
-   "fieldtype": "Link",
-   "label": "Item",
-   "options": "Item",
+   "collapsible": 0,
+   "fieldname": "column_break_u47y",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_items",
+   "fieldtype": "Section Break",
+   "label": "Items to Reserve"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Stock Reservation Item",
    "reqd": 1
   },
-  {
-   "fieldname": "batch_no",
-   "fieldtype": "Link",
-   "label": "Batch No",
-   "options": "Batch"
-  },
-  {
-   "fieldname": "reserved_qty",
-   "fieldtype": "Float",
-   "label": "Reserved Qty",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "total_reserved_for_swastik",
-   "fieldtype": "Float",
-   "label": "Total Reserved (All Companies)",
-   "read_only": 1,
-   "description": "Sum of all reserved quantities across all companies for all items"
-  },
-  {
-   "fieldname": "stock_uom",
-   "fieldtype": "Link",
-   "label": "Stock UoM",
-   "options": "UOM",
-   "read_only": 1
-  },
-  {
-   "fieldname": "sales_order",
+   {
+    "fieldname": "swastik_breakdown_html",
+    "fieldtype": "HTML",
+    "label": "Swastik Reserved Breakdown"
+   },
+   {
+    "collapsible": 0,
+    "fieldname": "section_break_release",
+    "fieldtype": "Section Break",
+    "label": "Unreserved Stock Breakdown"
+   },
+   {
+    "fieldname": "release_breakdown_html",
+    "fieldtype": "HTML",
+    "label": "Unreserved Stock Breakdown"
+   },
+   {
+    "fieldname": "sales_order",
    "fieldtype": "Link",
    "label": "Sales Order",
    "options": "Sales Order"
-  },
-  {
-   "fieldname": "stock_entry",
-   "fieldtype": "Link",
-   "label": "Stock Entry",
-   "options": "Stock Entry"
-  },
-  {
-   "fieldname": "release_stock_entry",
-   "fieldtype": "Link",
-   "label": "Release Stock Entry",
-   "options": "Stock Entry",
-   "read_only": 1
   },
   {
    "fieldname": "remarks",
@@ -136,43 +129,33 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
+   "collapsible": 0,
    "fieldname": "section_break_basic",
    "fieldtype": "Section Break",
    "label": "Basic Details"
   },
   {
    "collapsible": 0,
-   "fieldname": "column_break_u47y",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_swastik",
-   "fieldtype": "Section Break",
-   "label": "Swastik Tracking"
-  },
-  {
-   "collapsible": 1,
    "fieldname": "section_break_remarks",
    "fieldtype": "Section Break",
    "label": "Remarks"
   },
   {
-   "collapsible": 1,
+   "collapsible": 0,
    "fieldname": "section_break_sales",
    "fieldtype": "Section Break",
-   "label": "Sales Details"
+   "label": "Sales Order"
   },
   {
-   "collapsible": 1,
-   "fieldname": "section_break_totals",
+   "collapsible": 0,
+   "fieldname": "section_break_swastik",
    "fieldtype": "Section Break",
-   "label": "Totals"
+   "label": "Swastik Tracking"
   }
  ],
  "is_submittable": 1,
  "istable": 0,
- "modified": "2026-06-16 00:00:00.000000",
+ "modified": "2026-07-23 00:00:00.000000",
  "module": "Oil Distribution",
  "name": "Stock Reservation",
  "owner": "Administrator",

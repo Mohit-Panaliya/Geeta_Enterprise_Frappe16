@@ -539,7 +539,7 @@ function get_dashboard_html() {
 			<button class="oz-tab-btn oz-tab-active" data-tab="sales">Sales & Procurement</button>
 			<button class="oz-tab-btn" data-tab="stock">Stock Intelligence</button>
 			<button class="oz-tab-btn" data-tab="ict">Inter Company Transfer</button>
-			<button class="oz-tab-btn" data-tab="reservations">Reservations</button>
+			<button class="oz-tab-btn" data-tab="reservations">Reservation & Release</button>
 		</div>
 		<!-- Period Selector -->
 		<div id="oz-period-bar" class="oz-bar oz-period-bar oz-anim" style="animation-delay:0.06s;">
@@ -676,77 +676,59 @@ function get_dashboard_html() {
 		<!-- ═══ PANEL 2: STOCK INTELLIGENCE ═══ -->
 		<div id="oz-panel-stock" class="oz-tab-panel" style="display:none;">
 
-			<!-- KPIs + Compact Pipeline in one row -->
+			<!-- KPIs: UOM summary + context -->
 			<div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.06s">
-				<div class="oz-kpi-card" onclick="frappe.set_route('List','Bin',{warehouse:['like','Available WH%']})">
+				<div class="oz-kpi-card">
 					<div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
 					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-avail" style="color:#7c3aed;">--</div>
-						<div class="oz-kpi-lbl">Available Stock</div>
+						<div class="oz-kpi-val" id="oz-kpi-uom-nos" style="color:#7c3aed;">--</div>
+						<div class="oz-kpi-lbl">Total Stock (Nos)</div>
 					</div>
 				</div>
-				<div class="oz-kpi-card" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">
-					<div class="oz-kpi-icon" style="background:#fef3c7;color:#d97706;">🔒</div>
+				<div class="oz-kpi-card">
+					<div class="oz-kpi-icon" style="background:#d1fae5;color:#059669;">📊</div>
 					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-reserved" style="color:#d97706;">--</div>
-						<div class="oz-kpi-lbl">Swastik Reserved</div>
+						<div class="oz-kpi-val" id="oz-kpi-uom-litres" style="color:#059669;">--</div>
+						<div class="oz-kpi-lbl">Total Stock (Litres)</div>
 					</div>
 				</div>
 				<div class="oz-kpi-card" onclick="frappe.set_route('List','Bin',{actual_qty:['<',0]})">
 					<div class="oz-kpi-icon" style="background:#fef2f2;color:#dc2626;">⚠</div>
 					<div class="oz-kpi-info">
-						<div class="oz-kpi-val" id="oz-kpi-neg" style="color:#dc2626;">--</div>
-						<div class="oz-kpi-lbl">Negative Alerts</div>
+						<div class="oz-kpi-val" id="oz-kpi-uom-neg" style="color:#dc2626;">--</div>
+						<div class="oz-kpi-lbl">Negative Items</div>
 					</div>
 				</div>
 			</div>
 
-			<!-- Compact Pipeline + Utilization + Quick Stats -->
-			<div class="oz-chart-card oz-anim" style="animation-delay:0.1s;padding:14px 18px;">
-				<div style="display:flex;align-items:center;gap:16px;">
-					<div style="flex:1;">
-						<div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:8px;">Stock Pipeline</div>
-						<div id="oz-funnel-content"></div>
-					</div>
-					<div style="width:1px;height:80px;background:#f1f5f9;"></div>
-					<div style="text-align:center;min-width:80px;">
-						<div id="oz-ring" style="display:flex;justify-content:center;"></div>
-						<div style="font-size:8px;font-weight:700;color:#94a3b8;margin-top:2px;">Utilization</div>
-					</div>
-					<div style="width:1px;height:80px;background:#f1f5f9;"></div>
-					<div style="min-width:140px;">
-						<div id="oz-mini-stats"></div>
-					</div>
+			<!-- Detailed UOM Stock Table: Nos + Litres per item -->
+			<div class="oz-chart-card oz-anim" style="animation-delay:0.10s">
+				<div class="oz-chart-head">
+					<div class="oz-chart-icon" style="background:#ede9fe;color:#7c3aed;">📊</div>
+					<div><div class="oz-chart-title">Stock by UOM — Nos vs Litres</div><div class="oz-chart-sub">All items with conversion, share bars show % of total</div></div>
 				</div>
+				<div id="oz-uom-stock"></div>
 			</div>
 
-			<!-- Donut + Negative Alerts -->
-			<div class="oz-grid-2 oz-anim" style="animation-delay:0.14s">
-				<div class="oz-chart-card" style="margin-bottom:0;">
-					<div class="oz-chart-head">
-						<div class="oz-chart-icon" style="background:#ede9fe;color:#7c3aed;">💡</div>
-						<div><div class="oz-chart-title">Stock Distribution</div><div class="oz-chart-sub">Hover segments for details · Click legend to highlight</div></div>
-					</div>
-					<div id="oz-chart-donut"></div>
+			<!-- Company UOM Breakdown -->
+			<div class="oz-chart-card oz-anim" style="animation-delay:0.14s">
+				<div class="oz-chart-head">
+					<div class="oz-chart-icon" style="background:#dbeafe;color:#3b82f6;">🏢</div>
+					<div><div class="oz-chart-title">Stock by Company</div><div class="oz-chart-sub">Nos and Litre stock per company</div></div>
 				</div>
-				<div class="oz-chart-card" style="margin-bottom:0;">
-					<div class="oz-chart-head">
-						<div class="oz-chart-icon" style="background:#fef2f2;color:#dc2626;">⚠</div>
-						<div style="flex:1;"><div class="oz-chart-title">Negative Stock Alerts</div></div>
-						<a class="oz-link" style="color:#dc2626;" onclick="frappe.set_route('List','Bin',{actual_qty:['<',0]})">View →</a>
-					</div>
-					<div id="oz-table-neg"></div>
-				</div>
+				<div id="oz-uom-companies"></div>
 			</div>
 
-			<!-- Warehouse Breakdown -->
+			<!-- Negative Stock Alerts -->
 			<div class="oz-chart-card oz-anim" style="animation-delay:0.18s">
 				<div class="oz-chart-head">
-					<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">🏭</div>
-					<div><div class="oz-chart-title">Warehouse Stock Breakdown</div><div class="oz-chart-sub">All warehouses with stock</div></div>
+					<div class="oz-chart-icon" style="background:#fef2f2;color:#dc2626;">⚠</div>
+					<div style="flex:1;"><div class="oz-chart-title">Negative Stock Alerts</div></div>
+					<a class="oz-link" style="color:#dc2626;" onclick="frappe.set_route('List','Bin',{actual_qty:['<',0]})">View →</a>
 				</div>
-				<div id="oz-warehouse-table"></div>
+				<div id="oz-table-neg"></div>
 			</div>
+		</div>
 		</div>
 
 		<!-- ═══ PANEL 3: ICT ═══ -->
@@ -886,7 +868,49 @@ function get_dashboard_html() {
 					<a class="oz-link" onclick="frappe.set_route('List','Stock Reservation',{status:'Reserved'})">View All →</a>
 				</div>
 				<div id="oz-table-res"></div>
+
+			<!-- Release KPI: single card -->
+			<div class="oz-chart-card oz-anim" style="animation-delay:0.16s;margin-top:12px;padding:12px 18px;">
+				<div style="display:flex;align-items:center;gap:16px;">
+					<div style="background:#ecfdf5;color:#059669;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">📤</div>
+					<div style="flex:1;">
+						<div style="font-size:10px;font-weight:600;color:#64748b;">Total Released Qty</div>
+						<div style="font-size:20px;font-weight:800;color:#059669;" id="oz-kpi-release-qty">--</div>
+					</div>
+					<div style="text-align:right;">
+						<div style="font-size:9px;font-weight:600;color:#64748b;">Unreserved Stock</div>
+						<div style="font-size:14px;font-weight:700;color:#3b82f6;" id="oz-kpi-unreserved">--</div>
+					</div>
+				</div>
 			</div>
+
+			<!-- Release Trend + Top Released Items -->
+			<div class="oz-grid-2 oz-anim" style="animation-delay:0.20s">
+				<div class="oz-chart-card" style="margin-bottom:0;">
+					<div class="oz-chart-head">
+						<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📈</div>
+						<div><div class="oz-chart-title">Release Trend</div><div class="oz-chart-sub">Monthly releases (last 12 months)</div></div>
+					</div>
+					<div id="oz-release-trend"></div>
+				</div>
+				<div class="oz-chart-card" style="margin-bottom:0;">
+					<div class="oz-chart-head">
+						<div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🏆</div>
+						<div><div class="oz-chart-title">Top Released Items</div></div>
+					</div>
+					<div id="oz-top-released-items"></div>
+				</div>
+			</div>
+
+			<!-- Release Activity -->
+			<div class="oz-chart-card oz-anim" style="animation-delay:0.24s;margin-top:12px;">
+				<div class="oz-chart-head">
+					<div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📤</div>
+					<div><div class="oz-chart-title">Release Activity</div><div class="oz-chart-sub">Recent stock releases from reserved stock</div></div>
+				</div>
+				<div id="oz-release-activity"></div>
+			</div>
+		</div>
 		</div>
 
 	</div>`;
@@ -1242,15 +1266,15 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 		// Sales (bottom)
 		var salesY = P.t + ch - sh;
 		s += '<g class="oz-bar-group" data-idx="' + i + '" data-type="sales">';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + salesY + '" width="' + barW + '" height="' + sh + '" rx="0" fill="url(#salesGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"/>';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" style="cursor:pointer;"/>';
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + salesY + '" width="' + barW + '" height="' + sh + '" rx="0" fill="url(#salesGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"><title>Sales: ' + oz_n(sv) + '</title></rect>';
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" style="cursor:pointer;"><title>Sales: ' + oz_n(sv) + '</title></rect>';
 		s += '</g>';
 
 		// Procurement (top, stacked on sales)
 		var procY = salesY - ph;
 		s += '<g class="oz-bar-group" data-idx="' + i + '" data-type="purchase">';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + procY + '" width="' + barW + '" height="' + ph + '" rx="3" fill="url(#procGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"/>';
-		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" style="cursor:pointer;"/>';
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + procY + '" width="' + barW + '" height="' + ph + '" rx="3" fill="url(#procGrad)" opacity="0.9" filter="url(#barShadow)" style="transition:opacity 0.15s;cursor:pointer;"><title>Procurement: ' + oz_n(pv) + '</title></rect>';
+		s += '<rect x="' + (cx - barW / 2) + '" y="' + (P.t) + '" width="' + barW + '" height="' + ch + '" fill="transparent" style="cursor:pointer;"><title>Procurement: ' + oz_n(pv) + '</title></rect>';
 		s += '</g>';
 
 		// Month label
@@ -1300,7 +1324,7 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 
 	container.innerHTML = s;
 
-	// Tooltip logic - shows Sales, Procurement, Variance, and MoM Change in one tooltip
+	// Custom tooltip
 	var tip = tooltip;
 	container.querySelectorAll('.oz-bar-group').forEach(function (g) {
 		g.addEventListener('mouseenter', function (e) {
@@ -1309,28 +1333,35 @@ function oz_build_stacked_bar(container, tooltip, labels, sales, purchase, varia
 			var pv = purchase[idx] || 0;
 			var v = variance && variance[idx] !== undefined ? variance[idx] : sv - pv;
 			var vPct = sv > 0 ? ((v / sv) * 100).toFixed(1) : '0.0';
-			var vColor = v >= 0 ? '#059669' : '#dc2626';
-			tip.innerHTML = '<div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:4px;">' + labels[idx] + '</div>' +
-				'<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:6px;height:6px;border-radius:2px;background:#3b82f6;"></div><span style="font-size:9px;color:#64748b;">Sales</span><span style="font-size:10px;font-weight:700;color:#3b82f6;margin-left:auto;">' + oz_k(sv) + '</span></div>' +
-				'<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><div style="width:6px;height:6px;border-radius:2px;background:#10b981;"></div><span style="font-size:9px;color:#64748b;">Procurement</span><span style="font-size:10px;font-weight:700;color:#10b981;margin-left:auto;">' + oz_k(pv) + '</span></div>' +
-				'<div style="border-top:1px solid #e2e8f0;margin-top:3px;padding-top:3px;display:flex;align-items:center;gap:5px;"><div style="width:6px;height:6px;border-radius:50%;background:' + vColor + ';"></div><span style="font-size:9px;color:#64748b;">Variance</span><span style="font-size:10px;font-weight:700;color:' + vColor + ';margin-left:auto;">' + (v >= 0 ? '+' : '') + oz_k(v) + ' (' + vPct + '%)</span></div>';
-			// MoM Change
-			if (variance_change && variance_change[idx] !== null && variance_change[idx] !== undefined) {
-				var change = variance_change[idx];
-				var changeColor = change >= 0 ? '#059669' : '#dc2626';
-				var changeArrow = change >= 0 ? '↑' : '↓';
-				tip.innerHTML += '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;"><span style="font-size:9px;color:#94a3b8;">vs Previous</span><span style="font-size:10px;font-weight:700;color:' + changeColor + ';margin-left:auto;">' + (change >= 0 ? '+' : '') + change + '% ' + changeArrow + '</span></div>';
-			} else {
-				tip.innerHTML += '<div style="display:flex;align-items:center;gap:5px;margin-top:3px;"><span style="font-size:9px;color:#94a3b8;">vs Previous</span><span style="font-size:10px;font-weight:700;color:#94a3b8;margin-left:auto;">N/A</span></div>';
-			}
-			var rect = g.getBoundingClientRect();
-			tip.style.left = (rect.left + rect.width / 2) + 'px';
-			tip.style.top = (rect.top - 12) + 'px';
-			tip.style.transform = 'translateX(-50%) translateY(-100%)';
+			var vColor = v >= 0 ? '#10b981' : '#ef4444';
+			var change = variance_change && variance_change[idx] !== null && variance_change[idx] !== undefined ? variance_change[idx] : null;
+			var changeColor = change !== null ? (change >= 0 ? '#10b981' : '#ef4444') : '#64748b';
+			var changeArrow = change !== null ? (change >= 0 ? '↑' : '↓') : '';
+			tip.innerHTML = '<div style="font-weight:800;margin-bottom:6px;font-size:12px;color:#f1f5f9;">' + labels[idx] + '</div>' +
+				'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Sales: <b style="color:#93c5fd;">' + oz_n(sv) + '</b></div>' +
+				'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Procurement: <b style="color:#6ee7b7;">' + oz_n(pv) + '</b></div>' +
+				'<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:4px;display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:' + vColor + ';display:inline-block;"></span> Variance: <b style="color:' + vColor + ';">' + (v >= 0 ? '+' : '') + oz_n(v) + ' (' + vPct + '%)</b></div>' +
+				(change !== null ? '<div style="border-top:1px solid rgba(255,255,255,0.08);margin-top:4px;padding-top:4px;color:#94a3b8;font-size:10px;">vs Previous: <b style="color:' + changeColor + ';">' + (change >= 0 ? '+' : '') + change + '% ' + changeArrow + '</b></div>' : '<div style="border-top:1px solid rgba(255,255,255,0.08);margin-top:4px;padding-top:4px;color:#94a3b8;font-size:10px;">vs Previous: <b style="color:#64748b;">N/A</b></div>');
+			tip.style.position = 'fixed';
+			tip.style.display = 'block';
+			tip.style.margin = '0';
+			tip.style.width = 'auto';
+			tip.style.maxWidth = '260px';
+			tip.style.transform = 'none';
+			var x = e.clientX + 6, y = e.clientY - 10;
+			if (y < 4) y = e.clientY + 20;
+			if (x + 260 > window.innerWidth) x = window.innerWidth - 270;
+			tip.style.left = x + 'px';
+			tip.style.top = y + 'px';
 			tip.classList.add('show');
+		});
+		g.addEventListener('mousemove', function (e) {
+			if (tip.style.display !== 'none') { tip.style.left = (e.clientX + 6) + 'px'; tip.style.top = Math.max(4, e.clientY - 10) + 'px'; }
 		});
 		g.addEventListener('mouseleave', function () {
 			tip.classList.remove('show');
+			tip.style.display = 'none';
+			tip.style.position = '';
 		});
 	});
 }
@@ -1527,10 +1558,10 @@ function load_all_data() {
 	// Update period labels
 	$('#oz-period-sales,#oz-period-proc,#oz-period-pl').text(period);
 
-			$('#oz-kpi-sales,#oz-kpi-proc,#oz-kpi-avail,#oz-kpi-reserved,#oz-kpi-neg,#oz-kpi-pl,#oz-kpi-ict2,#oz-kpi-ict-count,#oz-kpi-ict-val,#oz-kpi-reserved2,#oz-kpi-resqty,#oz-kpi-res-val,#oz-kpi-res-items,#oz-kpi-res-util,#oz-kpi-res-companies').text('--');
+			$('#oz-kpi-sales,#oz-kpi-proc,#oz-kpi-pl,#oz-kpi-ict2,#oz-kpi-ict-count,#oz-kpi-ict-val,#oz-kpi-reserved2,#oz-kpi-resqty,#oz-kpi-res-val,#oz-kpi-res-items,#oz-kpi-res-util,#oz-kpi-res-companies,#oz-kpi-release-qty,#oz-kpi-unreserved,#oz-kpi-uom-nos,#oz-kpi-uom-litres,#oz-kpi-uom-neg').text('--');
 			$('#oz-kpi-sales-change,#oz-kpi-proc-change,#oz-kpi-pl-change').text('').css('color', '');
 			window.oz_kpi_data = {};
-			$('#oz-bar-chart,#oz-monthly-table,#oz-chart-donut,#oz-funnel-content,#oz-ring,#oz-mini-stats,#oz-table-res,#oz-table-ict,#oz-table-neg,#oz-activity,#oz-top-items,#oz-top-customers,#oz-company-compare,#oz-ict-chain,#oz-warehouse-table,#oz-routes-breakdown,#oz-routes-breakdown,#oz-res-by-company').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
+			$('#oz-bar-chart,#oz-monthly-table,#oz-table-res,#oz-table-ict,#oz-table-neg,#oz-activity,#oz-top-items,#oz-top-customers,#oz-company-compare,#oz-ict-chain,#oz-routes-breakdown,#oz-res-by-company,#oz-release-trend,#oz-top-released-items,#oz-uom-stock,#oz-release-activity,#oz-uom-companies').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
 			$('#oz-spark-sales,#oz-spark-proc,#oz-spark-pl').html('');
 			$('#oz-sales-breakdown,#oz-proc-breakdown,#oz-pl-breakdown').html('');
 
@@ -1628,9 +1659,9 @@ function load_all_data() {
 					html += '<div style="font-size:10px;font-weight:800;color:' + c + ';">' + row.abbr + '</div>';
 					html += '<div style="font-size:12px;font-weight:800;color:#1e293b;margin-top:2px;">' + oz_k(row.total) + '</div>';
 					html += changeHtml;
-					html += '<div style="height:3px;border-radius:3px;background:#f1f5f9;margin-top:4px;overflow:hidden;">';
+					html += '<div style="display:flex;align-items:center;gap:3px;margin-top:4px;"><div style="flex:1;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;">';
 					html += '<div style="height:100%;width:' + pct + '%;background:' + c + ';border-radius:3px;"></div>';
-					html += '</div>';
+					html += '</div><span style="font-size:7px;font-weight:700;color:' + c + ';min-width:24px;text-align:right;">' + Math.round(pct) + '%</span></div>';
 					html += '</div>';
 				});
 				el.innerHTML = html;
@@ -1818,12 +1849,13 @@ function load_all_data() {
 				var purchasePct = (d.purchase / maxVal) * 100;
 				h += '<div style="background:' + c.bg + ';border-radius:12px;padding:16px;">';
 				h += '<div style="font-size:14px;font-weight:800;color:' + c.accent + ';margin-bottom:12px;">' + d.abbr + '<span style="font-size:9px;font-weight:600;color:#94a3b8;margin-left:4px;">' + d.company + '</span></div>';
-				h += '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Sales</span><span>' + oz_k(d.sales) + '</span></div>';
-				h += '<div class="oz-prog"><div class="oz-prog-fill" style="width:' + salesPct + '%;background:#3b82f6;"></div></div></div>';
-				h += '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Procurement</span><span>' + oz_k(d.purchase) + '</span></div>';
-				h += '<div class="oz-prog"><div class="oz-prog-fill" style="width:' + purchasePct + '%;background:#10b981;"></div></div></div>';
-				h += '<div><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Stock</span><span>' + oz_n(d.stock) + ' L</span></div>';
-				h += '<div class="oz-prog"><div class="oz-prog-fill" style="width:' + ((d.stock / (maxVal || 1)) * 100) + '%;background:#7c3aed;"></div></div></div>';
+			var stockPct = (d.stock / (maxVal || 1)) * 100;
+			h += '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Sales</span><span>' + oz_k(d.sales) + '</span></div>';
+			h += '<div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + salesPct + '%;background:#3b82f6;"></div></div><span style="font-size:8px;font-weight:700;color:#64748b;min-width:28px;text-align:right;">' + Math.round(salesPct) + '%</span></div></div>';
+			h += '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Procurement</span><span>' + oz_k(d.purchase) + '</span></div>';
+			h += '<div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + purchasePct + '%;background:#10b981;"></div></div><span style="font-size:8px;font-weight:700;color:#64748b;min-width:28px;text-align:right;">' + Math.round(purchasePct) + '%</span></div></div>';
+			h += '<div><div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#64748b;margin-bottom:3px;"><span>Stock</span><span>' + oz_n(d.stock) + ' L</span></div>';
+			h += '<div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + stockPct + '%;background:#7c3aed;"></div></div><span style="font-size:8px;font-weight:700;color:#64748b;min-width:28px;text-align:right;">' + Math.round(stockPct) + '%</span></div></div>';
 				h += '</div>';
 			});
 			h += '</div>';
@@ -1869,6 +1901,182 @@ function load_all_data() {
 			setTimeout(function () { document.getElementById('oz-kpi-reserved2').textContent = r.message.length + ' Active'; }, 1300);
 			oz_count(document.getElementById('oz-kpi-resqty'), Math.round(totalQty), '', ' L');
 			setTimeout(function () { document.getElementById('oz-kpi-resqty').textContent = oz_n(totalQty) + ' L'; }, 1300);
+		}
+	});
+
+	/* ── Release Overview ── */
+	frappe.call({
+		method: 'oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_release_overview',
+		args: args,
+		callback: function (r) {
+			if (!r.message) return;
+			var d = r.message;
+
+			// Release KPIs
+			oz_count(document.getElementById('oz-kpi-release-qty'), Math.round(d.total_released_qty), '', ' L');
+			setTimeout(function () { document.getElementById('oz-kpi-release-qty').textContent = oz_n(d.total_released_qty) + ' L'; }, 1300);
+			oz_count(document.getElementById('oz-kpi-unreserved'), Math.round(d.total_unreserved), '', ' L');
+			setTimeout(function () { document.getElementById('oz-kpi-unreserved').textContent = oz_n(d.total_unreserved) + ' L'; }, 1300);
+
+			// Release Trend - bar chart
+			var trendEl = document.getElementById('oz-release-trend');
+			if (trendEl && d.release_trend && d.release_trend.length) {
+				var maxQty = Math.max.apply(null, d.release_trend.map(function(x) { return x.qty; })) || 1;
+				var th = '<div style="display:flex;align-items:end;gap:3px;height:100px;padding:8px 0;border-bottom:1px solid #f1f5f9;">';
+				d.release_trend.forEach(function (m) {
+					var pct = (m.qty / maxQty) * 100;
+					var label = m.month ? m.month.slice(5) : '';
+					th += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
+					th += '<span style="font-size:8px;font-weight:700;color:#059669;">' + oz_n(m.qty) + '</span>';
+					th += '<div style="width:100%;height:' + pct + 'px;max-height:80px;background:linear-gradient(180deg,#34d399,#059669);border-radius:3px 3px 0 0;min-height:2px;transition:height 0.5s;"></div>';
+					th += '<span style="font-size:7px;font-weight:600;color:#94a3b8;">' + label + '</span>';
+					th += '</div>';
+				});
+				th += '</div>';
+				trendEl.innerHTML = th;
+			} else if (trendEl) {
+				trendEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No release data</div>';
+			}
+
+			// Release by Company bars
+			var relByCo = document.getElementById('oz-release-activity');
+			if (relByCo && d.release_by_company && d.release_by_company.length) {
+				var colors = { 'Geeta Enterprise': '#3b82f6', 'Global Export': '#10b981', 'Shubham Enterprise': '#f59e0b' };
+				var totalRel = d.total_released_qty || 1;
+				var rh = '<table class="oz-table"><thead><tr><th>Company</th><th style="text-align:right;">Released</th><th style="text-align:right;">Releases</th><th style="width:120px;">Share</th></tr></thead><tbody>';
+				d.release_by_company.forEach(function (row) {
+					var pct = totalRel > 0 ? ((row.total_released_qty / totalRel) * 100).toFixed(1) : 0;
+					var c = colors[row.company] || '#64748b';
+					rh += '<tr>';
+					rh += '<td><span class="oz-badge" style="color:' + c + ';background:' + c + '15;">' + row.company + '</span></td>';
+					rh += '<td style="text-align:right;font-weight:800;color:#1e293b;">' + oz_n(row.total_released_qty) + '</td>';
+					rh += '<td style="text-align:right;">' + row.release_count + '</td>';
+					rh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:' + c + ';"></div></div><span style="font-size:8px;font-weight:700;color:' + c + ';min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td>';
+					rh += '</tr>';
+				});
+				rh += '</tbody></table>';
+
+				// Unreserved stock section
+				if (d.unreserved_stock && d.unreserved_stock.length) {
+					rh += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;">';
+					rh += '<div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px;">Unreserved Warehouse Stock</div>';
+					rh += '<div style="display:flex;gap:10px;">';
+					d.unreserved_stock.forEach(function (u) {
+						var c = colors[u.company] || '#64748b';
+						rh += '<div style="flex:1;background:' + c + '08;border:1px solid ' + c + '20;border-radius:8px;padding:8px;text-align:center;">';
+						rh += '<div style="font-size:9px;font-weight:700;color:' + c + ';">' + u.company + '</div>';
+						rh += '<div style="font-size:13px;font-weight:800;color:#1e293b;margin-top:2px;">' + oz_n(u.qty) + ' L</div>';
+						rh += '</div>';
+					});
+					rh += '</div></div>';
+				}
+
+				relByCo.innerHTML = rh;
+			} else if (relByCo) {
+				relByCo.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No release activity</div>';
+			}
+
+			// Top Released Items
+			var topRelEl = document.getElementById('oz-top-released-items');
+			if (topRelEl && d.top_released_items && d.top_released_items.length) {
+				var maxItem = Math.max.apply(null, d.top_released_items.map(function(x) { return x.total_released; })) || 1;
+				var ih = '<table class="oz-table"><thead><tr><th>Item</th><th style="text-align:right;">Released</th><th style="width:80px;">Share</th></tr></thead><tbody>';
+				d.top_released_items.forEach(function (row) {
+					var pct = (row.total_released / maxItem) * 100;
+					ih += '<tr>';
+					ih += '<td style="font-weight:700;color:#1e293b;">' + (row.item_name || row.item) + '</td>';
+					ih += '<td style="text-align:right;font-weight:800;color:#059669;">' + oz_n(row.total_released) + '</td>';
+					ih += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#34d399,#059669);"></div></div><span style="font-size:8px;font-weight:700;color:#059669;min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td>';
+					ih += '</tr>';
+				});
+				ih += '</tbody></table>';
+				topRelEl.innerHTML = ih;
+			} else if (topRelEl) {
+				topRelEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No releases yet</div>';
+			}
+		}
+	});
+
+	/* ── UOM Stock Summary ── */
+	frappe.call({
+		method: 'oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_uom_stock_summary',
+		args: args,
+		callback: function (r) {
+			if (!r.message) return;
+			var d = r.message;
+			var el = document.getElementById('oz-uom-stock');
+			if (!el) return;
+
+			// Update header KPIs
+			var nosKpi = document.getElementById('oz-kpi-uom-nos');
+			if (nosKpi) { oz_count(nosKpi, Math.round(d.total_qty_nos), '', ''); setTimeout(function () { nosKpi.textContent = oz_n(Math.round(d.total_qty_nos)) + ' Nos'; }, 1300); }
+			var litKpi = document.getElementById('oz-kpi-uom-litres');
+			if (litKpi) { oz_count(litKpi, Math.round(d.total_qty_litres), '', ''); setTimeout(function () { litKpi.textContent = oz_n(Math.round(d.total_qty_litres)) + ' L'; }, 1300); }
+
+			if (!d.items || !d.items.length) {
+				el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No stock data</div>';
+				var negKpi = document.getElementById('oz-kpi-uom-neg');
+				if (negKpi) negKpi.textContent = '0';
+				return;
+			}
+
+			// Count negatives
+			var negCount = d.items.filter(function(x) { return x.qty_nos < 0; }).length;
+			var negKpi = document.getElementById('oz-kpi-uom-neg');
+			if (negKpi) { oz_count(negKpi, negCount, '', ''); setTimeout(function () { negKpi.textContent = negCount + ' Items'; }, 1300); }
+
+			// Items table showing Nos and Litres with % share bars
+			uh = '<table class="oz-table"><thead><tr><th>Item</th><th style="text-align:right;">Factor</th><th style="text-align:right;">Nos</th><th style="width:120px;">Nos Share</th><th style="text-align:right;">Litres</th><th style="width:120px;">L Share</th></tr></thead><tbody>';
+			var maxNos = Math.max.apply(null, d.items.map(function(x) { return Math.abs(x.qty_nos); })) || 1;
+			var maxLit = Math.max.apply(null, d.items.map(function(x) { return Math.abs(x.qty_litres); })) || 1;
+			var totalNos = d.total_qty_nos;
+			var totalLit = d.total_qty_litres;
+			d.items.forEach(function (row) {
+				var pctNos = maxNos > 0 ? (Math.abs(row.qty_nos) / maxNos) * 100 : 0;
+				var pctLit = maxLit > 0 ? (Math.abs(row.qty_litres) / maxLit) * 100 : 0;
+				var nosShare = totalNos !== 0 ? (row.qty_nos / totalNos) * 100 : 0;
+				var litShare = totalLit !== 0 ? (row.qty_litres / totalLit) * 100 : 0;
+				var nosColor = row.qty_nos < 0 ? '#dc2626' : '#1e293b';
+				var litColor = row.qty_litres < 0 ? '#dc2626' : '#7c3aed';
+				uh += '<tr>';
+				uh += '<td style="font-weight:700;color:#1e293b;">' + (row.item_name || row.item_code) + '</td>';
+				uh += '<td style="text-align:right;font-weight:700;color:#64748b;">' + row.litre_factor + '</td>';
+				uh += '<td style="text-align:right;font-weight:800;color:' + nosColor + ';">' + oz_n(Math.round(row.qty_nos)) + '</td>';
+				uh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pctNos + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div><span style="font-size:9px;font-weight:700;color:#64748b;min-width:32px;text-align:right;">' + Math.round(nosShare) + '%</span></div></td>';
+				uh += '<td style="text-align:right;font-weight:800;color:' + litColor + ';">' + oz_n(Math.round(row.qty_litres)) + '</td>';
+				uh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pctLit + '%;background:linear-gradient(90deg,#7c3aed,#a855f7);"></div></div><span style="font-size:9px;font-weight:700;color:#64748b;min-width:32px;text-align:right;">' + Math.round(litShare) + '%</span></div></td>';
+				uh += '</tr>';
+			});
+			uh += '</tbody></table>';
+
+			el.innerHTML = uh;
+
+			// Company breakdown in separate section
+			var coEl = document.getElementById('oz-uom-companies');
+			if (coEl && d.companies && d.companies.length) {
+				var ch = '<div style="display:flex;gap:12px;">';
+				var maxCoNos = Math.max.apply(null, d.companies.map(function(x) { return Math.abs(x.qty_nos); })) || 1;
+				var maxCoLit = Math.max.apply(null, d.companies.map(function(x) { return Math.abs(x.qty_litres); })) || 1;
+				var colors = { 'Geeta Enterprise': '#3b82f6', 'Global Export': '#10b981', 'Shubham Enterprise': '#f59e0b' };
+				d.companies.forEach(function (co) {
+					var c = colors[co.company] || '#64748b';
+					var coPctNos = maxCoNos > 0 ? (Math.abs(co.qty_nos) / maxCoNos) * 100 : 0;
+					var coPctLit = maxCoLit > 0 ? (Math.abs(co.qty_litres) / maxCoLit) * 100 : 0;
+					ch += '<div style="flex:1;background:' + c + '06;border:1px solid ' + c + '20;border-radius:10px;padding:12px;text-align:center;">';
+					ch += '<div style="font-size:11px;font-weight:700;color:' + c + ';margin-bottom:6px;">' + co.company + '</div>';
+					ch += '<div style="display:flex;gap:8px;justify-content:center;">';
+					ch += '<div><div style="font-size:11px;font-weight:800;color:#7c3aed;">' + oz_n(Math.round(co.qty_nos)) + '</div><div style="font-size:8px;color:#94a3b8;">Nos</div></div>';
+					ch += '<div style="width:1px;background:#e2e8f0;"></div>';
+					ch += '<div><div style="font-size:11px;font-weight:800;color:#059669;">' + oz_n(Math.round(co.qty_litres)) + ' L</div><div style="font-size:8px;color:#94a3b8;">Litres</div></div>';
+					ch += '</div>';
+					ch += '<div style="margin-top:6px;"><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;height:4px;"><div class="oz-prog-fill" style="width:' + coPctNos + '%;height:4px;background:' + c + ';"></div></div><span style="font-size:8px;font-weight:700;color:' + c + ';">' + Math.round(coPctNos) + '%</span></div></div>';
+					ch += '</div>';
+				});
+				ch += '</div>';
+				coEl.innerHTML = ch;
+			} else if (coEl) {
+				coEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">No company data</div>';
+			}
 		}
 	});
 
@@ -1979,7 +2187,7 @@ function load_all_data() {
 				h += '<td>' + row.item_count + '</td>';
 				h += '<td style="text-align:right;font-weight:800;color:' + qtyColor + ';">' + oz_n(row.total_qty) + '</td>';
 				h += '<td style="text-align:right;font-weight:700;color:#059669;">' + oz_k(row.total_value) + '</td>';
-				h += '<td><div class="oz-prog"><div class="oz-prog-fill" style="width:' + pct + '%;background:' + (row.total_qty < 0 ? '#dc2626' : '#3b82f6') + ';"></div></div></td>';
+				h += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:' + (row.total_qty < 0 ? '#dc2626' : '#3b82f6') + ';"></div></div><span style="font-size:8px;font-weight:700;color:#64748b;min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td>';
 				h += '</tr>';
 			});
 			h += '</tbody></table>';
@@ -2102,8 +2310,8 @@ function oz_render_reserved_by_company(data) {
 		html += '<span style="font-size:11px;font-weight:700;color:#1e293b;">' + abbr + '</span>';
 		html += '<span style="font-size:10px;font-weight:800;color:#d97706;">' + oz_n(r.qty) + ' L</span>';
 		html += '</div>';
-		html += '<div style="height:4px;border-radius:4px;background:#f1f5f9;overflow:hidden;margin-bottom:4px;">';
-		html += '<div style="height:100%;width:' + pct + '%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div></div>';
+		html += '<div style="display:flex;align-items:center;gap:4px;"><div style="flex:1;height:4px;border-radius:4px;background:#f1f5f9;overflow:hidden;">';
+		html += '<div style="height:100%;width:' + pct + '%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div></div><span style="font-size:8px;font-weight:700;color:#d97706;min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div>';
 		html += '<div style="font-size:8px;font-weight:700;color:#94a3b8;text-align:right;">' + oz_k(r.value) + '</div>';
 		html += '</div>';
 	});

@@ -1,7 +1,7 @@
 <template>
   <ion-content>
     <div class="page anim-fade">
-      <div class="hero">
+      <div class="hero" style="background:linear-gradient(135deg,#3b82f6 0%,#7c3aed 100%)">
         <div class="flex items-center justify-between mb-4 relative z-10">
           <div>
             <div class="text-xs font-semibold tracking-wider opacity-70">GEOperations</div>

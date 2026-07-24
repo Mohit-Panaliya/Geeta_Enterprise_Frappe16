@@ -26,7 +26,7 @@
                     <span class="sd-ms-opt-label">{{ opt.label }}</span>
                     <span v-if="opt.abbr" class="sd-ms-opt-abbr">{{ opt.abbr }}</span>
                   </label>
-                  <div v-if="!companyOptions.length" style="text-align:center;padding:12px;color:#94a3b8;font-size:10px;">Loading...</div>
+                  <div v-if="!companyOptions.length" style="text-align:center;padding:12px;color:#64748b;font-size:10px;">Loading...</div>
                 </div>
               </Teleport>
             </div>
@@ -45,7 +45,7 @@
                     <input type="checkbox" :value="opt.value" v-model="itemSelected" @change="onItemChange">
                     <span class="sd-ms-opt-label">{{ opt.label }}</span>
                   </label>
-                  <div v-if="!itemOptions.length" style="text-align:center;padding:12px;color:#94a3b8;font-size:10px;">Loading...</div>
+                  <div v-if="!itemOptions.length" style="text-align:center;padding:12px;color:#64748b;font-size:10px;">Loading...</div>
                 </div>
               </Teleport>
             </div>
@@ -94,7 +94,7 @@
               </div>
               <div v-if="kpiData" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                 <div v-for="q in quickStatsItems" :key="q.lbl" :style="{ padding: '6px 8px', background: q.bg, borderRadius: '6px' }">
-                  <div style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">{{ q.lbl }}</div>
+                  <div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">{{ q.lbl }}</div>
                   <div :style="{ fontSize: '13px', fontWeight: 800, color: q.color }">{{ q.val }}</div>
                 </div>
               </div>
@@ -107,23 +107,23 @@
                   <div :style="{ width: '30px', height: '30px', borderRadius: '8px', background: d.bg, color: d.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }">{{ d.abbr }}</div>
                   <div>
                     <div style="font-size:11px;font-weight:700;color:#1e293b;">{{ d.company }}</div>
-                    <div style="font-size:8px;color:#94a3b8;">{{ d.item_count }} items</div>
+                    <div style="font-size:8px;color:#64748b;">{{ d.item_count }} items</div>
                   </div>
                 </div>
                 <div style="height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-bottom:4px;">
                   <div :style="{ height: '100%', width: d.availPct + '%', background: 'linear-gradient(90deg,#3b82f6,#7c3aed)', borderRadius: '2px' }"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                  <span style="font-size:8px;color:#94a3b8;">{{ d.availPct }}% avail</span>
+                  <span style="font-size:8px;color:#64748b;">{{ d.availPct }}% avail</span>
                   <span :style="{ fontSize: '9px', fontWeight: 700, color: d.accent }">{{ sd_k(d.total_value) }}</span>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
                   <div style="padding:6px;background:#eff6ff;border-radius:6px;text-align:center;">
-                    <div style="font-size:7px;font-weight:700;color:#94a3b8;">AVAILABLE</div>
+                    <div style="font-size:7px;font-weight:700;color:#64748b;">AVAILABLE</div>
                     <div style="font-size:13px;font-weight:800;color:#3b82f6;">{{ sd_n(d.avail_qty) }}</div>
                   </div>
                   <div style="padding:6px;background:#fffbeb;border-radius:6px;text-align:center;">
-                    <div style="font-size:7px;font-weight:700;color:#94a3b8;">RESERVED</div>
+                    <div style="font-size:7px;font-weight:700;color:#64748b;">RESERVED</div>
                     <div style="font-size:13px;font-weight:800;color:#f59e0b;">{{ sd_n(d.reserved_qty) }}</div>
                   </div>
                 </div>
@@ -138,11 +138,11 @@
             </div>
             <div v-if="negativeData.length" style="display:flex;gap:10px;margin-bottom:10px;">
               <div style="flex:1;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">
-                <div style="font-size:8px;font-weight:700;color:#94a3b8;">ALERTS</div>
+                <div style="font-size:8px;font-weight:700;color:#64748b;">ALERTS</div>
                 <div style="font-size:18px;font-weight:800;color:#dc2626;">{{ negativeData.length }}</div>
               </div>
               <div style="flex:1;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">
-                <div style="font-size:8px;font-weight:700;color:#94a3b8;">NEGATIVE VALUE</div>
+                <div style="font-size:8px;font-weight:700;color:#64748b;">NEGATIVE VALUE</div>
                 <div style="font-size:18px;font-weight:800;color:#dc2626;">{{ sd_k(negTotalVal) }}</div>
               </div>
             </div>
@@ -154,10 +154,10 @@
                 </div>
                 <table style="width:100%;border-collapse:collapse;font-size:10px;">
                   <thead><tr>
-                    <th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Warehouse</th>
-                    <th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Item</th>
-                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Qty</th>
-                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</th>
+                    <th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Warehouse</th>
+                    <th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Item</th>
+                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Qty</th>
+                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Value</th>
                   </tr></thead>
                   <tbody>
                     <tr v-for="(row, ri) in rows" :key="ri" style="cursor:pointer;" @click="frappe.set_route('Form','Bin',row.warehouse + '/' + row.item_code)">
@@ -182,16 +182,16 @@
                 <div :style="{ width: '36px', height: '36px', borderRadius: '10px', background: companyColor(coName).bg, color: companyColor(coName).accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }">{{ companyColor(coName).abbr }}</div>
                 <div>
                   <div :style="{ fontSize: '14px', fontWeight: 800, color: companyColor(coName).accent }">{{ coName }}</div>
-                  <div style="font-size:9px;color:#94a3b8;">{{ c.warehouses.length }} warehouses · {{ c.total_items }} items</div>
+                  <div style="font-size:9px;color:#64748b;">{{ c.warehouses.length }} warehouses · {{ c.total_items }} items</div>
                 </div>
               </div>
               <div style="display:flex;gap:16px;">
                 <div style="text-align:right;">
-                  <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Qty</div>
+                  <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;">Qty</div>
                   <div :style="{ fontSize: '16px', fontWeight: 800, color: companyColor(coName).accent }">{{ sd_n(c.total_qty) }} L</div>
                 </div>
                 <div style="text-align:right;">
-                  <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</div>
+                  <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;">Value</div>
                   <div :style="{ fontSize: '16px', fontWeight: 800, color: companyColor(coName).accent }">{{ sd_k(c.total_value) }}</div>
                 </div>
               </div>
@@ -203,18 +203,18 @@
                     <span style="font-size:10px;font-weight:700;color:#1e293b;">{{ wh.warehouse.replace(' - ' + companyColor(coName).abbr, '') }}</span>
                     <span :style="{ fontSize: '8px', fontWeight: 700, padding: '2px 5px', borderRadius: '4px', background: whTagBg(wh), color: whTagColor(wh) }">{{ whTag(wh) }}</span>
                   </div>
-                  <div style="font-size:9px;color:#94a3b8;">{{ wh.item_count }} items</div>
+                  <div style="font-size:9px;color:#64748b;">{{ wh.item_count }} items</div>
                 </div>
                 <div style="display:flex;gap:12px;margin-bottom:8px;padding:6px 8px;background:#f8fafc;border-radius:6px;">
-                  <div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#94a3b8;">QTY</div><div :style="{ fontSize: '12px', fontWeight: 800, color: wh.total_qty < 0 ? '#dc2626' : companyColor(coName).accent }">{{ sd_n(wh.total_qty) }}</div></div>
-                  <div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#94a3b8;">VALUE</div><div :style="{ fontSize: '12px', fontWeight: 800, color: companyColor(coName).accent }">{{ sd_k(wh.total_value) }}</div></div>
+                  <div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;">QTY</div><div :style="{ fontSize: '12px', fontWeight: 800, color: wh.total_qty < 0 ? '#dc2626' : companyColor(coName).accent }">{{ sd_n(wh.total_qty) }}</div></div>
+                  <div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;">VALUE</div><div :style="{ fontSize: '12px', fontWeight: 800, color: companyColor(coName).accent }">{{ sd_k(wh.total_value) }}</div></div>
                 </div>
                 <table v-if="wh.items && wh.items.length" style="width:100%;border-collapse:collapse;font-size:10px;">
                   <thead><tr>
-                    <th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Item</th>
-                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Qty</th>
-                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Rate</th>
-                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;">Value</th>
+                    <th style="text-align:left;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Item</th>
+                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Qty</th>
+                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Rate</th>
+                    <th style="text-align:right;padding:3px 4px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;">Value</th>
                   </tr></thead>
                   <tbody>
                     <tr v-for="(item, ii) in wh.items" :key="ii">
@@ -229,7 +229,7 @@
               </div>
             </div>
           </div>
-          <div v-if="!Object.keys(whByCompany).length && kpiData" style="text-align:center;padding:30px;color:#94a3b8;">No warehouse data</div>
+          <div v-if="!Object.keys(whByCompany).length && kpiData" style="text-align:center;padding:30px;color:#64748b;">No warehouse data</div>
         </div>
 
         <!-- BY ITEM -->
@@ -272,7 +272,7 @@
                 </tbody>
               </table>
             </div>
-            <div v-else-if="kpiData" style="text-align:center;padding:30px;color:#94a3b8;">No item data</div>
+            <div v-else-if="kpiData" style="text-align:center;padding:30px;color:#64748b;">No item data</div>
           </div>
         </div>
 
@@ -353,7 +353,7 @@
                   <tr v-for="(row, i) in swastikData.detail" :key="i">
                     <td><span class="sd-badge" style="color:#0891b2;background:#ecfeff;">{{ row.company }}</span></td>
                     <td style="font-weight:700;">{{ row.item_code }}</td>
-                    <td style="font-size:10px;color:#94a3b8;">{{ row.warehouse }}</td>
+                    <td style="font-size:10px;color:#64748b;">{{ row.warehouse }}</td>
                     <td style="text-align:right;font-weight:800;color:#d97706;">{{ sd_n(row.qty) }}</td>
                     <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_k(row.val) }}</td>
                   </tr>
@@ -367,31 +367,31 @@
   </ion-page>
 </template>
 <style>
-.sd { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #1e293b; padding: 0 20px 20px; }
+.sd { font-family: 'Montserrat', system-ui, -apple-system, sans-serif; color: #0f172a; padding: 0 20px 20px; }
 .sd * { box-sizing: border-box; }
 .top-bars { position: sticky; top: 0; z-index: 50; background: #f0f4f8; border-radius: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; padding: 6px; }
 .sd-bar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; flex-wrap: wrap; }
-.sd-bar label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; display: flex; align-items: center; line-height: 1; margin: 0; }
-.sd-bar select { padding: 5px 26px 5px 8px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; }
+.sd-bar label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; display: flex; align-items: center; line-height: 1; margin: 0; }
+.sd-bar select { padding: 5px 26px 5px 8px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer; appearance: none; font-family: 'Montserrat', sans-serif; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; }
 .sd-bar select:focus { outline: none; border-color: #3b82f6; }
-.sd-filter-tag { font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #eff6ff; color: #3b82f6; white-space: nowrap; }
+.sd-filter-tag { font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #dbeafe; color: #2563eb; white-space: nowrap; }
 .sd-tabs { display: flex; gap: 2px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 3px; width: fit-content; }
-.sd-tab-btn { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; color: #94a3b8; transition: all 0.2s; }
+.sd-tab-btn { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; color: #64748b; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
 .sd-tab-btn:hover { color: #475569; background: #f8fafc; }
 .sd-tab-active { background: #3b82f6 !important; color: #fff !important; }
 .sd-kpi-row { display: grid; gap: 10px; margin-bottom: 14px; grid-template-columns: repeat(5, 1fr); }
 .sd-kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
-.sd-kpi:hover { box-shadow: 0 4px 12px rgba(0,20,40,0.08); transform: translateY(-2px); }
+.sd-kpi:hover { box-shadow: 0 4px 14px rgba(0,20,40,0.08); transform: translateY(-2px); }
 .sd-kpi-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
 .sd-kpi-val { font-size: 20px; font-weight: 800; line-height: 1.1; }
-.sd-kpi-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 1px; }
+.sd-kpi-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-top: 1px; }
 .sd-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
 .sd-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .sd-card-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
-.sd-card-title { font-size: 12px; font-weight: 700; color: #1e293b; }
-.sd-card-sub { font-size: 9px; color: #94a3b8; }
+.sd-card-title { font-size: 12px; font-weight: 700; color: #0f172a; }
+.sd-card-sub { font-size: 9px; color: #64748b; }
 .sd-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.sd-table th { text-align: left; padding: 7px 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+.sd-table th { text-align: left; padding: 7px 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
 .sd-table td { padding: 8px 10px; border-bottom: 1px solid #f8fafc; color: #475569; }
 .sd-table tr { cursor: pointer; transition: background 0.15s; }
 .sd-table tr:hover { background: #f1f5f9; }
@@ -414,34 +414,34 @@
 .sd-wh { border: 1px solid #f1f5f9; border-radius: 8px; padding: 10px; margin-bottom: 6px; transition: all 0.15s; }
 .sd-wh:hover { border-color: #e2e8f0; background: #f8fafc; }
 .sd-wh-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.sd-wh-name { font-size: 10px; font-weight: 700; color: #1e293b; }
-.sd-wh-stats { font-size: 9px; color: #94a3b8; }
+.sd-wh-name { font-size: 10px; font-weight: 700; color: #0f172a; }
+.sd-wh-stats { font-size: 9px; color: #64748b; }
 .sd-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; margin-bottom: 3px; transition: background 0.15s; }
 .sd-item:hover { background: #f1f5f9; }
-.sd-item-name { flex: 1; font-size: 10px; font-weight: 700; color: #1e293b; }
+.sd-item-name { flex: 1; font-size: 10px; font-weight: 700; color: #0f172a; }
 .sd-item-qty { font-size: 11px; font-weight: 800; }
-.sd-item-val { font-size: 9px; color: #94a3b8; }
+.sd-item-val { font-size: 9px; color: #64748b; }
 .sd-ring { position: relative; display: inline-block; }
-.sd-neg { border-left: 3px solid #dc2626; background: #fef2f2; border-radius: 0 8px 8px 0; padding: 8px 12px; margin-bottom: 6px; }
+.sd-neg { border-left: 3px solid #ef4444; background: #fef2f2; border-radius: 0 8px 8px 0; padding: 8px 12px; margin-bottom: 6px; }
 @keyframes sdFadeIn { 0%{opacity:0;transform:translateY(8px);}100%{opacity:1;transform:translateY(0);} }
 .sd-anim { animation: sdFadeIn 0.35s ease both; }
 .sd-ms { position: relative; display: inline-block; }
-.sd-ms-btn { display: flex; align-items: center; gap: 6px; padding: 5px 28px 5px 10px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer; min-width: 120px; white-space: nowrap; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: border-color 0.2s; }
+.sd-ms-btn { display: flex; align-items: center; gap: 6px; padding: 5px 28px 5px 10px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; font-size: 11px; font-weight: 600; cursor: pointer; min-width: 120px; white-space: nowrap; font-family: 'Montserrat', sans-serif; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; transition: border-color 0.2s; }
 .sd-ms-btn:hover { border-color: #cbd5e1; }
 .sd-ms-btn.sd-ms-open { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-.sd-ms-btn .sd-ms-count { background: #059669; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; }
+.sd-ms-btn .sd-ms-count { background: #10b981; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; }
 .sd-ms-panel { display: none; position: fixed; z-index: 9999; min-width: 220px; max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,20,40,0.12); padding: 6px; }
 .sd-ms-panel.sd-ms-show { display: block; }
-.sd-ms-search { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px; outline: none; margin-bottom: 4px; }
+.sd-ms-search { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px; outline: none; margin-bottom: 4px; font-family: 'Montserrat', sans-serif; }
 .sd-ms-search:focus { border-color: #3b82f6; }
 .sd-ms-actions { display: flex; gap: 4px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px; }
-.sd-ms-action { padding: 3px 8px; border-radius: 5px; border: none; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; color: #3b82f6; }
-.sd-ms-action:hover { background: #eff6ff; }
+.sd-ms-action { padding: 3px 8px; border-radius: 5px; border: none; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; color: #3b82f6; font-family: 'Montserrat', sans-serif; }
+.sd-ms-action:hover { background: #dbeafe; }
 .sd-ms-opt { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; cursor: pointer; transition: background 0.1s; }
 .sd-ms-opt:hover { background: #f1f5f9; }
 .sd-ms-opt input[type="checkbox"] { accent-color: #3b82f6; width: 14px; height: 14px; cursor: pointer; }
 .sd-ms-opt-label { font-size: 11px; font-weight: 600; color: #334155; flex: 1; }
-.sd-ms-opt-abbr { font-size: 9px; font-weight: 700; color: #94a3b8; }
+.sd-ms-opt-abbr { font-size: 9px; font-weight: 700; color: #64748b; }
 </style>
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
@@ -626,7 +626,7 @@ const swastikKpis = computed(() => {
 function companyColor(name) { return COMPANY_INFO[name] || { bg: '#f8fafc', accent: '#64748b', abbr: (name || '').substring(0, 3).toUpperCase() } }
 function companySuffix(co) { return (COMPANY_INFO[co] || {}).abbr || co.substring(0, 3).toUpperCase() }
 function whTag(wh) { return wh.warehouse.indexOf('Available WH') !== -1 ? 'Available' : wh.warehouse.indexOf('Reserved WH') !== -1 ? 'Reserved' : 'Other' }
-function whTagColor(wh) { const t = whTag(wh); return t === 'Available' ? '#10b981' : t === 'Reserved' ? '#f59e0b' : '#94a3b8' }
+function whTagColor(wh) { const t = whTag(wh); return t === 'Available' ? '#10b981' : t === 'Reserved' ? '#f59e0b' : '#64748b' }
 function whTagBg(wh) { const t = whTag(wh); return t === 'Available' ? '#ecfdf5' : t === 'Reserved' ? '#fffbeb' : '#f8fafc' }
 
 function sd_k(v) { v = parseFloat(v) || 0; if (Math.abs(v) >= 1000) return '₹' + (v / 1000).toFixed(1) + 'K'; return '₹' + v.toFixed(0) }
@@ -640,7 +640,7 @@ function sd_count(el, target, pre, suf, dur) {
 
 function sd_donut(el, avail, reserved) {
   const total = (avail || 0) + (reserved || 0)
-  if (total === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:11px;">No stock data</div>'; return }
+  if (total === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:11px;">No stock data</div>'; return }
   const pct = Math.round((reserved / total) * 100)
   const uid = 'sddu' + Math.random().toString(36).slice(2, 8)
   const sz = 100, st = 14, r = (sz - st) / 2, circ = 2 * Math.PI * r, ct = sz / 2
@@ -659,16 +659,16 @@ function sd_donut(el, avail, reserved) {
   s += '</svg>'
   s += '<div id="' + uid + '-ctr" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transition:all 0.2s;">'
   s += '<span id="' + uid + '-pct" style="font-size:20px;font-weight:800;color:#1e293b;line-height:1;">' + pct + '%</span>'
-  s += '<span id="' + uid + '-lbl" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:#94a3b8;margin-top:2px;">Reserved</span>'
+  s += '<span id="' + uid + '-lbl" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:#64748b;margin-top:2px;">Reserved</span>'
   s += '</div></div>'
   s += '<div id="' + uid + '-leg" style="display:flex;flex-direction:column;gap:5px;">'
   s += '<div class="sd-donut-leg" data-idx="0" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">'
   s += '<div style="width:8px;height:8px;border-radius:2px;background:' + cAvail + ';flex-shrink:0;"></div>'
-  s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Available</div><div style="font-size:8px;color:#94a3b8;">' + sd_n(avail) + ' L</div></div>'
+  s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Available</div><div style="font-size:8px;color:#64748b;">' + sd_n(avail) + ' L</div></div>'
   s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + (100 - pct) + '%;background:' + cAvail + ';border-radius:3px;"></div></div></div>'
   s += '<div class="sd-donut-leg" data-idx="1" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">'
   s += '<div style="width:8px;height:8px;border-radius:2px;background:' + cRes + ';flex-shrink:0;"></div>'
-  s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Reserved</div><div style="font-size:8px;color:#94a3b8;">' + sd_n(reserved) + ' L</div></div>'
+  s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Reserved</div><div style="font-size:8px;color:#64748b;">' + sd_n(reserved) + ' L</div></div>'
   s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + cRes + ';border-radius:3px;"></div></div></div>'
   s += '<div style="display:flex;align-items:center;gap:6px;padding:2px 8px;margin-top:2px;border-top:1px solid #f1f5f9;">'
   s += '<div style="width:8px;height:8px;border-radius:2px;background:#cbd5e1;flex-shrink:0;"></div>'
@@ -703,7 +703,7 @@ function sd_donut(el, avail, reserved) {
 }
 
 function sd_stacked_bars(el, labels, series, rawData) {
-  if (!labels || !labels.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">No data</div>'; return }
+  if (!labels || !labels.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#64748b;">No data</div>'; return }
   rawData = rawData || []
   const W = 420, H = 210, P = { t: 16, r: 16, b: 48, l: 54 }
   const cw = W - P.l - P.r, ch = H - P.t - P.b
@@ -726,7 +726,7 @@ function sd_stacked_bars(el, labels, series, rawData) {
   for (let g = 0; g <= 4; g++) {
     const gy = P.t + (g / 4) * ch
     s += '<line x1="' + P.l + '" y1="' + gy + '" x2="' + (W - P.r) + '" y2="' + gy + '" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="3,3"/>'
-    s += '<text x="' + (P.l - 8) + '" y="' + (gy + 3.5) + '" text-anchor="end" fill="#94a3b8" font-size="8" font-weight="600">' + sd_k(mx * (1 - g / 4)) + '</text>'
+    s += '<text x="' + (P.l - 8) + '" y="' + (gy + 3.5) + '" text-anchor="end" fill="#64748b" font-size="8" font-weight="600">' + sd_k(mx * (1 - g / 4)) + '</text>'
   }
   const totalPerCompany = labels.map((_, i) => series.reduce((s, ser) => s + (ser.values[i] || 0), 0))
   labels.forEach((l, i) => {
@@ -748,7 +748,7 @@ function sd_stacked_bars(el, labels, series, rawData) {
       cumY += h
     })
     s += '<text x="' + cx + '" y="' + (H - 24) + '" text-anchor="middle" fill="#475569" font-size="9" font-weight="700">' + l + '</text>'
-    s += '<text x="' + cx + '" y="' + (H - 12) + '" text-anchor="middle" fill="#94a3b8" font-size="7" font-weight="600">' + sd_k(totalPerCompany[i]) + '</text>'
+    s += '<text x="' + cx + '" y="' + (H - 12) + '" text-anchor="middle" fill="#64748b" font-size="7" font-weight="600">' + sd_k(totalPerCompany[i]) + '</text>'
   })
   s += '<g transform="translate(' + (W / 2 - 60) + ',' + (H - 2) + ')">'
   series.forEach((ser, si) => {
@@ -790,7 +790,7 @@ function sd_bc_hover(el, label, idx) {
   html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Available: <b style="color:#93c5fd;">' + sd_n(d.avail_qty || 0) + ' L</b></div>'
   html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Reserved: <b style="color:#fcd34d;">' + sd_n(d.reserved_qty || 0) + ' L</b></div>'
   html += '<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:5px;padding-top:5px;color:#cbd5e1;font-size:11px;">Total: <b>' + sd_n(total) + ' L</b></div>'
-  html += '<div style="color:#94a3b8;font-size:9px;margin-top:3px;">Value: ' + sd_k(d.total_value || 0) + ' · Items: ' + (d.item_count || 0) + '</div>'
+  html += '<div style="color:#64748b;font-size:9px;margin-top:3px;">Value: ' + sd_k(d.total_value || 0) + ' · Items: ' + (d.item_count || 0) + '</div>'
   tip.innerHTML = html; tip.style.display = 'block'
   const rect = el.getBoundingClientRect()
   tip.style.left = (rect.right + 12) + 'px'; tip.style.top = rect.top + 'px'

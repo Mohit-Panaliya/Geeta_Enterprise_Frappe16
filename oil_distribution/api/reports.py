@@ -40,8 +40,9 @@ def email_reserved_stock_report():
     try:
         data = frappe.db.sql(
             """
-            select sr.company, sr.item, sr.reserved_qty, sr.reserved_for, sr.status
+            select sr.company, sri.item, sri.qty as reserved_qty, sr.reserved_for, sr.status
             from `tabStock Reservation` sr
+            join `tabStock Reservation Item` sri on sri.parent = sr.name
             where sr.docstatus = 1 and sr.status = 'Reserved'
             """,
             as_dict=True,

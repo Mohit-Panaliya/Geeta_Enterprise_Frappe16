@@ -1,5 +1,25 @@
 import frappe
 from frappe import _
+from frappe.utils import flt, cint, nowdate
+
+
+# ─── Helpers ───────────────────────────────────────────────
+
+def _get_uom_info(item_code):
+    """Return {stock_uom, alt_uom, conversion_factor} for an item.
+    alt_uom = Litre, conversion_factor = Nos per Litre (from UOM Conversion Detail).
+    """
+    stock_uom = frappe.get_cached_value("Item", item_code, "stock_uom") or "Nos"
+    conv = frappe.db.get_value(
+        "UOM Conversion Detail",
+        {"parent": item_code, "uom": "Litre"},
+        "conversion_factor",
+    )
+    return {
+        "stock_uom": stock_uom,
+        "alt_uom": "Litre" if conv else None,
+        "conversion_factor": flt(conv) if conv else None,
+    }
 
 
 # ─── Helpers ───────────────────────────────────────────────
@@ -331,6 +351,123 @@ def get_ict_list():
 
 
 @frappe.whitelist()
+def create_payment_entries_for_ict():
+    data = frappe.local.form_dict
+    ict_name = data.get("ict_name")
+    posting_date = data.get("posting_date") or frappe.utils.nowdate()
+
+    if not ict_name:
+        frappe.throw(_("ICT name is required"))
+
+    ict = frappe.get_doc("Inter Company Transfer", ict_name)
+    if ict.docstatus != 1:
+        frappe.throw(_("ICT must be submitted"))
+
+    if ict.status != "Transfer Created":
+        frappe.throw(_("Documents must be created before creating payment entries"))
+
+    si_name = ict.get_latest_doc("Sales Invoice")
+    pi_name = ict.get_latest_doc("Purchase Invoice")
+
+    if not si_name or not pi_name:
+        frappe.throw(_("Sales Invoice / Purchase Invoice not found. Create documents first."))
+
+    pi_outstanding = frappe.db.get_value("Purchase Invoice", pi_name, "outstanding_amount") or 0
+    si_outstanding = frappe.db.get_value("Sales Invoice", si_name, "outstanding_amount") or 0
+
+    created = []
+
+    if flt(pi_outstanding) > 0:
+        pe = _make_ict_payment_entry(
+            ict=ict,
+            company=ict.to_company,
+            party_type="Supplier",
+            party=ict.get_internal_supplier(ict.company),
+            payment_type="Pay",
+            reference_doctype="Purchase Invoice",
+            reference_name=pi_name,
+            posting_date=posting_date,
+        )
+        created.append(pe.name)
+
+    if flt(si_outstanding) > 0:
+        pe = _make_ict_payment_entry(
+            ict=ict,
+            company=ict.company,
+            party_type="Customer",
+            party=ict.get_internal_customer(ict.to_company),
+            payment_type="Receive",
+            reference_doctype="Sales Invoice",
+            reference_name=si_name,
+            posting_date=posting_date,
+        )
+        created.append(pe.name)
+
+    if not created:
+        frappe.msgprint(_("No outstanding amount found. Payment entries already created."))
+        return {"created": []}
+
+    ict.save(ignore_permissions=True)
+    return {"created": created}
+
+
+def _make_ict_payment_entry(ict, company, party_type, party, payment_type, reference_doctype, reference_name, posting_date):
+    from frappe.utils import flt
+
+    pe = frappe.new_doc("Payment Entry")
+    pe.company = company
+    pe.payment_type = payment_type
+    pe.party_type = party_type
+    pe.party = party
+    pe.posting_date = posting_date
+    pe.mode_of_payment = frappe.db.get_value("Mode of Payment", {"type": "Bank"}, "name") or "Wire Transfer"
+    pe.paid_amount = ict.grand_total
+    pe.received_amount = ict.grand_total
+    pe.source_exchange_rate = 1
+    pe.target_exchange_rate = 1
+    pe.reference_no = ict.name
+    pe.reference_date = posting_date
+
+    default_bank = frappe.db.get_value("Company", company, "default_bank_account")
+    if not default_bank:
+        frappe.throw(_("No default Bank Account set for company {0}").format(company))
+
+    if payment_type == "Pay":
+        default_payable = frappe.db.get_value("Company", company, "default_payable_account")
+        pe.paid_from = default_bank
+        pe.paid_to = default_payable
+    else:
+        default_receivable = frappe.db.get_value("Company", company, "default_receivable_account")
+        pe.paid_from = default_receivable
+        pe.paid_to = default_bank
+
+    pe.append("references", {
+        "reference_doctype": reference_doctype,
+        "reference_name": reference_name,
+        "total_amount": ict.grand_total,
+        "outstanding_amount": ict.grand_total,
+        "allocated_amount": ict.grand_total,
+    })
+
+    pe.flags.ignore_permissions = True
+    pe.flags.ignore_links = True
+    pe.save(ignore_permissions=True)
+    pe.submit()
+
+    ict.append("generated_documents", {
+        "document_type": "Payment Entry",
+        "document_name": pe.name,
+        "company": pe.company,
+        "status": "Submitted",
+        "posting_date": posting_date,
+        "grand_total": pe.paid_amount,
+        "creation": frappe.utils.now(),
+    })
+
+    return pe
+
+
+@frappe.whitelist()
 def create_inter_company_transfer():
 	data = frappe.local.form_dict
 
@@ -361,7 +498,17 @@ def create_inter_company_transfer():
 @frappe.whitelist()
 def get_reservation_kpis():
 	company = frappe.form_dict.get("company", "All")
+	item_filter = frappe.form_dict.get("item", "")
 	co_where, co_vals = _co_where("company")
+
+	it_where = ""
+	it_vals = []
+	if item_filter:
+		it_vals_parsed = _parse_csv(item_filter)
+		if it_vals_parsed:
+			placeholders = ", ".join(["%s"] * len(it_vals_parsed))
+			it_where = f"AND item IN ({placeholders})"
+			it_vals = it_vals_parsed
 
 	data = frappe.db.sql(f"""
 		SELECT
@@ -369,16 +516,18 @@ def get_reservation_kpis():
 			COUNT(*) as active_count
 		FROM `tabStock Reservation`
 		WHERE docstatus = 1 AND status = 'Reserved'
-		{co_where}
-	""", co_vals, as_dict=True)
+		{co_where} {it_where}
+	""", co_vals + it_vals, as_dict=True)
 
-	# Reserved value from Bin
-	val = frappe.db.sql("""
+	# Reserved value from Bin (filtered by company + item)
+	val_co_where, _ = _co_where("w.company")
+	val = frappe.db.sql(f"""
 		SELECT COALESCE(SUM(b.stock_value), 0) as total_value
 		FROM `tabBin` b
 		JOIN `tabWarehouse` w ON w.name = b.warehouse
-		WHERE w.warehouse_name LIKE 'Reserved WH%'
-	""", as_dict=True)
+		WHERE w.warehouse_name LIKE 'Reserved WH%%'
+		{val_co_where} {it_where}
+	""", co_vals + it_vals, as_dict=True)
 
 	# Utilization
 	total = frappe.db.sql("""
@@ -392,7 +541,7 @@ def get_reservation_kpis():
 		SELECT COALESCE(SUM(b.actual_qty), 0) as reserved_qty
 		FROM `tabBin` b
 		JOIN `tabWarehouse` w ON w.name = b.warehouse
-		WHERE w.warehouse_name LIKE 'Reserved WH%'
+		WHERE w.warehouse_name LIKE 'Reserved WH%%'
 	""", as_dict=True)
 
 	total_stock = total[0]["total_stock"]
@@ -424,17 +573,54 @@ def get_reserved_by_company():
 
 @frappe.whitelist()
 def get_active_reservations():
-	limit = frappe.form_dict.get("limit", 30)
-	co_where, co_vals = _co_where("company")
+	limit = frappe.form_dict.get("limit", 100)
+	company = frappe.form_dict.get("company", "All")
+	item_filter = frappe.form_dict.get("item", "")
+	status_filter = frappe.form_dict.get("status", "Reserved")
+	co_where, co_vals = _co_where("sr.company")
+
+	it_where = ""
+	it_vals = []
+	if item_filter:
+		it_vals_parsed = _parse_csv(item_filter)
+		if it_vals_parsed:
+			placeholders = ", ".join(["%s"] * len(it_vals_parsed))
+			it_where = f"AND sri.item IN ({placeholders})"
+			it_vals = it_vals_parsed
+
+	status_where = ""
+	status_vals = []
+	if status_filter and status_filter != "All":
+		status_where = "AND sr.status = %s"
+		status_vals = [status_filter]
 
 	rows = frappe.db.sql(f"""
-		SELECT name, company, item, reserved_qty, reserved_for, status, warehouse
-		FROM `tabStock Reservation`
-		WHERE docstatus = 1 AND status = 'Reserved'
-		{co_where}
-		ORDER BY creation DESC
+		SELECT sr.name, sr.company, sr.reserved_for, sr.status,
+			sr.warehouse, sr.reserved_warehouse, sr.unreserved_warehouse,
+			sr.posting_date, sr.sales_order, sr.remarks,
+			sr.creation, sr.modified,
+			sri.name as item_row_name, sri.idx,
+			sri.item, sri.qty as reserved_qty, sri.available_qty, sri.released_qty,
+			sri.batch_no, sri.stock_entry,
+			i.item_name, i.description, i.stock_uom,
+			i.product_category, i.product_sub_category
+		FROM `tabStock Reservation` sr
+		JOIN `tabStock Reservation Item` sri ON sri.parent = sr.name
+		LEFT JOIN `tabItem` i ON i.name = sri.item
+		WHERE sr.docstatus = 1
+		{co_where} {it_where} {status_where}
+		ORDER BY sr.creation DESC, sri.idx ASC
 		LIMIT %s
-	""", co_vals + [int(limit)], as_dict=True)
+	""", co_vals + it_vals + status_vals + [int(limit)], as_dict=True)
+
+	for r in rows:
+		uom = _get_uom_info(r["item"])
+		r["alt_uom"] = uom["alt_uom"]
+		r["conversion_factor"] = uom["conversion_factor"]
+		if uom["conversion_factor"]:
+			r["alt_qty"] = flt(r["reserved_qty"]) / uom["conversion_factor"]
+		else:
+			r["alt_qty"] = None
 
 	return rows
 
@@ -443,19 +629,28 @@ def get_active_reservations():
 def create_stock_reservation():
 	data = frappe.local.form_dict
 	company = data.get("company")
-	abbr_map = {"Geeta Enterprise": "GE", "Global Export": "GEX", "Shubham Enterprise": "SHE"}
-	abbr = abbr_map.get(company)
+	warehouse = data.get("warehouse")
+	posting_date = data.get("posting_date") or frappe.utils.nowdate()
+	items = data.get("items", [])
+
+	if not items:
+		frappe.throw(_("At least one item is required"))
 
 	sr = frappe.get_doc({
 		"doctype": "Stock Reservation",
 		"company": company,
-		"warehouse": f"Reserved WH - {abbr}",
-		"reserved_warehouse": f"Reserved WH - {abbr}",
-		"item": data.get("item"),
-		"reserved_qty": float(data.get("reserved_qty", 1)),
-		"reserved_for": data.get("reserved_for"),
-		"posting_date": frappe.utils.nowdate(),
+		"warehouse": warehouse,
+		"reserved_for": data.get("reserved_for", "Swastik"),
+		"posting_date": posting_date,
 	})
+
+	for it in items:
+		sr.append("items", {
+			"item": it.get("item"),
+			"qty": float(it.get("qty", 1)),
+			"batch_no": it.get("batch_no"),
+		})
+
 	sr.insert()
 	sr.submit()
 	return {"name": sr.name, "status": sr.status}
@@ -471,10 +666,14 @@ def get_companies():
 @frappe.whitelist()
 def get_items():
 	items = frappe.get_all("Item",
-		fields=["name", "item_name", "stock_uom"],
+		fields=["name", "item_name", "stock_uom", "product_category", "product_sub_category"],
 		limit_page_length=200,
 		order_by="name asc",
 	)
+	for item in items:
+		uom = _get_uom_info(item["name"])
+		item["alt_uom"] = uom["alt_uom"]
+		item["conversion_factor"] = uom["conversion_factor"]
 	return items
 
 
@@ -529,6 +728,62 @@ def get_company_warehouses(company=None):
 		limit_page_length=100,
 	)
 	return warehouses
+
+
+@frappe.whitelist()
+def get_item_stock(item_code=None, warehouse=None):
+	"""Return actual_qty for an item in a specific warehouse."""
+	if not item_code or not warehouse:
+		return {"actual_qty": 0, "stock_value": 0}
+	row = frappe.db.sql("""
+		SELECT COALESCE(b.actual_qty, 0) as actual_qty,
+		       COALESCE(b.stock_value, 0) as stock_value
+		FROM `tabBin` b
+		WHERE b.item_code = %s AND b.warehouse = %s
+	""", (item_code, warehouse), as_dict=True)
+	result = {"actual_qty": 0, "stock_value": 0}
+	if row:
+		result = {"actual_qty": row[0].actual_qty, "stock_value": row[0].stock_value}
+
+	uom = _get_uom_info(item_code)
+	result["stock_uom"] = uom["stock_uom"]
+	result["alt_uom"] = uom["alt_uom"]
+	result["conversion_factor"] = uom["conversion_factor"]
+	if uom["conversion_factor"]:
+		result["alt_qty"] = flt(result["actual_qty"]) / uom["conversion_factor"]
+	else:
+		result["alt_qty"] = None
+
+	return result
+
+
+@frappe.whitelist()
+def get_item_stock_by_company(item_code=None, company=None):
+	"""Return stock of an item across all warehouses for a company."""
+	if not item_code or not company:
+		return []
+	rows = frappe.db.sql("""
+		SELECT w.name as warehouse, w.warehouse_name,
+		       COALESCE(b.actual_qty, 0) as actual_qty,
+		       COALESCE(b.stock_value, 0) as stock_value
+		FROM `tabWarehouse` w
+		LEFT JOIN `tabBin` b ON b.warehouse = w.name AND b.item_code = %s
+		WHERE w.company = %s AND w.is_group = 0 AND w.disabled = 0
+		ORDER BY w.warehouse_name ASC
+	""", (item_code, company), as_dict=True)
+
+	uom = _get_uom_info(item_code)
+
+	for r in rows:
+		r["stock_uom"] = uom["stock_uom"]
+		r["alt_uom"] = uom["alt_uom"]
+		r["conversion_factor"] = uom["conversion_factor"]
+		if uom["conversion_factor"]:
+			r["alt_qty"] = flt(r["actual_qty"]) / uom["conversion_factor"]
+		else:
+			r["alt_qty"] = None
+
+	return rows
 
 
 # ─── Command Center ───────────────────────────────────────

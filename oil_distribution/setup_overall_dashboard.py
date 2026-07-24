@@ -42,7 +42,7 @@ def create_number_cards():
             "label": "Swastik Reserved Qty",
             "document_type": "Stock Reservation",
             "function": "Sum",
-            "aggregate_function_based_on": "quantity",
+            "aggregate_function_based_on": "reserved_qty",
             "filters_json": json.dumps([
                 {"fieldname": "docstatus", "condition": "=", "value": "1", "hidden": 1},
                 {"fieldname": "status", "condition": "=", "value": "Reserved", "hidden": 1}

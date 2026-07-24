@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-07-23 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+   "field_order": [
+    "item",
+    "item_name",
+    "stock_uom",
+    "qty",
+    "reserved_qty",
+    "already_released_qty",
+    "reserved_warehouse",
+    "unreserved_warehouse",
+    "stock_entry"
+   ],
+ "fields": [
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Qty",
+   "non_negative": 1,
+   "reqd": 1
+  },
+   {
+    "fetch_from": "item.stock_uom",
+    "fieldname": "stock_uom",
+    "fieldtype": "Link",
+    "label": "UoM",
+    "options": "UOM",
+    "read_only": 1
+   },
+    {
+     "fieldname": "reserved_qty",
+     "fieldtype": "Float",
+     "in_list_view": 1,
+     "label": "Reserved Qty",
+     "read_only": 1
+    },
+    {
+     "fieldname": "already_released_qty",
+     "fieldtype": "Float",
+     "in_list_view": 1,
+     "label": "Already Released",
+     "read_only": 1
+    },
+   {
+    "fieldname": "reserved_warehouse",
+    "fieldtype": "Link",
+    "label": "Reserved WH",
+   "options": "Warehouse",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unreserved_warehouse",
+   "fieldtype": "Link",
+   "label": "Unreserved WH",
+   "options": "Warehouse",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "label": "Stock Entry",
+   "options": "Stock Entry",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2026-07-23 00:00:00.000000",
+ "module": "Oil Distribution",
+ "name": "Stock Release Item",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

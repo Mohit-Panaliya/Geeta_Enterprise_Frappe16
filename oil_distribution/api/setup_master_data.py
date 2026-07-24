@@ -9,6 +9,24 @@ COMPANIES = {
 }
 
 
+def _upsert_uom_conversion(item_code, litre_conversion):
+    """Add/update Litre UOM conversion on an existing Item, ensuring Nos exists."""
+    item = frappe.get_doc("Item", item_code)
+    found_litre = False
+    found_nos = False
+    for row in item.get("uoms", []):
+        if row.uom == "Litre":
+            row.conversion_factor = litre_conversion
+            found_litre = True
+        if row.uom == "Nos":
+            found_nos = True
+    if not found_litre:
+        item.append("uoms", {"uom": "Litre", "conversion_factor": litre_conversion})
+    if not found_nos:
+        item.append("uoms", {"uom": "Nos", "conversion_factor": 1})
+    item.save(ignore_permissions=True)
+
+
 def setup_master_data():
     """Create all master data needed for oil distribution testing."""
     print("=" * 60)
@@ -33,7 +51,7 @@ def setup_master_data():
     # 2. Warehouses
     print("\n--- Warehouses ---")
     for company_name, abbr in COMPANIES.items():
-        for wh_type in ["Available", "Reserved"]:
+        for wh_type in ["Available", "Reserved", "Unreserved"]:
             wh_name = f"{wh_type} WH - {abbr}"
             if not frappe.db.exists("Warehouse", wh_name):
                 doc = frappe.get_doc({
@@ -53,32 +71,66 @@ def setup_master_data():
             print(f"  Created: {hsn}")
     frappe.db.commit()
 
-    # 4. Items with valuation rates
+    # 4. Items with categories, valuation rates + UOM conversion to Litre
     print("\n--- Items ---")
-    items = [
-        {"item_code": "ENGINE-10W30", "item_name": "Engine Oil 10W-30", "hsn": "271019", "val_rate": 450},
-        {"item_code": "ENGINE-15W40", "item_name": "Engine Oil 15W-40", "hsn": "271019", "val_rate": 520},
-        {"item_code": "ENGINE-20W50", "item_name": "Engine Oil 20W-50", "hsn": "271019", "val_rate": 480},
-        {"item_code": "ENGINE-5W30", "item_name": "Engine Oil 5W-30", "hsn": "271019", "val_rate": 600},
+    PRODUCT_CATALOG = [
+        # code, name, hsn, val_rate, litre_per_unit, category, sub_category
+        # ── 2 Wheeler ──
+        ("2W-ENGINE-20W40", "2 Wheeler Engine Oil 20W-40", "271019", 350, 0.4, "2 Wheeler", "Mass"),
+        ("2W-ENGINE-10W30", "2 Wheeler Engine Oil 10W-30", "271019", 420, 0.4, "2 Wheeler", "Premium"),
+        ("2W-ENGINE-5W30",  "2 Wheeler Engine Oil 5W-30",  "271019", 480, 0.4, "2 Wheeler", "Premium"),
+        # ── 4 Wheeler ──
+        ("4W-ENGINE-20W50", "4 Wheeler Engine Oil 20W-50", "271019", 480, 1.0, "4 Wheeler", "Mass"),
+        ("4W-ENGINE-10W40", "4 Wheeler Engine Oil 10W-40", "271019", 520, 1.0, "4 Wheeler", "Mass"),
+        ("4W-ENGINE-5W30",  "4 Wheeler Engine Oil 5W-30",  "271019", 650, 1.0, "4 Wheeler", "Premium"),
+        ("4W-ENGINE-0W20",  "4 Wheeler Engine Oil 0W-20",  "271019", 750, 1.0, "4 Wheeler", "Premium"),
+        # ── Truck ──
+        ("TRK-ENGINE-20W50", "Truck Engine Oil 20W-50", "271019", 1800, 5.0, "Truck", "Mass"),
+        ("TRK-ENGINE-15W40", "Truck Engine Oil 15W-40", "271019", 2200, 5.0, "Truck", "Premium"),
+        ("TRK-ENGINE-10W30", "Truck Engine Oil 10W-30", "271019", 2500, 5.0, "Truck", "Premium"),
+        # ── Industry ──
+        ("IND-HYDRAULIC-68", "Hydraulic Oil 68", "271019", 3500, 20.0, "Industry", "Mass"),
+        ("IND-HYDRAULIC-46", "Hydraulic Oil 46", "271019", 3200, 20.0, "Industry", "Mass"),
+        ("IND-GEAR-220",     "Industrial Gear Oil 220", "271019", 5200, 20.0, "Industry", "Premium"),
+        ("IND-TURBINE-32",   "Turbine Oil 32", "271019", 4800, 20.0, "Industry", "Premium"),
+        # ── Farming ──
+        ("FARM-ENGINE-10W30", "Tractor Engine Oil 10W-30", "271019", 1500, 5.0, "Farming", "Mass"),
+        ("FARM-HYDRAULIC-32", "Tractor Hydraulic Oil 32",  "271019", 2000, 5.0, "Farming", "Premium"),
+        # ── Legacy items (reassigned) ──
+        ("ENGINE-10W30", "Engine Oil 10W-30", "271019", 450, 1.0, "4 Wheeler", "Mass"),
+        ("ENGINE-15W40", "Engine Oil 15W-40", "271019", 520, 1.0, "Truck", "Premium"),
+        ("ENGINE-20W50", "Engine Oil 20W-50", "271019", 480, 1.0, "Truck", "Mass"),
+        ("ENGINE-5W30",  "Engine Oil 5W-30",  "271019", 600, 1.0, "4 Wheeler", "Premium"),
     ]
-    for item_data in items:
-        if not frappe.db.exists("Item", item_data["item_code"]):
+
+    for code, name, hsn, val_rate, litre_per_unit, cat, subcat in PRODUCT_CATALOG:
+        conversion = 1.0 / litre_per_unit if litre_per_unit else 1.0
+
+        if not frappe.db.exists("Item", code):
             doc = frappe.get_doc({
                 "doctype": "Item",
-                "item_code": item_data["item_code"],
-                "item_name": item_data["item_name"],
+                "item_code": code,
+                "item_name": name,
                 "item_group": "All Item Groups",
                 "stock_uom": "Nos",
                 "is_stock_item": 1,
-                "gst_hsn_code": item_data["hsn"],
-                "valuation_rate": item_data["val_rate"],
+                "gst_hsn_code": hsn,
+                "valuation_rate": val_rate,
+                "product_category": cat,
+                "product_sub_category": subcat,
+                "uoms": [
+                    {"uom": "Nos", "conversion_factor": 1},
+                    {"uom": "Litre", "conversion_factor": conversion},
+                ],
             })
             doc.insert(ignore_permissions=True)
-            print(f"  Created: {item_data['item_code']} (val_rate={item_data['val_rate']})")
+            print(f"  Created: {code} ({cat}/{subcat}, {val_rate}/u, {litre_per_unit}L/pc)")
         else:
-            # Ensure valuation rate is set
-            frappe.db.set_value("Item", item_data["item_code"], "valuation_rate", item_data["val_rate"])
-            print(f"  Exists:  {item_data['item_code']} (val_rate updated to {item_data['val_rate']})")
+            frappe.db.set_value("Item", code, "valuation_rate", val_rate)
+            frappe.db.set_value("Item", code, "product_category", cat)
+            frappe.db.set_value("Item", code, "product_sub_category", subcat)
+            _upsert_uom_conversion(code, conversion)
+            print(f"  Updated: {code} → {cat}/{subcat}")
     frappe.db.commit()
 
     # 5. Inter-Company Supplier/Customer Pairs
@@ -185,14 +237,29 @@ def setup_master_data():
     # 9. Opening Stock (Material Receipt with valuation rate)
     print("\n--- Opening Stock ---")
     stock_data = [
+        # Geeta Enterprise
         ("Geeta Enterprise", "Available WH - GE", "ENGINE-10W30", 500, 450),
         ("Geeta Enterprise", "Available WH - GE", "ENGINE-15W40", 300, 520),
         ("Geeta Enterprise", "Available WH - GE", "ENGINE-20W50", 200, 480),
         ("Geeta Enterprise", "Available WH - GE", "ENGINE-5W30", 100, 600),
+        ("Geeta Enterprise", "Available WH - GE", "2W-ENGINE-20W40", 300, 350),
+        ("Geeta Enterprise", "Available WH - GE", "2W-ENGINE-10W30", 200, 420),
+        ("Geeta Enterprise", "Available WH - GE", "4W-ENGINE-10W40", 250, 520),
+        ("Geeta Enterprise", "Available WH - GE", "TRK-ENGINE-15W40", 100, 2200),
+        ("Geeta Enterprise", "Available WH - GE", "IND-HYDRAULIC-68", 50, 3500),
+        ("Geeta Enterprise", "Available WH - GE", "FARM-ENGINE-10W30", 80, 1500),
+        # Global Export
         ("Global Export", "Available WH - GEX", "ENGINE-10W30", 200, 450),
         ("Global Export", "Available WH - GEX", "ENGINE-20W50", 150, 480),
+        ("Global Export", "Available WH - GEX", "2W-ENGINE-20W40", 150, 350),
+        ("Global Export", "Available WH - GEX", "4W-ENGINE-5W30", 80, 650),
+        ("Global Export", "Available WH - GEX", "IND-GEAR-220", 30, 5200),
+        # Shubham Enterprise
         ("Shubham Enterprise", "Available WH - SHE", "ENGINE-15W40", 250, 520),
         ("Shubham Enterprise", "Available WH - SHE", "ENGINE-5W30", 100, 600),
+        ("Shubham Enterprise", "Available WH - SHE", "2W-ENGINE-5W30", 120, 480),
+        ("Shubham Enterprise", "Available WH - SHE", "TRK-ENGINE-20W50", 60, 1800),
+        ("Shubham Enterprise", "Available WH - SHE", "FARM-HYDRAULIC-32", 40, 2000),
     ]
     for company_name, warehouse, item_code, qty, rate in stock_data:
         existing = frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "actual_qty") or 0
