@@ -1,0 +1,45 @@
+export default {
+  doctype: "Item",
+  name: "items",
+  label: "Items",
+  icon: "cube-outline",
+  color: "#f59e0b",
+  list: {
+    route: "/items",
+    title: "Items",
+    columns: [
+      { label: "Code", fieldname: "item_code", type: "Link" },
+      { label: "Name", fieldname: "item_name", type: "Data" },
+      { label: "UOM", fieldname: "stock_uom", type: "Data" },
+      { label: "Rate", fieldname: "valuation_rate", type: "Currency" },
+    ],
+    filters: [
+      { type: "text", label: "Search", fieldname: "item_name" },
+      { type: "select", label: "UOM", fieldname: "stock_uom", options: ["", "Nos", "Litre", "Kg"] },
+    ],
+    searchField: "item_name",
+    orderBy: "item_code asc",
+    hasMoreFilters: true,
+    actions: [
+      { label: "Edit", icon: "create-outline", action: "edit" },
+      { label: "Delete", icon: "trash-outline", action: "delete", confirm: true },
+    ],
+  },
+  detail: {
+    route: "/items/:name",
+    fields: [
+      { label: "Item Code", fieldname: "item_code", type: "Data", required: true },
+      { label: "Item Name", fieldname: "item_name", type: "Data", required: true },
+      { label: "Stock UOM", fieldname: "stock_uom", type: "Select", required: true, options: ["Nos", "Litre", "Kg", "Meter"] },
+      { label: "Item Group", fieldname: "item_group", type: "Data" },
+      { label: "Brand", fieldname: "brand", type: "Data" },
+      { label: "Valuation Rate", fieldname: "valuation_rate", type: "Currency" },
+      { label: "Standard Rate", fieldname: "standard_rate", type: "Currency" },
+      { label: "Is Purchase Item", fieldname: "is_purchase_item", type: "Check" },
+      { label: "Is Sale Item", fieldname: "is_sale_item", type: "Check" },
+      { label: "Disabled", fieldname: "disabled", type: "Check" },
+      { label: "End of Life", fieldname: "end_of_life", type: "Date" },
+      { label: "Description", fieldname: "description", type: "Text" },
+    ],
+  },
+}

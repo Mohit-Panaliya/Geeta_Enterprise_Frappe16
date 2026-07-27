@@ -1,6 +1,7 @@
 import { createApp } from "vue"
 import { IonicVue } from "@ionic/vue"
-import { FrappeUI } from "frappe-ui"
+import { FrappeUI, frappeRequest, setConfig } from "frappe-ui"
+import { createPinia } from "pinia"
 
 import App from "./App.vue"
 import router from "./router"
@@ -22,6 +23,11 @@ const app = createApp(App)
 app.use(IonicVue, { mode: "md" })
 app.use(router)
 app.use(FrappeUI)
+
+const pinia = createPinia()
+app.use(pinia)
+
+setConfig("resourceFetcher", frappeRequest)
 
 const vm = app.mount("#app")
 

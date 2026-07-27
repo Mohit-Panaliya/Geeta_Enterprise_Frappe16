@@ -1,3 +1,4 @@
+import json
 import frappe
 from frappe import _
 from frappe.utils import flt, cint, nowdate
@@ -657,6 +658,50 @@ def create_stock_reservation():
 
 
 # ─── Dropdown Data ──────────────────────────────────────────
+
+@frappe.whitelist()
+def create_stock_release():
+    names = frappe.form_dict.get("names")
+    if isinstance(names, str):
+        names = json.loads(names)
+    if not names or not isinstance(names, list):
+        frappe.throw(_("At least one reservation name is required"))
+
+    reservations = frappe.get_all("Stock Reservation",
+        filters=[["name", "in", names], ["docstatus", "=", 1], ["status", "=", "Reserved"]],
+        fields=["name", "company", "posting_date"]
+    )
+    if not reservations:
+        frappe.throw(_("No valid reserved reservations found"))
+
+    items = frappe.db.sql("""
+        SELECT sri.parent, sri.item, sri.qty, i.stock_uom
+        FROM `tabStock Reservation Item` sri
+        JOIN `tabItem` i ON i.name = sri.item
+        WHERE sri.parent IN ({})
+    """.format(", ".join(["%s"] * len(names))), names, as_dict=True)
+
+    by_reservation = {}
+    for it in items:
+        by_reservation.setdefault(it.parent, []).append(it)
+
+    created = []
+    for r in reservations:
+        release = frappe.get_doc({
+            "doctype": "Stock Release",
+            "company": r.company,
+            "posting_date": r.posting_date,
+        })
+        for it in by_reservation.get(r.name, []):
+            release.append("items", {"item": it.item, "qty": it.qty, "stock_uom": it.stock_uom})
+        if not release.items:
+            continue
+        release.insert()
+        release.submit()
+        created.append({"name": release.name, "company": r.company, "items": len(release.items)})
+
+    return {"releases": created, "count": len(created)}
+
 
 @frappe.whitelist()
 def get_companies():

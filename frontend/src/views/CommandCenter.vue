@@ -25,13 +25,13 @@
           <button class="oz-tab-btn oz-tab-active" data-tab="sales">Sales &amp; Procurement</button>
           <button class="oz-tab-btn" data-tab="stock">Stock Intelligence</button>
           <button class="oz-tab-btn" data-tab="ict">Inter Company Transfer</button>
-          <button class="oz-tab-btn" data-tab="reservations">Reservations</button>
+          <button class="oz-tab-btn" data-tab="reservations">Reservation &amp; Release</button>
         </div>
         <div id="oz-period-bar" class="oz-bar oz-period-bar oz-anim" style="animation-delay:0.06s;">
           <label>Period</label>
-          <button class="oz-period-btn oz-period-active" data-period="MTD">MTD</button>
+          <button class="oz-period-btn" data-period="MTD">MTD</button>
           <button class="oz-period-btn" data-period="QTD">QTD</button>
-          <button class="oz-period-btn" data-period="YTD">YTD</button>
+          <button class="oz-period-btn oz-period-active" data-period="YTD">YTD</button>
           <div id="oz-month-controls" class="oz-period-controls">
             <span class="oz-period-label">Months:</span>
             <div id="oz-month-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
@@ -40,7 +40,7 @@
             <span class="oz-period-label">Quarters:</span>
             <div id="oz-qtr-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
           </div>
-          <div id="oz-ytd-controls" class="oz-period-controls" style="display:none;">
+          <div id="oz-ytd-controls" class="oz-period-controls">
             <span class="oz-period-label">FY:</span>
             <div id="oz-ytd-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
           </div>
@@ -48,7 +48,7 @@
             <span class="oz-period-label">vs:</span>
             <div id="oz-compare-month" class="oz-cs"></div>
             <div id="oz-compare-qtr" class="oz-cs" style="display:none;"></div>
-            <div id="oz-compare-fy" class="oz-cs" style="display:none;"></div>
+            <div id="oz-compare-fy" class="oz-cs"></div>
           </div>
         </div>
 </div>
@@ -145,66 +145,47 @@
         <div id="oz-panel-stock" class="oz-tab-panel" style="display:none;">
           <div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.06s">
             <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">&#128230;</div>
+              <div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
               <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-avail" style="color:#7c3aed;">--</div>
-                <div class="oz-kpi-lbl">Available Stock</div>
+                <div class="oz-kpi-val" id="oz-kpi-uom-nos" style="color:#7c3aed;">--</div>
+                <div class="oz-kpi-lbl">Total Stock (Nos)</div>
               </div>
             </div>
             <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#fef3c7;color:#d97706;">&#128274;</div>
+              <div class="oz-kpi-icon" style="background:#d1fae5;color:#059669;">📊</div>
               <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-reserved" style="color:#d97706;">--</div>
-                <div class="oz-kpi-lbl">Swastik Reserved</div>
+                <div class="oz-kpi-val" id="oz-kpi-uom-litres" style="color:#059669;">--</div>
+                <div class="oz-kpi-lbl">Total Stock (Litres)</div>
               </div>
             </div>
             <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#fef2f2;color:#dc2626;">&#9888;</div>
+              <div class="oz-kpi-icon" style="background:#fef2f2;color:#dc2626;">⚠</div>
               <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-neg" style="color:#dc2626;">--</div>
-                <div class="oz-kpi-lbl">Negative Alerts</div>
+                <div class="oz-kpi-val" id="oz-kpi-uom-neg" style="color:#dc2626;">--</div>
+                <div class="oz-kpi-lbl">Negative Items</div>
               </div>
             </div>
           </div>
-          <div class="oz-chart-card oz-anim" style="animation-delay:0.1s;padding:14px 18px;">
-            <div style="display:flex;align-items:center;gap:16px;">
-              <div style="flex:1;">
-                <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:8px;">Stock Pipeline</div>
-                <div id="oz-funnel-content"></div>
-              </div>
-              <div style="width:1px;height:80px;background:#f1f5f9;"></div>
-              <div style="text-align:center;min-width:80px;">
-                <div id="oz-ring" style="display:flex;justify-content:center;"></div>
-                <div style="font-size:8px;font-weight:700;color:#64748b;margin-top:2px;">Utilization</div>
-              </div>
-              <div style="width:1px;height:80px;background:#f1f5f9;"></div>
-              <div style="min-width:140px;">
-                <div id="oz-mini-stats"></div>
-              </div>
+          <div class="oz-chart-card oz-anim" style="animation-delay:0.10s">
+            <div class="oz-chart-head">
+              <div class="oz-chart-icon" style="background:#ede9fe;color:#7c3aed;">📊</div>
+              <div><div class="oz-chart-title">Stock by UOM — Nos vs Litres</div><div class="oz-chart-sub">All items with conversion, share bars show % of total</div></div>
             </div>
+            <div id="oz-uom-stock"></div>
           </div>
-          <div class="oz-grid-2 oz-anim" style="animation-delay:0.14s">
-            <div class="oz-chart-card" style="margin-bottom:0;">
-              <div class="oz-chart-head">
-                <div class="oz-chart-icon" style="background:#ede9fe;color:#7c3aed;">&#128161;</div>
-                <div><div class="oz-chart-title">Stock Distribution</div><div class="oz-chart-sub">Hover segments for details</div></div>
-              </div>
-              <div id="oz-chart-donut"></div>
+          <div class="oz-chart-card oz-anim" style="animation-delay:0.14s">
+            <div class="oz-chart-head">
+              <div class="oz-chart-icon" style="background:#dbeafe;color:#3b82f6;">🏢</div>
+              <div><div class="oz-chart-title">Stock by Company</div><div class="oz-chart-sub">Nos and Litre stock per company</div></div>
             </div>
-            <div class="oz-chart-card" style="margin-bottom:0;">
-              <div class="oz-chart-head">
-                <div class="oz-chart-icon" style="background:#fef2f2;color:#dc2626;">&#9888;</div>
-                <div style="flex:1;"><div class="oz-chart-title">Negative Stock Alerts</div></div>
-              </div>
-              <div id="oz-table-neg"></div>
-            </div>
+            <div id="oz-uom-companies"></div>
           </div>
           <div class="oz-chart-card oz-anim" style="animation-delay:0.18s">
             <div class="oz-chart-head">
-              <div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">&#127981;</div>
-              <div><div class="oz-chart-title">Warehouse Stock Breakdown</div><div class="oz-chart-sub">All warehouses with stock</div></div>
+              <div class="oz-chart-icon" style="background:#fef2f2;color:#dc2626;">⚠</div>
+              <div style="flex:1;"><div class="oz-chart-title">Negative Stock Alerts</div></div>
             </div>
-            <div id="oz-warehouse-table"></div>
+            <div id="oz-table-neg"></div>
           </div>
         </div>
         <div id="oz-panel-ict" class="oz-tab-panel" style="display:none;">
@@ -213,21 +194,21 @@
               <div class="oz-kpi-icon" style="background:#cffafe;color:#0891b2;">&#128260;</div>
               <div class="oz-kpi-info">
                 <div class="oz-kpi-val" id="oz-kpi-ict2" style="color:#0891b2;">--</div>
-                <div class="oz-kpi-lbl">ICT Volume MTD</div>
+                <div class="oz-kpi-lbl">ICT Volume</div>
               </div>
             </div>
             <div class="oz-kpi-card">
               <div class="oz-kpi-icon" style="background:#cffafe;color:#0891b2;">&#128203;</div>
               <div class="oz-kpi-info">
                 <div class="oz-kpi-val" id="oz-kpi-ict-count" style="color:#0891b2;">--</div>
-                <div class="oz-kpi-lbl">ICT Count MTD</div>
+                <div class="oz-kpi-lbl">ICT Count</div>
               </div>
             </div>
             <div class="oz-kpi-card">
               <div class="oz-kpi-icon" style="background:#cffafe;color:#0891b2;">&#128176;</div>
               <div class="oz-kpi-info">
                 <div class="oz-kpi-val" id="oz-kpi-ict-val" style="color:#0891b2;">--</div>
-                <div class="oz-kpi-lbl">ICT Value MTD</div>
+                <div class="oz-kpi-lbl">ICT Value</div>
               </div>
             </div>
           </div>
@@ -263,63 +244,42 @@
         <div id="oz-panel-reservations" class="oz-tab-panel" style="display:none;">
           <div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.06s">
             <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#fef3c7;color:#d97706;">&#128274;</div>
+              <div class="oz-kpi-icon" style="background:#fef3c7;color:#d97706;">🔒</div>
               <div class="oz-kpi-info">
                 <div class="oz-kpi-val" id="oz-kpi-reserved2" style="color:#d97706;">--</div>
                 <div class="oz-kpi-lbl">Active Reservations</div>
               </div>
             </div>
             <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">&#128202;</div>
+              <div class="oz-kpi-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
               <div class="oz-kpi-info">
                 <div class="oz-kpi-val" id="oz-kpi-resqty" style="color:#7c3aed;">--</div>
                 <div class="oz-kpi-lbl">Reserved Quantity</div>
               </div>
             </div>
             <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#d1fae5;color:#059669;">&#128176;</div>
+              <div class="oz-kpi-icon" style="background:#d1fae5;color:#059669;">📤</div>
               <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-res-val" style="color:#059669;">--</div>
-                <div class="oz-kpi-lbl">Reserved Value</div>
+                <div class="oz-kpi-val" id="oz-kpi-release-qty" style="color:#059669;">--</div>
+                <div class="oz-kpi-lbl">Total Released</div>
               </div>
             </div>
           </div>
-          <div class="oz-kpi-row oz-kpi-row-3 oz-anim" style="animation-delay:0.08s">
-            <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#dbeafe;color:#3b82f6;">&#128230;</div>
-              <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-res-items" style="color:#3b82f6;">--</div>
-                <div class="oz-kpi-lbl">Reserved Items</div>
+          <div class="oz-grid-2 oz-anim" style="animation-delay:0.1s">
+            <div class="oz-chart-card" style="margin-bottom:0;">
+              <div class="oz-chart-head">
+                <div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">🛡</div>
+                <div style="flex:1;"><div class="oz-chart-title">Active Reservations</div><div class="oz-chart-sub">Swastik reserved stock</div></div>
               </div>
+              <div id="oz-table-res"></div>
             </div>
-            <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#fce7f3;color:#db2777;">&#128200;</div>
-              <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-res-util" style="color:#db2777;">--</div>
-                <div class="oz-kpi-lbl">Utilization</div>
+            <div class="oz-chart-card" style="margin-bottom:0;">
+              <div class="oz-chart-head">
+                <div class="oz-chart-icon" style="background:#d1fae5;color:#059669;">📤</div>
+                <div><div class="oz-chart-title">Release Activity</div><div class="oz-chart-sub">Recent stock releases</div></div>
               </div>
+              <div id="oz-release-activity"></div>
             </div>
-            <div class="oz-kpi-card">
-              <div class="oz-kpi-icon" style="background:#ecfeff;color:#0891b2;">&#127970;</div>
-              <div class="oz-kpi-info">
-                <div class="oz-kpi-val" id="oz-kpi-res-companies" style="color:#0891b2;">--</div>
-                <div class="oz-kpi-lbl">Companies</div>
-              </div>
-            </div>
-          </div>
-          <div class="oz-chart-card oz-anim" style="animation-delay:0.1s">
-            <div class="oz-chart-head">
-              <div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">&#127970;</div>
-              <div><div class="oz-chart-title">Reserved by Company</div><div class="oz-chart-sub">Stock reserved per company</div></div>
-            </div>
-            <div id="oz-res-by-company"></div>
-          </div>
-          <div class="oz-chart-card oz-anim" style="animation-delay:0.12s">
-            <div class="oz-chart-head">
-              <div class="oz-chart-icon" style="background:#fef3c7;color:#d97706;">&#128737;</div>
-              <div style="flex:1;"><div class="oz-chart-title">Active Reservations</div><div class="oz-chart-sub">Swastik reserved stock</div></div>
-            </div>
-            <div id="oz-table-res"></div>
           </div>
         </div>
       </div>
@@ -442,7 +402,7 @@ const _curFYStart = _curM >= 3 ? _curYr : _curYr - 1
 const _curFYValue = _curFYStart + "-04-01_" + (_curFYStart + 1) + "-03-31"
 
 const ozState = {
-  company: "All", item: "All", period: "MTD", months: 6,
+  company: "All", item: "All", period: "YTD", months: 6,
   fy: _curFYValue, tab: "sales",
   selected_months: [], selected_qtrs: [1], selected_ytd_fys: [],
   compare_month: "", compare_qtr: "", compare_fy: "",
@@ -926,29 +886,21 @@ function oz_render_routes_breakdown(data) {
   data.forEach((r, idx) => {
     const fromAbbr = r.company.replace(/^(\S+).*/, "$1"), toAbbr = r.to_company.replace(/^(\S+).*/, "$1")
     const grad = grads[idx % grads.length]
-    html += '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">'
+    const items = (r.item_list || '').split(',').filter(Boolean)
+    const coEsc = r.company.replace(/'/g, "\\'"), toEsc = r.to_company.replace(/'/g, "\\'")
+    const clickFn = "frappe.set_route('List','Inter Company Transfer',{company:'" + coEsc + "',to_company:'" + toEsc + "'})"
+    html += '<div onclick="' + clickFn + '" style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:0;cursor:pointer;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);overflow:hidden;" onmouseenter="this.style.boxShadow=\'0 8px 24px rgba(0,0,0,0.1)\';this.style.transform=\'translateY(-3px)\';this.style.borderColor=\'' + grad[0] + '\'" onmouseleave="this.style.boxShadow=\'none\';this.style.transform=\'none\';this.style.borderColor=\'#e2e8f0\'">'
     html += '<div style="background:linear-gradient(135deg,' + grad[2] + ",#fff);border-bottom:1px solid " + grad[0] + '30;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">'
     html += '<div style="display:flex;align-items:center;gap:8px;"><div style="background:' + grad[0] + '18;border:1px solid ' + grad[0] + '30;border-radius:6px;padding:4px 10px;"><span style="font-size:11px;font-weight:800;color:' + grad[0] + ';">' + fromAbbr + '</span></div>'
     html += '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9h10M10 5l4 4-4 4" stroke="' + grad[0] + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     html += '<div style="background:' + grad[0] + '18;border:1px solid ' + grad[0] + '30;border-radius:6px;padding:4px 10px;"><span style="font-size:11px;font-weight:800;color:' + grad[0] + ';">' + toAbbr + '</span></div></div>'
-    html += '<div style="background:' + grad[0] + ';border-radius:5px;padding:5px;margin:5px;display:inline-flex;"><span style="font-size:13px;font-weight:800;color:#fff;">' + r.cnt + '</span></div></div>'
+    html += '<div style="background:' + grad[0] + ';border-radius:5px;padding:5px;margin:5px;display:inline-flex;align-items:center;"><span style="font-size:13px;font-weight:800;color:#fff;letter-spacing:0.5px;">' + r.cnt + '</span></div></div>'
     html += '<div style="padding:12px 14px;"><div style="display:flex;gap:16px;margin-bottom:10px;">'
-    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Volume</div><div style="font-size:14px;font-weight:800;color:#0891b2;">' + oz_n(r.qty) + ' <span style="font-size:9px;font-weight:600;color:#64748b;">L</span></div></div>'
-    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Value</div><div style="font-size:14px;font-weight:800;color:#059669;">' + oz_k(r.value) + '</div></div></div></div></div>'
+    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Volume</div><div style="font-size:14px;font-weight:800;color:#0891b2;">' + oz_n(r.qty_nos || 0) + ' <span style="font-size:9px;font-weight:600;color:#64748b;">Nos</span><br><span style="font-size:12px;">' + oz_n(r.qty_litres || 0) + ' <span style="font-size:8px;font-weight:600;color:#64748b;">L</span></span></div></div>'
+    html += '<div style="flex:1;"><div style="font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Value</div><div style="font-size:14px;font-weight:800;color:#059669;">' + oz_k(r.value) + '</div></div></div></div>'
+    if (items.length) html += '<div style="padding:0 14px 10px;display:flex;gap:4px;flex-wrap:wrap;">' + items.slice(0, 3).map(function (i) { return '<span style="font-size:8px;font-weight:600;color:#64748b;background:#f1f5f9;padding:2px 6px;border-radius:4px;">' + i + '</span>' }).join('') + (items.length > 3 ? '<span style="font-size:8px;color:#64748b;">+' + (items.length - 3) + '</span>' : '') + '</div>'
+    html += '</div>'
   })
-  html += "</div>"; el.innerHTML = html
-}
-
-function oz_render_reserved_by_company(data) {
-  const el = _el("oz-res-by-company"); if (!el) return
-  if (!data || !data.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:10px;">No data</div>'; return }
-  let maxVal = 0; data.forEach(r => { const v = r.val || r.value || 0; if (v > maxVal) maxVal = v })
-  let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
-  data.forEach(r => { const v = r.val || r.value || 0; const pct = maxVal > 0 ? (v / maxVal) * 100 : 0; const abbr = (r.company || "").replace(/^(\S+).*/, "$1")
-    html += '<div style="flex:1;min-width:160px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;">'
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;font-weight:700;color:#1e293b;">' + abbr + '</span><span style="font-size:10px;font-weight:800;color:#d97706;">' + oz_n(r.qty) + ' L</span></div>'
-    html += '<div style="height:4px;border-radius:4px;background:#f1f5f9;overflow:hidden;margin-bottom:4px;"><div style="height:100%;width:' + pct + '%;border-radius:4px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div></div>'
-    html += '<div style="font-size:8px;font-weight:700;color:#64748b;text-align:right;">' + oz_k(v) + '</div></div>' })
   html += "</div>"; el.innerHTML = html
 }
 
@@ -957,10 +909,10 @@ async function load_all_data() {
   oz_update_filter_tag()
   _text("oz-period-sales", period); _text("oz-period-proc", period); _text("oz-period-pl", period)
 
-  const kpiIds = ["oz-kpi-sales","oz-kpi-proc","oz-kpi-avail","oz-kpi-reserved","oz-kpi-neg","oz-kpi-pl","oz-kpi-ict2","oz-kpi-ict-count","oz-kpi-ict-val","oz-kpi-reserved2","oz-kpi-resqty","oz-kpi-res-val","oz-kpi-res-items","oz-kpi-res-util","oz-kpi-res-companies"]
+  const kpiIds = ["oz-kpi-sales","oz-kpi-proc","oz-kpi-pl","oz-kpi-ict2","oz-kpi-ict-count","oz-kpi-ict-val","oz-kpi-reserved2","oz-kpi-resqty","oz-kpi-uom-nos","oz-kpi-uom-litres","oz-kpi-uom-neg","oz-kpi-release-qty"]
   kpiIds.forEach(id => _text(id, "--"))
   _text("oz-kpi-sales-change", ""); _text("oz-kpi-proc-change", ""); _text("oz-kpi-pl-change", "")
-  _loading(["oz-bar-chart","oz-monthly-table","oz-chart-donut","oz-funnel-content","oz-ring","oz-mini-stats","oz-table-res","oz-table-ict","oz-table-neg","oz-activity","oz-top-items","oz-top-customers","oz-company-compare","oz-ict-chain","oz-warehouse-table","oz-routes-breakdown","oz-res-by-company"])
+  _loading(["oz-bar-chart","oz-monthly-table","oz-table-res","oz-table-ict","oz-table-neg","oz-activity","oz-top-items","oz-top-customers","oz-company-compare","oz-ict-chain","oz-routes-breakdown","oz-uom-stock","oz-uom-companies","oz-release-activity"])
   _html("oz-spark-sales", ""); _html("oz-spark-proc", ""); _html("oz-spark-pl", "")
   _html("oz-sales-breakdown", ""); _html("oz-proc-breakdown", ""); _html("oz-pl-breakdown", "")
 
@@ -1004,43 +956,15 @@ async function load_all_data() {
       _setChange("oz-kpi-proc-change", d.procurement_mtd, d.show_change ? d.procurement_prev : null)
       _setChange("oz-kpi-pl-change", d.profit_loss, d.show_change ? d.profit_loss_prev : null)
 
-      oz_count(_el("oz-kpi-avail"), Math.round(d.available_stock), "", " L"); setTimeout(() => _text("oz-kpi-avail", oz_n(d.available_stock) + " L"), 1300)
-      oz_count(_el("oz-kpi-reserved"), Math.round(d.reserved_stock), "", " L"); setTimeout(() => _text("oz-kpi-reserved", oz_n(d.reserved_stock) + " L"), 1300)
-      oz_count(_el("oz-kpi-neg"), d.negative_alerts, "", ""); setTimeout(() => _text("oz-kpi-neg", d.negative_alerts + " Alerts"), 1300)
-      oz_count(_el("oz-kpi-ict2"), Math.round(d.intercompany_volume), "", " L"); setTimeout(() => _text("oz-kpi-ict2", oz_n(d.intercompany_volume) + " L"), 1300)
+      const ict2El = _el("oz-kpi-ict2")
+      if (ict2El) { oz_count(ict2El, Math.round(d.intercompany_volume_litres), "", ""); setTimeout(() => { ict2El.innerHTML = oz_n(d.intercompany_volume_nos || 0) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(d.intercompany_volume_litres || 0) + ' <span style="font-size:10px;color:#94a3b8;">L</span>' }, 1300) }
 
       if (d.ict_count_mtd !== undefined) { oz_count(_el("oz-kpi-ict-count"), d.ict_count_mtd, "", ""); setTimeout(() => _text("oz-kpi-ict-count", d.ict_count_mtd), 1300) }
       if (d.ict_value_mtd !== undefined) { oz_count(_el("oz-kpi-ict-val"), Math.round(d.ict_value_mtd), A, ""); setTimeout(() => _text("oz-kpi-ict-val", oz_k(d.ict_value_mtd)), 1300) }
-      if (d.reserved_value !== undefined) { oz_count(_el("oz-kpi-res-val"), Math.round(d.reserved_value), A, ""); setTimeout(() => _text("oz-kpi-res-val", oz_k(d.reserved_value)), 1300) }
-      if (d.reserved_items !== undefined) { oz_count(_el("oz-kpi-res-items"), d.reserved_items, "", ""); setTimeout(() => _text("oz-kpi-res-items", d.reserved_items), 1300) }
-      if (d.utilization_pct !== undefined) { oz_count(_el("oz-kpi-res-util"), d.utilization_pct, "", "%"); setTimeout(() => _text("oz-kpi-res-util", d.utilization_pct + "%"), 1300) }
 
       _render_breakdown("oz-sales-breakdown", d.sales_by_company, d.sales_mtd, d.sales_prev_by_company)
       _render_breakdown("oz-proc-breakdown", d.procurement_by_company, d.procurement_mtd, d.procurement_prev_by_company)
       _render_breakdown("oz-pl-breakdown", d.profit_loss_by_company, Math.abs(d.profit_loss), d.profit_loss_prev_by_company)
-
-      const tot = d.available_stock + d.reserved_stock
-      let fh = '<div style="display:flex;flex-direction:column;gap:6px;">'
-      ;[{ l: "Total", v: tot, c: "#3b82f6", p: 100 }, { l: "Available", v: d.available_stock, c: "#10b981", p: tot > 0 ? (d.available_stock / tot) * 100 : 0 },
-        { l: "Reserved", v: d.reserved_stock, c: "#f59e0b", p: tot > 0 ? (d.reserved_stock / tot) * 100 : 0 },
-        { l: "Negative", v: d.negative_alerts, c: "#ef4444", p: tot > 0 ? (d.negative_alerts / tot) * 100 : 0 }].forEach(s => {
-        fh += '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:9px;font-weight:700;color:#64748b;width:52px;flex-shrink:0;">' + s.l + '</span>'
-        fh += '<div style="flex:1;height:5px;border-radius:5px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + s.p + '%;border-radius:5px;background:' + s.c + ';transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div></div>'
-        fh += '<span style="font-size:10px;font-weight:800;color:' + s.c + ';min-width:40px;text-align:right;">' + s.v.toLocaleString() + '</span>'
-        fh += '<span style="font-size:8px;font-weight:700;color:' + s.c + ';min-width:28px;text-align:right;">' + Math.round(s.p) + '%</span></div>' })
-      fh += '</div>'; _html("oz-funnel-content", fh)
-
-      oz_ring(_el("oz-ring"), tot > 0 ? (d.reserved_stock / tot) * 100 : 0, "#3b82f6", "#7c3aed")
-
-      let ms = ""
-      ;[{ l: "Sales", v: oz_k(d.sales_mtd), c: "#3b82f6" }, { l: "Procurement", v: oz_k(d.procurement_mtd), c: "#10b981" },
-        { l: "Available", v: oz_n(d.available_stock) + " L", c: "#7c3aed" }, { l: "Reserved", v: oz_n(d.reserved_stock) + " L", c: "#f59e0b" },
-        { l: "ICTs", v: oz_n(d.intercompany_volume) + " L", c: "#0891b2" }, { l: "Alerts", v: d.negative_alerts, c: "#ef4444" }].forEach(s => {
-        ms += '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:3px;background:' + s.c + '08;">'
-        ms += '<div style="width:4px;height:18px;border-radius:2px;background:' + s.c + ';"></div>'
-        ms += '<span style="flex:1;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#64748b;">' + s.l + '</span>'
-        ms += '<span style="font-size:12px;font-weight:800;color:' + s.c + ';">' + s.v + '</span></div>' })
-      _html("oz-mini-stats", ms)
 
       /* Sparklines + bar chart loaded from trend endpoint in parallel section below */
     }
@@ -1051,13 +975,13 @@ async function load_all_data() {
   const pIctList = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_recent_icts", params: args }).catch(() => null)
   const pActiveRes = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_recent_reservations", params: args }).catch(() => null)
   const pTopCust = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_top_customers", params: args }).catch(() => null)
-  const pWh = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_warehouse_stock", params: args }).catch(() => null)
   const pTrend = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_sales_procurement_trend", params: args }).catch(() => null)
   const pCompanyCompare = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_company_comparison", params: args }).catch(() => null)
-  const pStockDonut = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_company_stock_distribution", params: args }).catch(() => null)
   const pTopItems = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_top_items", params: args }).catch(() => null)
+  const pUom = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_uom_stock_summary", params: args }).catch(() => null)
+  const pRelease = frappeRequest({ url: "oil_distribution.oil_distribution.page.oil_command_center.oil_command_center.get_release_overview", params: args }).catch(() => null)
 
-  const [negData, ictListData, activeResData, topCustData, whData, trendData, companyCompareData, stockDonutData, topItemsData] = await Promise.all([pNeg, pIctList, pActiveRes, pTopCust, pWh, pTrend, pCompanyCompare, pStockDonut, pTopItems])
+  const [negData, ictListData, activeResData, topCustData, trendData, companyCompareData, topItemsData, uomData, releaseData] = await Promise.all([pNeg, pIctList, pActiveRes, pTopCust, pTrend, pCompanyCompare, pTopItems, pUom, pRelease])
 
   /* Company comparison (needs KPI + parallel data) */
   _render_company_comparison(ozState.kpi_data || {}, companyCompareData)
@@ -1105,34 +1029,6 @@ async function load_all_data() {
     _html("oz-monthly-table", th)
   }
 
-  /* Stock Intelligence */
-  const mainKpi = ozState.kpi_data || {}
-  const avail = mainKpi.available_stock || 0
-  const reserved = mainKpi.reserved_stock || 0
-  const negCnt = mainKpi.negative_alerts || 0
-  oz_count(_el("oz-kpi-avail"), Math.round(avail), "", " L")
-  setTimeout(() => _text("oz-kpi-avail", oz_n(avail) + " L"), 1300)
-  oz_count(_el("oz-kpi-reserved"), Math.round(reserved), "", " L")
-  setTimeout(() => _text("oz-kpi-reserved", oz_n(reserved) + " L"), 1300)
-  oz_count(_el("oz-kpi-neg"), negCnt, "", "")
-  setTimeout(() => _text("oz-kpi-neg", negCnt + " Alerts"), 1300)
-  const tot2 = avail + reserved
-  let fh2 = '<div style="display:flex;flex-direction:column;gap:6px;">'
-  ;[{ l: "Total", v: tot2, c: "#3b82f6", p: 100 }, { l: "Available", v: avail, c: "#10b981", p: tot2 > 0 ? (avail / tot2) * 100 : 0 },
-    { l: "Reserved", v: reserved, c: "#f59e0b", p: tot2 > 0 ? (reserved / tot2) * 100 : 0 },
-    { l: "Negative", v: negCnt, c: "#ef4444", p: tot2 > 0 ? (negCnt / tot2) * 100 : 0 }].forEach(s => {
-    fh2 += '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:9px;font-weight:700;color:#64748b;width:52px;flex-shrink:0;">' + s.l + '</span>'
-    fh2 += '<div style="flex:1;height:5px;border-radius:5px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + s.p + '%;border-radius:5px;background:' + s.c + ';transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div></div>'
-    fh2 += '<span style="font-size:10px;font-weight:800;color:' + s.c + ';min-width:40px;text-align:right;">' + (s.v || 0).toLocaleString() + '</span></div>' })
-  fh2 += '</div>'; _html("oz-funnel-content", fh2)
-  oz_ring(_el("oz-ring"), tot2 > 0 ? (reserved / tot2) * 100 : 0, "#3b82f6", "#7c3aed")
-  /* Donut from stock distribution */
-  if (stockDonutData && stockDonutData.labels && stockDonutData.labels.length) {
-    const cols = ["#3b82f6", "#10b981", "#f59e0b", "#7c3aed"]
-    const donutData = stockDonutData.labels.map((l, i) => ({ label: l, value: Math.round(stockDonutData.values[i] || 0), color: cols[i] || cols[3] }))
-    oz_donut(_el("oz-chart-donut"), donutData, 130)
-  }
-
   /* Negative stock */
   if (negData && negData.length) {
     let h = '<table class="oz-table"><thead><tr><th>Item</th><th>Warehouse</th><th>Qty</th></tr></thead><tbody>'
@@ -1140,10 +1036,113 @@ async function load_all_data() {
     h += "</tbody></table>"; _html("oz-table-neg", h)
   } else { _html("oz-table-neg", '<div style="text-align:center;padding:20px;color:#059669;font-weight:600;">No negative stock</div>') }
 
+  /* UOM Stock Summary */
+  if (uomData) {
+    var nosKpi = _el("oz-kpi-uom-nos"); if (nosKpi) { oz_count(nosKpi, Math.round(uomData.total_qty_nos), "", ""); setTimeout(function () { _text("oz-kpi-uom-nos", oz_n(Math.round(uomData.total_qty_nos)) + " Nos") }, 1300) }
+    var litKpi = _el("oz-kpi-uom-litres"); if (litKpi) { oz_count(litKpi, Math.round(uomData.total_qty_litres), "", ""); setTimeout(function () { _text("oz-kpi-uom-litres", oz_n(Math.round(uomData.total_qty_litres)) + " L") }, 1300) }
+    var uomEl = _el("oz-uom-stock")
+    if (uomEl) {
+      if (!uomData.items || !uomData.items.length) {
+        uomEl.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;">No stock data</div>'
+        var negKpi = _el("oz-kpi-uom-neg"); if (negKpi) _text("oz-kpi-uom-neg", "0")
+      } else {
+        var negCount = uomData.items.filter(function (x) { return x.qty_nos < 0 }).length
+        var negKpi = _el("oz-kpi-uom-neg"); if (negKpi) { oz_count(negKpi, negCount, "", ""); setTimeout(function () { _text("oz-kpi-uom-neg", negCount + " Items") }, 1300) }
+        var maxNos = Math.max.apply(null, uomData.items.map(function (x) { return Math.abs(x.qty_nos) })) || 1
+        var maxLit = Math.max.apply(null, uomData.items.map(function (x) { return Math.abs(x.qty_litres) })) || 1
+        var totalNos = uomData.total_qty_nos
+        var totalLit = uomData.total_qty_litres
+        var uh = '<table class="oz-table"><thead><tr><th>Item</th><th style="text-align:right;">Factor</th><th style="text-align:right;">Nos</th><th style="width:120px;">Nos Share</th><th style="text-align:right;">Litres</th><th style="width:120px;">L Share</th></tr></thead><tbody>'
+        uomData.items.forEach(function (row) {
+          var pctNos = maxNos > 0 ? (Math.abs(row.qty_nos) / maxNos) * 100 : 0
+          var pctLit = maxLit > 0 ? (Math.abs(row.qty_litres) / maxLit) * 100 : 0
+          var nosShare = totalNos !== 0 ? (row.qty_nos / totalNos) * 100 : 0
+          var litShare = totalLit !== 0 ? (row.qty_litres / totalLit) * 100 : 0
+          var nosColor = row.qty_nos < 0 ? "#dc2626" : "#1e293b"
+          var litColor = row.qty_litres < 0 ? "#dc2626" : "#7c3aed"
+          uh += '<tr><td style="font-weight:700;color:#1e293b;">' + (row.item_name || row.item_code) + '</td>'
+          uh += '<td style="text-align:right;font-weight:700;color:#64748b;">' + row.litre_factor + '</td>'
+          uh += '<td style="text-align:right;font-weight:800;color:' + nosColor + ';">' + oz_n(Math.round(row.qty_nos)) + '</td>'
+          uh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pctNos + '%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div><span style="font-size:9px;font-weight:700;color:#64748b;min-width:32px;text-align:right;">' + Math.round(nosShare) + '%</span></div></td>'
+          uh += '<td style="text-align:right;font-weight:800;color:' + litColor + ';">' + oz_n(Math.round(row.qty_litres)) + '</td>'
+          uh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pctLit + '%;background:linear-gradient(90deg,#7c3aed,#a855f7);"></div></div><span style="font-size:9px;font-weight:700;color:#64748b;min-width:32px;text-align:right;">' + Math.round(litShare) + '%</span></div></td></tr>'
+        })
+        uh += "</tbody></table>"; uomEl.innerHTML = uh
+      }
+    }
+    var coEl = _el("oz-uom-companies")
+    if (coEl && uomData.companies && uomData.companies.length) {
+      var ch = '<div style="display:flex;gap:12px;">'
+      var maxCoNos = Math.max.apply(null, uomData.companies.map(function (x) { return Math.abs(x.qty_nos) })) || 1
+      var maxCoLit = Math.max.apply(null, uomData.companies.map(function (x) { return Math.abs(x.qty_litres) })) || 1
+      var coColors = { "Geeta Enterprise": "#3b82f6", "Global Export": "#10b981", "Shubham Enterprise": "#f59e0b" }
+      uomData.companies.forEach(function (co) {
+        var c = coColors[co.company] || "#64748b"
+        var coPctNos = maxCoNos > 0 ? (Math.abs(co.qty_nos) / maxCoNos) * 100 : 0
+        var coPctLit = maxCoLit > 0 ? (Math.abs(co.qty_litres) / maxCoLit) * 100 : 0
+        ch += '<div style="flex:1;background:' + c + '06;border:1px solid ' + c + '20;border-radius:10px;padding:12px;text-align:center;">'
+        ch += '<div style="font-size:11px;font-weight:700;color:' + c + ';margin-bottom:6px;">' + co.company + '</div>'
+        ch += '<div style="display:flex;gap:8px;justify-content:center;">'
+        ch += '<div><div style="font-size:11px;font-weight:800;color:#7c3aed;">' + oz_n(Math.round(co.qty_nos)) + '</div><div style="font-size:8px;color:#94a3b8;">Nos</div></div>'
+        ch += '<div style="width:1px;background:#e2e8f0;"></div>'
+        ch += '<div><div style="font-size:11px;font-weight:800;color:#059669;">' + oz_n(Math.round(co.qty_litres)) + ' L</div><div style="font-size:8px;color:#94a3b8;">Litres</div></div></div>'
+        ch += '<div style="margin-top:6px;"><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;height:4px;"><div class="oz-prog-fill" style="width:' + coPctNos + '%;height:4px;background:' + c + ';"></div></div><span style="font-size:8px;font-weight:700;color:' + c + ';">' + Math.round(coPctNos) + '%</span></div></div></div>'
+      })
+      ch += "</div>"; coEl.innerHTML = ch
+    } else if (coEl) { coEl.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:10px;">No company data</div>' }
+  }
+
+  /* Release Overview */
+  if (releaseData) {
+    var relKpi = _el("oz-kpi-release-qty")
+    if (relKpi) relKpi.innerHTML = oz_n(releaseData.total_released_nos || 0) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(releaseData.total_released_litres || 0) + ' <span style="font-size:10px;color:#94a3b8;">L</span>'
+    var relByCo = _el("oz-release-activity")
+    if (relByCo && releaseData.release_by_company && releaseData.release_by_company.length) {
+      var rColors = { "Geeta Enterprise": "#3b82f6", "Global Export": "#10b981", "Shubham Enterprise": "#f59e0b" }
+      var totalRel = releaseData.total_released_nos || 1
+      var rh = '<table class="oz-table"><thead><tr><th>Company</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Releases</th><th style="width:120px;">Share</th></tr></thead><tbody>'
+      releaseData.release_by_company.forEach(function (row) {
+        var pct = totalRel > 0 ? ((row.total_released_nos / totalRel) * 100).toFixed(1) : 0
+        var rc = rColors[row.company] || "#64748b"
+        rh += '<tr><td><span class="oz-badge" style="color:' + rc + ';background:' + rc + '15;">' + row.company + '</span></td>'
+        rh += '<td style="text-align:right;font-weight:800;color:#1e293b;">' + oz_n(row.total_released_nos || 0) + '</td>'
+        rh += '<td style="text-align:right;font-weight:800;color:#059669;">' + oz_n(row.total_released_litres || 0) + ' L</td>'
+        rh += '<td style="text-align:right;">' + row.release_count + '</td>'
+        rh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct + '%;background:' + rc + ';"></div></div><span style="font-size:8px;font-weight:700;color:' + rc + ';min-width:28px;text-align:right;">' + Math.round(pct) + '%</span></div></td></tr>'
+      })
+      rh += "</tbody></table>"
+      if (releaseData.unreserved_stock && releaseData.unreserved_stock.length) {
+        rh += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;"><div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px;">Unreserved Warehouse Stock</div><div style="display:flex;gap:10px;">'
+        releaseData.unreserved_stock.forEach(function (u) {
+          var uc = rColors[u.company] || "#64748b"
+          rh += '<div style="flex:1;background:' + uc + '08;border:1px solid ' + uc + '20;border-radius:8px;padding:8px;text-align:center;">'
+          rh += '<div style="font-size:9px;font-weight:700;color:' + uc + ';">' + u.company + '</div>'
+          rh += '<div style="font-size:13px;font-weight:800;color:#1e293b;margin-top:2px;">' + oz_n(u.qty_nos || 0) + ' Nos / ' + oz_n(u.qty_litres || 0) + ' L</div></div>'
+        })
+        rh += '</div></div>'
+      }
+      if (releaseData.top_released_items && releaseData.top_released_items.length) {
+        var maxItem = Math.max.apply(null, releaseData.top_released_items.map(function (x) { return x.total_released_nos })) || 1
+        rh += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;"><div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px;">Top Released Items</div>'
+        rh += '<table class="oz-table"><thead><tr><th>Item</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="width:80px;">Share</th></tr></thead><tbody>'
+        releaseData.top_released_items.forEach(function (row) {
+          var pct2 = (row.total_released_nos / maxItem) * 100
+          rh += '<tr><td style="font-weight:700;color:#1e293b;">' + (row.item_name || row.item) + '</td>'
+          rh += '<td style="text-align:right;font-weight:800;color:#1e293b;">' + oz_n(row.total_released_nos) + '</td>'
+          rh += '<td style="text-align:right;font-weight:800;color:#059669;">' + oz_n(row.total_released_litres) + ' L</td>'
+          rh += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="oz-prog" style="flex:1;"><div class="oz-prog-fill" style="width:' + pct2 + '%;background:linear-gradient(90deg,#34d399,#059669);"></div></div><span style="font-size:8px;font-weight:700;color:#059669;min-width:28px;text-align:right;">' + Math.round(pct2) + '%</span></div></td></tr>'
+        })
+        rh += "</tbody></table></div>"
+      }
+      relByCo.innerHTML = rh
+    } else if (relByCo) { relByCo.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:10px;">No release activity</div>' }
+  }
+
   /* ICT KPIs - already loaded from get_kpis */
   const ikData = ozState.kpi_data || {}
-  if (ikData.intercompany_volume !== undefined) {
-    oz_count(_el("oz-kpi-ict2"), Math.round(ikData.intercompany_volume || 0), "", " L"); setTimeout(() => _text("oz-kpi-ict2", oz_n(ikData.intercompany_volume || 0) + " L"), 1300)
+  if (ikData.intercompany_volume_litres !== undefined) {
+    const ict2El = _el("oz-kpi-ict2")
+    if (ict2El) { oz_count(ict2El, Math.round(ikData.intercompany_volume_litres || 0), "", ""); setTimeout(() => { ict2El.innerHTML = oz_n(ikData.intercompany_volume_nos || 0) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(ikData.intercompany_volume_litres || 0) + ' <span style="font-size:10px;color:#94a3b8;">L</span>' }, 1300) }
   }
   if (ikData.ict_count_mtd !== undefined) {
     oz_count(_el("oz-kpi-ict-count"), ikData.ict_count_mtd || 0, "", ""); setTimeout(() => _text("oz-kpi-ict-count", ikData.ict_count_mtd || 0), 1300)
@@ -1157,12 +1156,13 @@ async function load_all_data() {
 
   /* ICT List */
   if (ictListData && ictListData.length) {
-    let ht = '<table class="oz-table"><thead><tr><th>ID</th><th>From</th><th>To</th><th>Qty</th><th>Value</th><th>Date</th></tr></thead><tbody>'
+    let ht = '<table class="oz-table"><thead><tr><th>ID</th><th>From</th><th>To</th><th>Nos</th><th>Litres</th><th>Value</th><th>Date</th></tr></thead><tbody>'
     ictListData.forEach(row => {
       ht += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Inter Company Transfer\',\'' + row.name + '\')">'
       ht += '<td style="font-weight:700;color:#0891b2;">' + row.name + "</td>"
       ht += "<td>" + (row.company || "") + "</td><td>" + (row.to_company || "") + "</td>"
-      ht += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.total_qty) + "</td>"
+      ht += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.total_nos || 0) + "</td>"
+      ht += '<td style="font-weight:800;color:#059669;">' + oz_n(row.total_litres || 0) + " L</td>"
       ht += '<td style="font-weight:700;color:#059669;">' + oz_k(row.grand_total) + "</td>"
       ht += '<td style="color:#64748b;">' + (row.posting_date || "") + "</td></tr>" })
     ht += "</tbody></table>"; _html("oz-table-ict", ht)
@@ -1178,7 +1178,8 @@ async function load_all_data() {
       r += '<div class="oz-chain"><span class="oz-chain-step oz-chain-active">' + (row.company || "") + "</span>"
       r += '<span class="oz-chain-arrow">\u2192</span><span class="oz-chain-step oz-chain-active">' + (row.to_company || "") + "</span></div>"
       r += '<div style="display:flex;align-items:center;gap:6px;font-size:9px;color:#64748b;margin-top:4px;">'
-      r += '<span>' + oz_n(row.total_qty) + " L</span>"
+      r += '<span>' + oz_n(row.total_nos || 0) + ' Nos</span>'
+      r += '<span>' + oz_n(row.total_litres || 0) + ' L</span>'
       if (row.item_list) r += '<span style="margin-left:auto;font-size:9px;color:#64748b;">' + row.item_list + '</span>'
       r += '</div>'
       r += '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">'
@@ -1214,7 +1215,7 @@ async function load_all_data() {
       ha += '<div class="oz-tl-item"><div class="oz-tl-dot" style="background:#ecfeff;color:#0891b2;">\u21BB</div>'
       ha += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:600;color:#1e293b;">' + (row.company || "") + " \u2192 " + (row.to_company || "") + "</div>"
       ha += '<div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="font-size:8px;font-weight:700;color:#64748b;">' + (row.posting_date || "") + "</span>"
-      ha += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;margin-left:auto;">' + oz_n(row.total_qty) + " L</span></div></div></div>" })
+      ha += '<span class="oz-badge" style="color:#0891b2;background:#ecfeff;margin-left:auto;">' + oz_n(row.total_nos || 0) + ' Nos / ' + oz_n(row.total_litres || 0) + " L</span></div></div></div>" })
     ha += "</div>"; _html("oz-activity", ha)
   } else {
     _html("oz-table-ict", '<div style="text-align:center;padding:20px;color:#64748b;">No transfers yet</div>')
@@ -1223,30 +1224,22 @@ async function load_all_data() {
   }
 
   /* Reservations - from KPI data */
-  const resData = ozState.kpi_data || {}
   if (activeResData && activeResData.length) {
     const activeCount = activeResData.length
-    const totalResQty = activeResData.reduce((s, r) => s + (r.reserved_qty || 0), 0)
+    const totalResQty = activeResData.reduce((s, r) => s + (r.reserved_nos || 0), 0)
     oz_count(_el("oz-kpi-reserved2"), activeCount, "", ""); setTimeout(() => _text("oz-kpi-reserved2", activeCount + " Active"), 1300)
-    oz_count(_el("oz-kpi-resqty"), Math.round(totalResQty), "", " L"); setTimeout(() => _text("oz-kpi-resqty", oz_n(totalResQty) + " L"), 1300)
-  }
-  if (resData.reserved_value !== undefined) {
-    oz_count(_el("oz-kpi-res-val"), Math.round(resData.reserved_value || 0), A, ""); setTimeout(() => _text("oz-kpi-res-val", oz_k(resData.reserved_value || 0)), 1300)
-  }
-  if (resData.utilization_pct !== undefined) {
-    oz_count(_el("oz-kpi-res-util"), resData.utilization_pct, "", "%"); setTimeout(() => _text("oz-kpi-res-util", resData.utilization_pct + "%"), 1300)
-  }
-  if (resData.reserved_by_company && resData.reserved_by_company.length) {
-    oz_render_reserved_by_company(resData.reserved_by_company)
-    oz_count(_el("oz-kpi-res-companies"), resData.reserved_by_company.length, "", ""); setTimeout(() => _text("oz-kpi-res-companies", resData.reserved_by_company.length), 1300)
+    const totalResLitres = activeResData.reduce((s, r) => s + (r.reserved_litres || 0), 0)
+    const resQtyEl = _el("oz-kpi-resqty")
+    if (resQtyEl) { oz_count(resQtyEl, Math.round(totalResQty), "", ""); setTimeout(() => { resQtyEl.innerHTML = oz_n(totalResQty) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + oz_n(totalResLitres) + ' <span style="font-size:10px;color:#94a3b8;">L</span>' }, 1300) }
   }
   if (activeResData && activeResData.length) {
-    let hr = '<table class="oz-table"><thead><tr><th>ID</th><th>Company</th><th>Item</th><th>Qty</th><th>For</th><th>Status</th></tr></thead><tbody>'
+    let hr = '<table class="oz-table"><thead><tr><th>ID</th><th>Company</th><th>Item</th><th>Nos</th><th>Litres</th><th>For</th><th>Status</th></tr></thead><tbody>'
     activeResData.forEach(row => {
       hr += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Stock Reservation\',\'' + row.name + '\')">'
       hr += '<td style="font-weight:700;color:#3b82f6;">' + row.name + "</td>"
       hr += "<td>" + (row.company || "") + "</td><td>" + (row.item || "") + "</td>"
-      hr += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.reserved_qty) + "</td>"
+      hr += '<td style="font-weight:800;color:#1e293b;">' + oz_n(row.reserved_nos || 0) + "</td>"
+      hr += '<td style="font-weight:800;color:#059669;">' + oz_n(row.reserved_litres || 0) + " L</td>"
       hr += '<td><span class="oz-badge" style="color:#7c3aed;background:#f5f3ff;">' + (row.reserved_for || "") + "</span></td>"
       hr += '<td><span class="oz-badge" style="color:#d97706;background:#fffbeb;">' + (row.status || "") + "</span></td></tr>" })
     hr += "</tbody></table>"; _html("oz-table-res", hr)
@@ -1270,23 +1263,6 @@ async function load_all_data() {
     })
     htc += '</tbody></table>'; _html("oz-top-customers", htc)
   } else { _html("oz-top-customers", '<div style="text-align:center;padding:20px;color:#64748b;">No data</div>') }
-
-  /* Warehouse table */
-  if (whData && whData.length) {
-    const maxQty = Math.max.apply(null, whData.map(w => Math.abs(w.total_qty || 0))) || 1
-    let hwh = '<table class="oz-table"><thead><tr><th>Warehouse</th><th>Company</th><th>Items</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th><th style="width:120px;">Fill</th></tr></thead><tbody>'
-    whData.forEach(w => {
-      const qtyColor = (w.total_qty || 0) < 0 ? '#dc2626' : '#1e293b'
-      const fillPct = Math.round((Math.abs(w.total_qty || 0) / maxQty) * 100)
-      hwh += '<tr style="cursor:pointer;" onclick="frappe.set_route(\'Form\',\'Warehouse\',\'' + (w.warehouse || w.warehouse_name || "") + '\')">'
-      hwh += '<td style="font-weight:700;">' + (w.warehouse || w.warehouse_name || "") + '</td>'
-      hwh += '<td><span class="oz-badge" style="color:#0891b2;background:#ecfeff;">' + (w.company || "") + '</span></td>'
-      hwh += '<td>' + (w.item_count || 0) + '</td>'
-      hwh += '<td style="text-align:right;font-weight:800;color:' + qtyColor + ';">' + oz_n(w.total_qty) + '</td>'
-      hwh += '<td style="text-align:right;font-weight:700;color:#059669;">' + oz_k(w.total_value) + '</td>'
-      hwh += '<td><div class="oz-prog"><div class="oz-prog-fill" style="width:' + fillPct + '%;background:linear-gradient(90deg,#3b82f6,#7c3aed);"></div></div></td></tr>' })
-    hwh += '</tbody></table>'; _html("oz-warehouse-table", hwh)
-  } else { _html("oz-warehouse-table", '<div style="text-align:center;padding:20px;color:#64748b;">No data</div>') }
 }
 
 onMounted(async () => {

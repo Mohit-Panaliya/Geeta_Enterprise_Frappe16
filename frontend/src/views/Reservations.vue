@@ -38,8 +38,8 @@
                     <button class="rv-ms-action" @click.prevent.stop="clearCompany">Clear</button>
                   </div>
                   <label v-for="opt in filteredCompanyOptions" :key="opt.value" class="rv-ms-opt">
-                    <input type="checkbox" :value="opt.value" v-model="companySelected" @change="onCompanyChange">
-                    <span class="rv-ms-opt-label">{{ opt.label }}</span>
+                    <input type="checkbox" :value="opt.value" v-model="companySelected" :disabled="companySelected.length === 1 && companySelected[0] === opt.value" @change="onCompanyChange">
+                    <span class="rv-ms-opt-label" :style="companySelected.length === 1 && companySelected[0] === opt.value ? { opacity: 0.5 } : {}">{{ opt.label }}</span>
                     <span class="rv-ms-opt-abbr">{{ opt.abbr }}</span>
                   </label>
                 </div>
@@ -61,8 +61,8 @@
                     <button class="rv-ms-action" @click.prevent.stop="clearItemFilter">Clear</button>
                   </div>
                   <label v-for="opt in filteredItemOptions" :key="opt.value" class="rv-ms-opt">
-                    <input type="checkbox" :value="opt.value" v-model="itemSelected" @change="onItemChange">
-                    <span class="rv-ms-opt-label">{{ opt.label }}</span>
+                    <input type="checkbox" :value="opt.value" v-model="itemSelected" :disabled="itemSelected.length === 1 && itemSelected[0] === opt.value" @change="onItemChange">
+                    <span class="rv-ms-opt-label" :style="itemSelected.length === 1 && itemSelected[0] === opt.value ? { opacity: 0.5 } : {}">{{ opt.label }}</span>
                   </label>
                   <div v-if="!itemOptions.length" style="text-align:center;padding:10px;color:#64748b;font-size:10px;">Loading items...</div>
                 </div>
@@ -72,6 +72,11 @@
 
           <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
             <span v-if="selectedNames.size" style="font-size:9px;font-weight:700;color:#3b82f6;">{{ selectedNames.size }} selected</span>
+            <button v-if="selectedNames.size" @click="releaseSelected" :disabled="bulkReleasing"
+              style="padding:4px 10px;border-radius:6px;border:none;background:#10b981;color:#fff;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <span v-if="bulkReleasing">...</span>
+              <span v-else>Release {{ selectedNames.size }}</span>
+            </button>
             <button v-if="selectedNames.size" @click="unreserveSelected" :disabled="bulkUnreserving"
               style="padding:4px 10px;border-radius:6px;border:none;background:#f59e0b;color:#fff;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">
               <span v-if="bulkUnreserving">...</span>
@@ -310,6 +315,11 @@
         <!-- Actions -->
         <div style="display:flex;gap:8px;">
           <button @click="view='list';selectedRecord=null" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#64748b;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Back to List</button>
+          <button v-if="selectedRecord.status === 'Reserved'" @click="releaseSingle(selectedRecord)" :disabled="singleReleasing"
+            style="flex:1;padding:10px;border-radius:8px;border:none;background:#10b981;color:#fff;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">
+            <span v-if="singleReleasing">...</span>
+            <span v-else>Release Stock</span>
+          </button>
           <button @click="frappe.set_route('Form','Stock Reservation',selectedRecord.name)" style="flex:1;padding:10px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Open in Frappe</button>
         </div>
       </div>
@@ -510,7 +520,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from "vue"
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton, IonButton, IonIcon, IonContent } from "@ionic/vue"
 import { addOutline, arrowBackOutline } from "ionicons/icons"
 import { frappeRequest } from "frappe-ui"
-import { getReservationKpis, createStockReservation, getCompanyWarehouses, getItemStockByCompany, unreserveStockReservations } from "@/api/reservations"
+import { getReservationKpis, createStockReservation, getCompanyWarehouses, getItemStockByCompany, unreserveStockReservations, releaseStockReservations } from "@/api/reservations"
 import { getCompanies, getItems } from "@/api/common"
 
 const API = "oil_distribution.api.oil_ops"
@@ -630,6 +640,8 @@ const itemStockByCompanyLoading = ref(false)
 /* ── Selection for Unreserve ── */
 const selectedNames = ref(new Set())
 const bulkUnreserving = ref(false)
+const bulkReleasing = ref(false)
+const singleReleasing = ref(false)
 
 function toggleRow(name) {
   const s = new Set(selectedNames.value)
@@ -649,6 +661,35 @@ async function unreserveSelected() {
     console.error(e)
   } finally {
     bulkUnreserving.value = false
+  }
+}
+
+async function releaseSelected() {
+  const names = [...selectedNames.value]
+  if (!names.length) return
+  bulkReleasing.value = true
+  try {
+    const r = await releaseStockReservations(names)
+    selectedNames.value = new Set()
+    await load()
+  } catch(e) {
+    console.error(e)
+  } finally {
+    bulkReleasing.value = false
+  }
+}
+
+async function releaseSingle(rec) {
+  singleReleasing.value = true
+  try {
+    await releaseStockReservations([rec.name])
+    selectedRecord.value = null
+    view.value = "list"
+    await load()
+  } catch(e) {
+    console.error(e)
+  } finally {
+    singleReleasing.value = false
   }
 }
 

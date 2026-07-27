@@ -14,6 +14,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  publicDir: "public",
   build: {
     outDir: "../oil_distribution/public/frontend",
     emptyOutDir: true,

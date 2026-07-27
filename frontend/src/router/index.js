@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router"
+import { generateRoutes } from "./generateRoutes"
 
 const routes = [
   {
@@ -11,26 +12,6 @@ const routes = [
     component: () => import("@/views/Dashboards.vue"),
   },
   {
-    path: "/procurement",
-    name: "Procurement",
-    component: () => import("@/views/Procurement.vue"),
-  },
-  {
-    path: "/sales",
-    name: "Sales",
-    component: () => import("@/views/Sales.vue"),
-  },
-  {
-    path: "/ict",
-    name: "ICT",
-    component: () => import("@/views/ICT.vue"),
-  },
-  {
-    path: "/reservations",
-    name: "Reservation",
-    component: () => import("@/views/Reservations.vue"),
-  },
-  {
     path: "/command-center",
     name: "CommandCenter",
     component: () => import("@/views/CommandCenter.vue"),
@@ -40,21 +21,28 @@ const routes = [
     name: "StockDashboard",
     component: () => import("@/views/StockDashboard.vue"),
   },
+  // Custom views take priority over generated ListPage routes
   {
-    path: "/customers",
-    name: "Customers",
-    component: () => import("@/views/Customers.vue"),
+    path: "/ict",
+    name: "ICT",
+    component: () => import("@/views/ICT.vue"),
   },
   {
-    path: "/suppliers",
-    name: "Suppliers",
-    component: () => import("@/views/Suppliers.vue"),
+    path: "/reservations",
+    name: "Reservations",
+    component: () => import("@/views/Reservations.vue"),
   },
   {
-    path: "/items",
-    name: "Items",
-    component: () => import("@/views/Items.vue"),
+    path: "/sales",
+    name: "Sales",
+    component: () => import("@/views/Sales.vue"),
   },
+  {
+    path: "/procurement",
+    name: "Procurement",
+    component: () => import("@/views/Procurement.vue"),
+  },
+  ...generateRoutes(),
 ]
 
 const router = createRouter({

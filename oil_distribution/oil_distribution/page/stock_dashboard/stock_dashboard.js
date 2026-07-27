@@ -206,6 +206,7 @@ function get_dashboard_html() {
 			<button class="sd-tab-btn" data-tab="company">By Company</button>
 			<button class="sd-tab-btn" data-tab="item">By Item</button>
 			<button class="sd-tab-btn" data-tab="swastik">Swastik Reserved</button>
+			<button class="sd-tab-btn" data-tab="unreserved">Unreserved / Released</button>
 		</div>
 		</div>
 
@@ -294,6 +295,35 @@ function get_dashboard_html() {
 					<div style="flex:1;"><div class="sd-card-title">Reservation Detail</div></div>
 				</div>
 				<div id="sd-swastik-detail"></div>
+			</div>
+		</div>
+
+		<!-- ═══ PANEL: UNRESERVED / RELEASED ═══ -->
+		<div id="sd-panel-unreserved" class="sd-tab-panel" style="display:none;">
+			<div id="sd-unreserved-kpis" class="sd-kpi-row sd-anim" style="animation-delay:0.06s;grid-template-columns:repeat(4,1fr);"></div>
+			<div id="sd-released-kpis" class="sd-kpi-row sd-anim" style="animation-delay:0.08s;grid-template-columns:repeat(4,1fr);"></div>
+			<div class="sd-grid-5-5 sd-anim" style="animation-delay:0.1s">
+				<div class="sd-card" style="margin-bottom:0;">
+					<div class="sd-card-head">
+						<div class="sd-card-icon" style="background:#ecfdf5;color:#059669;">📤</div>
+						<div><div class="sd-card-title">Unreserved by Company</div></div>
+					</div>
+					<div id="sd-unreserved-company"></div>
+				</div>
+				<div class="sd-card" style="margin-bottom:0;">
+					<div class="sd-card-head">
+						<div class="sd-card-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
+						<div><div class="sd-card-title">Unreserved by Item</div></div>
+					</div>
+					<div id="sd-unreserved-item"></div>
+				</div>
+			</div>
+			<div class="sd-card sd-anim" style="animation-delay:0.14s">
+				<div class="sd-card-head">
+					<div class="sd-card-icon" style="background:#ecfdf5;color:#059669;">📋</div>
+					<div style="flex:1;"><div class="sd-card-title">Unreserved Detail</div></div>
+				</div>
+				<div id="sd-unreserved-detail"></div>
 			</div>
 		</div>
 	</div>`;
@@ -747,6 +777,7 @@ function load_all() {
 	$('#sd-chart-company,#sd-chart-wh,#sd-neg-alerts,#sd-quick-stats').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
 	$('#sd-company-cards').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
 	$('#sd-company-list,#sd-item-table,#sd-swastik-kpis,#sd-swastik-company,#sd-swastik-item,#sd-swastik-detail').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
+	$('#sd-unreserved-kpis,#sd-released-kpis,#sd-unreserved-company,#sd-unreserved-item,#sd-unreserved-detail').html('<div style="text-align:center;padding:20px;color:#94a3b8;font-size:10px;">Loading...</div>');
 
 	/* ── KPIs ── */
 	frappe.call({
@@ -1084,6 +1115,104 @@ function load_all() {
 			});
 			h += '</tbody></table>';
 			$('#sd-item-table').html(h);
+		}
+	});
+
+	/* ── Unreserved / Released ── */
+	frappe.call({
+		method: 'oil_distribution.oil_distribution.page.stock_dashboard.stock_dashboard.get_unreserved_detail',
+		args: args,
+		callback: function (r) {
+			if (!r.message) return;
+			var d = r.message;
+
+			// KPIs — Unreserved
+			var kpiHtml = '';
+			function ur_kpi_stock(nos, lit) {
+				return '<div style="line-height:1.2;">' + sd_n(nos) + '<span style="font-size:8px;font-weight:600;color:#94a3b8;margin-left:3px;">Nos</span></div><div style="font-size:9px;font-weight:600;color:#94a3b8;">' + sd_n(lit) + ' L</div>';
+			}
+			[
+				{ val: ur_kpi_stock(d.total_nos, d.total_qty), lbl: 'Total Unreserved', icon: '📤', bg: '#ecfdf5', color: '#059669' },
+				{ val: sd_k(d.total_value), lbl: 'Total Value', icon: '₹', bg: '#dbeafe', color: '#3b82f6' },
+				{ val: d.companies_count, lbl: 'Companies', icon: '🏢', bg: '#fef3c7', color: '#d97706' },
+				{ val: d.items_count, lbl: 'Items Unreserved', icon: '📦', bg: '#ede9fe', color: '#7c3aed' }
+			].forEach(function (k) {
+				kpiHtml += '<div class="sd-kpi">';
+				kpiHtml += '<div class="sd-kpi-icon" style="background:' + k.bg + ';color:' + k.color + ';">' + k.icon + '</div>';
+				kpiHtml += '<div><div class="sd-kpi-val" style="color:' + k.color + ';">' + k.val + '</div>';
+				kpiHtml += '<div class="sd-kpi-lbl">' + k.lbl + '</div></div></div>';
+			});
+			$('#sd-unreserved-kpis').html(kpiHtml);
+
+			// KPIs — Released
+			var relHtml = '';
+			[
+				{ val: sd_n(d.released_qty), lbl: 'Released Qty (Nos)', icon: '🚚', bg: '#fef3c7', color: '#d97706' },
+				{ val: sd_n(d.released_litres) + ' L', lbl: 'Released Volume', icon: '🛢', bg: '#ecfdf5', color: '#059669' },
+				{ val: d.release_count, lbl: 'Release Count', icon: '📋', bg: '#dbeafe', color: '#3b82f6' },
+				{ val: d.total_nos ? (d.released_qty / d.total_nos * 100).toFixed(1) + '%' : '0%', lbl: 'Release vs Unreserved', icon: '📊', bg: '#ede9fe', color: '#7c3aed' }
+			].forEach(function (k) {
+				relHtml += '<div class="sd-kpi">';
+				relHtml += '<div class="sd-kpi-icon" style="background:' + k.bg + ';color:' + k.color + ';">' + k.icon + '</div>';
+				relHtml += '<div><div class="sd-kpi-val" style="color:' + k.color + ';">' + k.val + '</div>';
+				relHtml += '<div class="sd-kpi-lbl">' + k.lbl + '</div></div></div>';
+			});
+			$('#sd-released-kpis').html(relHtml);
+
+			// By company table
+			if (d.by_company && d.by_company.length) {
+				var ch = '<table class="sd-table"><thead><tr><th>Company</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th></tr></thead><tbody>';
+				d.by_company.forEach(function (row) {
+					var pct = d.total_qty > 0 ? (row.qty / d.total_qty * 100) : 0;
+					ch += '<tr>';
+					ch += '<td style="font-weight:700;color:#1e293b;">' + (row.company || '') + '</td>';
+					ch += '<td style="text-align:right;font-weight:800;color:#059669;">' + sd_n(row.nos) + '</td>';
+					ch += '<td style="text-align:right;font-weight:700;color:#059669;">' + sd_n(row.qty) + ' L</td>';
+					ch += '<td style="text-align:right;font-weight:700;color:#3b82f6;">' + sd_k(row.val) + '</td>';
+					ch += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#10b981,#34d399);"></div></div><span style="font-size:8px;font-weight:700;color:#059669;min-width:30px;text-align:right;">' + pct.toFixed(1) + '%</span></div></td>';
+					ch += '</tr>';
+				});
+				ch += '</tbody></table>';
+				$('#sd-unreserved-company').html(ch);
+			}
+
+			// By item table
+			if (d.by_item && d.by_item.length) {
+				var ih = '<table class="sd-table"><thead><tr><th>Item</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">×</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th></tr></thead><tbody>';
+				d.by_item.forEach(function (row) {
+					var pct = d.total_qty > 0 ? (row.qty / d.total_qty * 100) : 0;
+					var factor = row.nos > 0 ? (row.qty / row.nos).toFixed(2) : '—';
+					ih += '<tr>';
+					ih += '<td style="font-weight:700;color:#1e293b;">' + (row.item_code || '') + '</td>';
+					ih += '<td style="text-align:right;font-weight:800;color:#059669;">' + sd_n(row.nos) + '</td>';
+					ih += '<td style="text-align:right;font-weight:700;color:#059669;">' + sd_n(row.qty) + ' L</td>';
+					ih += '<td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×' + factor + '</td>';
+					ih += '<td style="text-align:right;font-weight:700;color:#3b82f6;">' + sd_k(row.val) + '</td>';
+					ih += '<td><div style="display:flex;align-items:center;gap:4px;"><div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" style="width:' + pct + '%;background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div><span style="font-size:8px;font-weight:700;color:#7c3aed;min-width:30px;text-align:right;">' + pct.toFixed(1) + '%</span></div></td>';
+					ih += '</tr>';
+				});
+				ih += '</tbody></table>';
+				$('#sd-unreserved-item').html(ih);
+			}
+
+			// Detail table
+			if (d.detail && d.detail.length) {
+				var dh = '<table class="sd-table"><thead><tr><th>Company</th><th>Item</th><th>Warehouse</th><th style="text-align:right;">Qty</th><th style="text-align:right;">×</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th></tr></thead><tbody>';
+				d.detail.forEach(function (row) {
+					var factor = row.litre_factor || 1;
+					var litres = row.qty * factor;
+					dh += '<tr>';
+					dh += '<td><span class="sd-badge" style="color:#059669;background:#ecfdf5;">' + (row.company || '') + '</span></td>';
+					dh += '<td style="font-weight:700;">' + (row.item_code || '') + '</td>';
+					dh += '<td style="font-size:10px;color:#94a3b8;">' + (row.warehouse || '') + '</td>';
+					dh += '<td style="text-align:right;font-weight:800;color:#059669;">' + sd_n(row.qty) + '</td>';
+					dh += '<td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×' + factor.toFixed(1) + '</td>';
+					dh += '<td style="text-align:right;font-weight:700;color:#059669;">' + sd_n(litres) + ' L</td>';
+					dh += '<td style="text-align:right;font-weight:700;color:#3b82f6;">' + sd_k(row.val) + '</td></tr>';
+				});
+				dh += '</tbody></table>';
+				$('#sd-unreserved-detail').html(dh);
+			}
 		}
 	});
 

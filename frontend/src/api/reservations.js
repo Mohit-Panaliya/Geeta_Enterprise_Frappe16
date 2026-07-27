@@ -54,3 +54,10 @@ export function unreserveStockReservations(names) {
     params: { names },
   })
 }
+
+export function releaseStockReservations(names) {
+  return frappeRequest({
+    url: "oil_distribution.api.oil_ops.create_stock_release",
+    params: { names },
+  })
+}

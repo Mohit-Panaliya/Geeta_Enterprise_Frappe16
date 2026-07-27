@@ -22,8 +22,8 @@
                   </div>
                   <div v-if="companyErr" style="display:block;text-align:center;padding:8px;color:#dc2626;font-size:10px;font-weight:600;">Select at least one element</div>
                   <label v-for="opt in filteredCompanyOptions" :key="opt.value" class="sd-ms-opt">
-                    <input type="checkbox" :value="opt.value" v-model="companySelected" @change="onCompanyChange">
-                    <span class="sd-ms-opt-label">{{ opt.label }}</span>
+                    <input type="checkbox" :value="opt.value" v-model="companySelected" :disabled="companySelected.length === 1 && companySelected[0] === opt.value" @change="onCompanyChange">
+                    <span class="sd-ms-opt-label" :style="companySelected.length === 1 && companySelected[0] === opt.value ? { opacity: 0.5 } : {}">{{ opt.label }}</span>
                     <span v-if="opt.abbr" class="sd-ms-opt-abbr">{{ opt.abbr }}</span>
                   </label>
                   <div v-if="!companyOptions.length" style="text-align:center;padding:12px;color:#64748b;font-size:10px;">Loading...</div>
@@ -42,8 +42,8 @@
                   </div>
                   <div v-if="itemErr" style="display:block;text-align:center;padding:8px;color:#dc2626;font-size:10px;font-weight:600;">Select at least one element</div>
                   <label v-for="opt in filteredItemOptions" :key="opt.value" class="sd-ms-opt">
-                    <input type="checkbox" :value="opt.value" v-model="itemSelected" @change="onItemChange">
-                    <span class="sd-ms-opt-label">{{ opt.label }}</span>
+                    <input type="checkbox" :value="opt.value" v-model="itemSelected" :disabled="itemSelected.length === 1 && itemSelected[0] === opt.value" @change="onItemChange">
+                    <span class="sd-ms-opt-label" :style="itemSelected.length === 1 && itemSelected[0] === opt.value ? { opacity: 0.5 } : {}">{{ opt.label }}</span>
                   </label>
                   <div v-if="!itemOptions.length" style="text-align:center;padding:12px;color:#64748b;font-size:10px;">Loading...</div>
                 </div>
@@ -58,6 +58,7 @@
             <button class="sd-tab-btn" :class="{ 'sd-tab-active': activeTab === 'company' }" @click="activeTab = 'company'">By Company</button>
             <button class="sd-tab-btn" :class="{ 'sd-tab-active': activeTab === 'item' }" @click="activeTab = 'item'">By Item</button>
             <button class="sd-tab-btn" :class="{ 'sd-tab-active': activeTab === 'swastik' }" @click="activeTab = 'swastik'">Swastik Reserved</button>
+            <button class="sd-tab-btn" :class="{ 'sd-tab-active': activeTab === 'unreserved' }" @click="activeTab = 'unreserved'">Unreserved / Released</button>
           </div>
         </div>
 
@@ -67,7 +68,7 @@
             <div v-for="(k, i) in kpiCards" :key="i" class="sd-kpi" @click="k.routeFn && k.routeFn()">
               <div class="sd-kpi-icon" :style="{ background: k.bg, color: k.color }">{{ k.icon }}</div>
               <div>
-                <div class="sd-kpi-val" :style="{ color: k.color }">{{ k.displayVal }}</div>
+                <div class="sd-kpi-val" :style="{ color: k.color, fontSize: k._isHtml ? '16px' : '20px' }" v-html="k._isHtml ? k.val : k.displayVal"></div>
                 <div class="sd-kpi-lbl">{{ k.lbl }}</div>
               </div>
             </div>
@@ -76,14 +77,14 @@
             <div class="sd-card" style="margin-bottom:0;">
               <div class="sd-card-head">
                 <div class="sd-card-icon" style="background:#dbeafe;color:#3b82f6;">📊</div>
-                <div><div class="sd-card-title">Stock by Company</div><div class="sd-card-sub">Available vs Reserved</div></div>
+                <div><div class="sd-card-title">Stock by Company</div><div class="sd-card-sub">Available · Unreserved · Reserved</div></div>
               </div>
               <div ref="chartCompanyEl" style="display:flex;justify-content:center;"></div>
             </div>
             <div class="sd-card" style="margin-bottom:0;">
               <div class="sd-card-head">
                 <div class="sd-card-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
-                <div><div class="sd-card-title">Utilization</div><div class="sd-card-sub">Reserved / Total Stock</div></div>
+                <div><div class="sd-card-title">Stock Distribution</div><div class="sd-card-sub">Available / Unreserved / Reserved</div></div>
               </div>
               <div ref="chartWhEl" style="display:flex;justify-content:center;"></div>
             </div>
@@ -110,21 +111,30 @@
                     <div style="font-size:8px;color:#64748b;">{{ d.item_count }} items</div>
                   </div>
                 </div>
-                <div style="height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-bottom:4px;">
-                  <div :style="{ height: '100%', width: d.availPct + '%', background: 'linear-gradient(90deg,#3b82f6,#7c3aed)', borderRadius: '2px' }"></div>
+                <div style="height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-bottom:4px;display:flex;">
+                  <div :style="{ height: '100%', width: d.availPct + '%', background: '#3b82f6', borderRadius: '3px 0 0 3px', minWidth: '2px' }"></div>
+                  <div :style="{ height: '100%', width: d.unreservedPct + '%', background: '#10b981', minWidth: '2px' }"></div>
+                  <div :style="{ flex: 1, height: '100%', background: '#f59e0b', borderRadius: '0 3px 3px 0', minWidth: '2px' }"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                  <span style="font-size:8px;color:#64748b;">{{ d.availPct }}% avail</span>
+                  <span style="font-size:8px;color:#64748b;">{{ d.availPct }}% avail · {{ d.unreservedPct }}% unrsv</span>
                   <span :style="{ fontSize: '9px', fontWeight: 700, color: d.accent }">{{ sd_k(d.total_value) }}</span>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
                   <div style="padding:6px;background:#eff6ff;border-radius:6px;text-align:center;">
-                    <div style="font-size:7px;font-weight:700;color:#64748b;">AVAILABLE</div>
-                    <div style="font-size:13px;font-weight:800;color:#3b82f6;">{{ sd_n(d.avail_qty) }}</div>
+                    <div style="font-size:7px;font-weight:700;color:#64748b;">AVAIL</div>
+                    <div style="font-size:12px;font-weight:800;color:#3b82f6;">{{ sd_n(d.avail_nos) }}</div>
+                    <div style="font-size:7px;color:#93c5fd;">{{ sd_n(d.avail_qty) }} L</div>
+                  </div>
+                  <div style="padding:6px;background:#ecfdf5;border-radius:6px;text-align:center;">
+                    <div style="font-size:7px;font-weight:700;color:#64748b;">UNRSV</div>
+                    <div style="font-size:12px;font-weight:800;color:#10b981;">{{ sd_n(d.unreserved_nos || 0) }}</div>
+                    <div style="font-size:7px;color:#6ee7b7;">{{ sd_n(d.unreserved_qty || 0) }} L</div>
                   </div>
                   <div style="padding:6px;background:#fffbeb;border-radius:6px;text-align:center;">
-                    <div style="font-size:7px;font-weight:700;color:#64748b;">RESERVED</div>
-                    <div style="font-size:13px;font-weight:800;color:#f59e0b;">{{ sd_n(d.reserved_qty) }}</div>
+                    <div style="font-size:7px;font-weight:700;color:#64748b;">RSV</div>
+                    <div style="font-size:12px;font-weight:800;color:#f59e0b;">{{ sd_n(d.reserved_nos) }}</div>
+                    <div style="font-size:7px;color:#fcd34d;">{{ sd_n(d.reserved_qty) }} L</div>
                   </div>
                 </div>
               </div>
@@ -244,16 +254,18 @@
                 <thead>
                   <tr>
                     <th>Item</th>
-                    <th v-for="co in itemTableCos" :key="co" colspan="2" style="text-align:center;">{{ co.replace(' Enterprise', '').replace(' Export', '') }}</th>
-                    <th colspan="2" style="text-align:center;background:#eff6ff;">Total</th>
+                    <th v-for="co in itemTableCos" :key="co" colspan="3" style="text-align:center;">{{ co.replace(' Enterprise', '').replace(' Export', '') }}</th>
+                    <th colspan="3" style="text-align:center;background:#eff6ff;">Total</th>
                   </tr>
                   <tr>
                     <th></th>
                     <template v-for="co in itemTableCos" :key="'sub-'+co">
-                      <th style="text-align:right;">Qty</th>
+                      <th style="text-align:right;">Nos</th>
+                      <th style="text-align:right;">Litres</th>
                       <th style="text-align:right;">Value</th>
                     </template>
-                    <th style="text-align:right;background:#eff6ff;">Qty</th>
+                    <th style="text-align:right;background:#eff6ff;">Nos</th>
+                    <th style="text-align:right;background:#eff6ff;">Litres</th>
                     <th style="text-align:right;background:#eff6ff;">Value</th>
                   </tr>
                 </thead>
@@ -261,18 +273,118 @@
                   <tr v-for="(item, idx) in itemData" :key="idx">
                     <td style="font-weight:700;color:#1e293b;">{{ item.item_code }}</td>
                     <template v-for="co in itemTableCos" :key="'td-'+co+idx">
-                      <td v-if="item.companies[co]" :style="{ textAlign: 'right', color: item.companies[co].qty < 0 ? '#dc2626' : undefined, fontWeight: item.companies[co].qty < 0 ? 800 : undefined }">{{ sd_n(item.companies[co].qty) }}</td>
+                      <td v-if="item.companies[co]" :style="{ textAlign: 'right', color: item.companies[co].nos < 0 ? '#dc2626' : undefined, fontWeight: item.companies[co].nos < 0 ? 800 : undefined }">{{ sd_n(item.companies[co].nos) }}</td>
+                      <td v-else style="text-align:right;color:#e2e8f0;">-</td>
+                      <td v-if="item.companies[co]" :style="{ textAlign: 'right', color: item.companies[co].litres < 0 ? '#dc2626' : undefined, fontWeight: item.companies[co].litres < 0 ? 800 : undefined }">{{ sd_n(item.companies[co].litres) }}</td>
                       <td v-else style="text-align:right;color:#e2e8f0;">-</td>
                       <td v-if="item.companies[co]" style="text-align:right;">{{ sd_k(item.companies[co].value) }}</td>
                       <td v-else style="text-align:right;color:#e2e8f0;">-</td>
                     </template>
-                    <td :style="{ textAlign: 'right', background: '#f8fafc', color: item.total_qty < 0 ? '#dc2626' : undefined, fontWeight: item.total_qty < 0 ? 800 : undefined }">{{ sd_n(item.total_qty) }}</td>
+                    <td :style="{ textAlign: 'right', background: '#f8fafc', color: item.total_nos < 0 ? '#dc2626' : undefined, fontWeight: item.total_nos < 0 ? 800 : undefined }">{{ sd_n(item.total_nos) }}</td>
+                    <td :style="{ textAlign: 'right', background: '#f8fafc', color: item.total_litres < 0 ? '#dc2626' : undefined, fontWeight: item.total_litres < 0 ? 800 : undefined }">{{ sd_n(item.total_litres) }}</td>
                     <td style="text-align:right;background:#f8fafc;font-weight:700;">{{ sd_k(item.total_value) }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <div v-else-if="kpiData" style="text-align:center;padding:30px;color:#64748b;">No item data</div>
+          </div>
+        </div>
+
+        <!-- UNRESERVED / RELEASED -->
+        <div v-show="activeTab === 'unreserved'">
+          <div class="sd-kpi-row sd-anim" style="animation-delay:0.06s;grid-template-columns:repeat(4,1fr);">
+            <div v-for="(k, i) in unreservedKpis" :key="i" class="sd-kpi">
+              <div class="sd-kpi-icon" :style="{ background: k.bg, color: k.color }">{{ k.icon }}</div>
+              <div>
+                <div class="sd-kpi-val" :style="{ color: k.color, fontSize: k._isHtml ? '16px' : '20px' }" v-html="k.val"></div>
+                <div class="sd-kpi-lbl">{{ k.lbl }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="sd-kpi-row sd-anim" style="animation-delay:0.08s;grid-template-columns:repeat(4,1fr);">
+            <div v-for="(k, i) in releasedKpis" :key="i" class="sd-kpi">
+              <div class="sd-kpi-icon" :style="{ background: k.bg, color: k.color }">{{ k.icon }}</div>
+              <div>
+                <div class="sd-kpi-val" :style="{ color: k.color, fontSize: k._isHtml ? '16px' : '20px' }" v-html="k.val"></div>
+                <div class="sd-kpi-lbl">{{ k.lbl }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="sd-grid-5-5 sd-anim" style="animation-delay:0.1s">
+            <div class="sd-card" style="margin-bottom:0;">
+              <div class="sd-card-head">
+                <div class="sd-card-icon" style="background:#ecfdf5;color:#059669;">📤</div>
+                <div><div class="sd-card-title">Unreserved by Company</div></div>
+              </div>
+              <div v-if="unreservedData && unreservedData.by_company && unreservedData.by_company.length">
+                <table class="sd-table">
+                  <thead><tr><th>Company</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th></tr></thead>
+                  <tbody>
+                    <tr v-for="(row, i) in unreservedData.by_company" :key="i">
+                      <td style="font-weight:700;color:#1e293b;">{{ row.company }}</td>
+                      <td style="text-align:right;font-weight:800;color:#059669;">{{ sd_n(row.nos) }}</td>
+                      <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_n(row.qty) }} L</td>
+                      <td style="text-align:right;font-weight:700;color:#3b82f6;">{{ sd_k(row.val) }}</td>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:4px;">
+                          <div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" :style="{ width: (unreservedData.total_qty > 0 ? row.qty / unreservedData.total_qty * 100 : 0) + '%', background: 'linear-gradient(90deg,#10b981,#34d399)' }"></div></div>
+                          <span style="font-size:8px;font-weight:700;color:#059669;min-width:28px;text-align:right;">{{ (unreservedData.total_qty > 0 ? row.qty / unreservedData.total_qty * 100 : 0).toFixed(1) }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="sd-card" style="margin-bottom:0;">
+              <div class="sd-card-head">
+                <div class="sd-card-icon" style="background:#ede9fe;color:#7c3aed;">📦</div>
+                <div><div class="sd-card-title">Unreserved by Item</div></div>
+              </div>
+              <div v-if="unreservedData && unreservedData.by_item && unreservedData.by_item.length">
+                <table class="sd-table">
+                  <thead><tr><th>Item</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">×</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th></tr></thead>
+                  <tbody>
+                    <tr v-for="(row, i) in unreservedData.by_item" :key="i">
+                      <td style="font-weight:700;color:#1e293b;">{{ row.item_code }}</td>
+                      <td style="text-align:right;font-weight:800;color:#059669;">{{ sd_n(row.nos) }}</td>
+                      <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_n(row.qty) }} L</td>
+                      <td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×{{ (row.nos > 0 ? row.qty / row.nos : 1).toFixed(2) }}</td>
+                      <td style="text-align:right;font-weight:700;color:#3b82f6;">{{ sd_k(row.val) }}</td>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:4px;">
+                          <div class="sd-prog" style="flex:1;"><div class="sd-prog-fill" :style="{ width: (unreservedData.total_qty > 0 ? row.qty / unreservedData.total_qty * 100 : 0) + '%', background: 'linear-gradient(90deg,#7c3aed,#a78bfa)' }"></div></div>
+                          <span style="font-size:8px;font-weight:700;color:#7c3aed;min-width:28px;text-align:right;">{{ (unreservedData.total_qty > 0 ? row.qty / unreservedData.total_qty * 100 : 0).toFixed(1) }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="sd-card sd-anim" style="animation-delay:0.14s">
+            <div class="sd-card-head">
+              <div class="sd-card-icon" style="background:#ecfdf5;color:#059669;">📋</div>
+              <div style="flex:1;"><div class="sd-card-title">Unreserved Detail</div></div>
+            </div>
+            <div v-if="unreservedData && unreservedData.detail && unreservedData.detail.length">
+              <table class="sd-table">
+                <thead><tr><th>Company</th><th>Item</th><th>Warehouse</th><th style="text-align:right;">Qty</th><th style="text-align:right;">×</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th></tr></thead>
+                <tbody>
+                  <tr v-for="(row, i) in unreservedData.detail" :key="i">
+                    <td><span class="sd-badge" style="color:#059669;background:#ecfdf5;">{{ row.company }}</span></td>
+                    <td style="font-weight:700;">{{ row.item_code }}</td>
+                    <td style="font-size:10px;color:#64748b;">{{ row.warehouse }}</td>
+                    <td style="text-align:right;font-weight:800;color:#059669;">{{ sd_n(row.qty) }}</td>
+                    <td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×{{ (row.litre_factor || 1).toFixed(1) }}</td>
+                    <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_n(row.qty * (row.litre_factor || 1)) }} L</td>
+                    <td style="text-align:right;font-weight:700;color:#3b82f6;">{{ sd_k(row.val) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -296,12 +408,13 @@
               <div v-if="swastikData && swastikData.by_company && swastikData.by_company.length">
                 <table class="sd-table">
                   <thead><tr>
-                    <th>Company</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th><th style="width:160px;">Share (of {{ sd_n(swastikData.total_qty) }} L)</th>
+                    <th>Company</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th>
                   </tr></thead>
                   <tbody>
                     <tr v-for="(row, i) in swastikData.by_company" :key="i">
                       <td style="font-weight:700;color:#1e293b;">{{ row.company }}</td>
-                      <td style="text-align:right;font-weight:800;color:#d97706;">{{ sd_n(row.qty) }} L</td>
+                      <td style="text-align:right;font-weight:800;color:#d97706;">{{ sd_n(row.nos) }}</td>
+                      <td style="text-align:right;font-weight:700;color:#d97706;">{{ sd_n(row.qty) }} L</td>
                       <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_k(row.val) }}</td>
                       <td>
                         <div style="display:flex;align-items:center;gap:6px;">
@@ -322,12 +435,14 @@
               <div v-if="swastikData && swastikData.by_item && swastikData.by_item.length">
                 <table class="sd-table">
                   <thead><tr>
-                    <th>Item</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th><th style="width:160px;">Share (of {{ sd_n(swastikData.total_qty) }} L)</th>
+                    <th>Item</th><th style="text-align:right;">Nos</th><th style="text-align:right;">Litres</th><th style="text-align:right;">×</th><th style="text-align:right;">Value</th><th style="width:120px;">Share</th>
                   </tr></thead>
                   <tbody>
                     <tr v-for="(row, i) in swastikData.by_item" :key="i">
                       <td style="font-weight:700;color:#1e293b;">{{ row.item_code }}</td>
-                      <td style="text-align:right;font-weight:800;color:#d97706;">{{ sd_n(row.qty) }} L</td>
+                      <td style="text-align:right;font-weight:800;color:#d97706;">{{ sd_n(row.nos) }}</td>
+                      <td style="text-align:right;font-weight:700;color:#d97706;">{{ sd_n(row.qty) }} L</td>
+                      <td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×{{ (row.nos > 0 ? row.qty / row.nos : 1).toFixed(2) }}</td>
                       <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_k(row.val) }}</td>
                       <td>
                         <div style="display:flex;align-items:center;gap:6px;">
@@ -348,13 +463,15 @@
             </div>
             <div v-if="swastikData && swastikData.detail && swastikData.detail.length">
               <table class="sd-table">
-                <thead><tr><th>Company</th><th>Item</th><th>Warehouse</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Value</th></tr></thead>
+                <thead><tr><th>Company</th><th>Item</th><th>Warehouse</th><th style="text-align:right;">Qty</th><th style="text-align:right;">×</th><th style="text-align:right;">Litres</th><th style="text-align:right;">Value</th></tr></thead>
                 <tbody>
                   <tr v-for="(row, i) in swastikData.detail" :key="i">
                     <td><span class="sd-badge" style="color:#0891b2;background:#ecfeff;">{{ row.company }}</span></td>
                     <td style="font-weight:700;">{{ row.item_code }}</td>
                     <td style="font-size:10px;color:#64748b;">{{ row.warehouse }}</td>
                     <td style="text-align:right;font-weight:800;color:#d97706;">{{ sd_n(row.qty) }}</td>
+                    <td style="text-align:center;font-weight:600;color:#94a3b8;font-size:8px;">×{{ (row.litre_factor || 1).toFixed(1) }}</td>
+                    <td style="text-align:right;font-weight:700;color:#d97706;">{{ sd_n(row.qty * (row.litre_factor || 1)) }} L</td>
                     <td style="text-align:right;font-weight:700;color:#059669;">{{ sd_k(row.val) }}</td>
                   </tr>
                 </tbody>
@@ -379,7 +496,7 @@
 .sd-tab-btn { padding: 6px 16px; border-radius: 8px; border: none; background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; color: #64748b; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
 .sd-tab-btn:hover { color: #475569; background: #f8fafc; }
 .sd-tab-active { background: #3b82f6 !important; color: #fff !important; }
-.sd-kpi-row { display: grid; gap: 10px; margin-bottom: 14px; grid-template-columns: repeat(5, 1fr); }
+.sd-kpi-row { display: grid; gap: 10px; margin-bottom: 14px; grid-template-columns: repeat(6, 1fr); }
 .sd-kpi { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
 .sd-kpi:hover { box-shadow: 0 4px 14px rgba(0,20,40,0.08); transform: translateY(-2px); }
 .sd-kpi-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
@@ -469,6 +586,7 @@ const warehouseData = ref([])
 const negativeData = ref([])
 const itemData = ref([])
 const swastikData = ref(null)
+const unreservedData = ref(null)
 const kpiAnimated = ref(false)
 
 const companyMsOpen = ref(false)
@@ -548,8 +666,9 @@ const kpiCards = computed(() => {
   if (!kpiData.value) return []
   const d = kpiData.value
   return [
-    { val: sd_n(d.available_stock || d.available_qty) + ' L', lbl: 'Available Stock', icon: '📦', bg: '#ede9fe', color: '#7c3aed', routeFn: () => frappe.set_route('List', 'Bin', { warehouse: ['like', 'Available WH%'] }) },
-    { val: sd_n(d.reserved_stock || d.reserved_qty) + ' L', lbl: 'Swastik Reserved', icon: '🔒', bg: '#fef3c7', color: '#d97706', routeFn: () => frappe.set_route('List', 'Stock Reservation', { status: 'Reserved' }) },
+    { val: '<div style="line-height:1.2;">' + sd_n(d.available_nos) + '<span style="font-size:8px;font-weight:600;color:#94a3b8;margin-left:3px;">Nos</span></div><div style="font-size:9px;font-weight:600;color:#94a3b8;">' + sd_n(d.available_qty) + ' L</div>', lbl: 'Available Stock', icon: '📦', bg: '#ede9fe', color: '#7c3aed', _isHtml: true, routeFn: () => frappe.set_route('List', 'Bin', { warehouse: ['like', 'Available WH%'] }) },
+    { val: '<div style="line-height:1.2;">' + sd_n(d.reserved_nos) + '<span style="font-size:8px;font-weight:600;color:#94a3b8;margin-left:3px;">Nos</span></div><div style="font-size:9px;font-weight:600;color:#94a3b8;">' + sd_n(d.reserved_qty) + ' L</div>', lbl: 'Swastik Reserved', icon: '🔒', bg: '#fef3c7', color: '#d97706', _isHtml: true, routeFn: () => frappe.set_route('List', 'Stock Reservation', { status: 'Reserved' }) },
+    { val: '<div style="line-height:1.2;">' + sd_n(d.unreserved_nos) + '<span style="font-size:8px;font-weight:600;color:#94a3b8;margin-left:3px;">Nos</span></div><div style="font-size:9px;font-weight:600;color:#94a3b8;">' + sd_n(d.unreserved_qty) + ' L</div>', lbl: 'Unreserved Stock', icon: '📤', bg: '#e0f2fe', color: '#0284c7', _isHtml: true, routeFn: () => frappe.set_route('List', 'Bin', { warehouse: ['like', 'Unreserved WH%'] }) },
     { val: String(d.items_count), lbl: 'Items in Stock', icon: '📋', bg: '#dbeafe', color: '#3b82f6', routeFn: () => frappe.set_route('List', 'Item') },
     { val: String(d.warehouse_count), lbl: 'Active Warehouses', icon: '🏭', bg: '#d1fae5', color: '#059669', routeFn: () => frappe.set_route('List', 'Warehouse') },
     { val: String(d.negative_count), lbl: 'Negative Alerts', icon: '⚠', bg: '#fef2f2', color: '#dc2626', routeFn: () => frappe.set_route('List', 'Bin', { actual_qty: ['<', 0] }) }
@@ -560,20 +679,20 @@ const quickStatsItems = computed(() => {
   if (!kpiData.value) return []
   const d = kpiData.value
   return [
-    { lbl: 'Total Stock', val: sd_n(d.total_stock) + ' L', color: '#1e293b', bg: '#f8fafc' },
+    { lbl: 'Total Nos', val: sd_n(d.total_nos), color: '#1e293b', bg: '#f8fafc' },
+    { lbl: 'Total Litres', val: sd_n(d.total_stock) + ' L', color: '#1e293b', bg: '#f8fafc' },
     { lbl: 'Total Value', val: sd_k(d.total_value), color: '#1e293b', bg: '#f8fafc' },
     { lbl: 'Available Value', val: sd_k(d.available_value), color: '#3b82f6', bg: '#eff6ff' },
     { lbl: 'Reserved Value', val: sd_k(d.reserved_value), color: '#f59e0b', bg: '#fffbeb' },
-    { lbl: 'Items', val: d.items_count, color: '#7c3aed', bg: '#ede9fe' },
-    { lbl: 'Warehouses', val: d.warehouse_count, color: '#059669', bg: '#d1fae5' }
+    { lbl: 'Items', val: d.items_count, color: '#7c3aed', bg: '#ede9fe' }
   ]
 })
 
 const companyDetailCards = computed(() => {
   return companyData.value.map(d => {
     const s = COMPANY_INFO[d.company] || { bg: '#f8fafc', accent: '#64748b', abbr: (d.company || '').substring(0, 3).toUpperCase() }
-    const total = (d.avail_qty || 0) + (d.reserved_qty || 0)
-    return { ...d, bg: s.bg, accent: s.accent, abbr: s.abbr, availPct: total > 0 ? Math.round((d.avail_qty / total) * 100) : 0 }
+    const total = (d.avail_qty || 0) + (d.unreserved_qty || 0) + (d.reserved_qty || 0)
+    return { ...d, bg: s.bg, accent: s.accent, abbr: s.abbr, availPct: total > 0 ? Math.round((d.avail_qty / total) * 100) : 0, unreservedPct: total > 0 ? Math.round(((d.unreserved_qty || 0) / total) * 100) : 0 }
   })
 })
 
@@ -623,6 +742,28 @@ const swastikKpis = computed(() => {
   ]
 })
 
+const unreservedKpis = computed(() => {
+  if (!unreservedData.value) return []
+  const d = unreservedData.value
+  return [
+    { val: sd_n(d.total_nos) + ' <span style="font-size:10px;color:#94a3b8;">Nos</span> <span style="font-size:14px;">·</span> ' + sd_n(d.total_qty) + ' <span style="font-size:10px;color:#94a3b8;">L</span>', lbl: 'Total Unreserved', icon: '📤', bg: '#ecfdf5', color: '#059669', _isHtml: true },
+    { val: sd_k(d.total_value), lbl: 'Total Value', icon: '₹', bg: '#dbeafe', color: '#3b82f6' },
+    { val: d.companies_count, lbl: 'Companies', icon: '🏢', bg: '#fef3c7', color: '#d97706' },
+    { val: d.items_count, lbl: 'Items Unreserved', icon: '📦', bg: '#ede9fe', color: '#7c3aed' }
+  ]
+})
+
+const releasedKpis = computed(() => {
+  if (!unreservedData.value) return []
+  const d = unreservedData.value
+  return [
+    { val: sd_n(d.released_qty), lbl: 'Released Qty (Nos)', icon: '🚚', bg: '#fef3c7', color: '#d97706' },
+    { val: sd_n(d.released_litres) + ' L', lbl: 'Released Volume', icon: '🛢', bg: '#ecfdf5', color: '#059669' },
+    { val: d.release_count, lbl: 'Release Count', icon: '📋', bg: '#dbeafe', color: '#3b82f6' },
+    { val: d.total_nos ? (d.released_qty / d.total_nos * 100).toFixed(1) + '%' : '0%', lbl: 'Release vs Unreserved', icon: '📊', bg: '#ede9fe', color: '#7c3aed' }
+  ]
+})
+
 function companyColor(name) { return COMPANY_INFO[name] || { bg: '#f8fafc', accent: '#64748b', abbr: (name || '').substring(0, 3).toUpperCase() } }
 function companySuffix(co) { return (COMPANY_INFO[co] || {}).abbr || co.substring(0, 3).toUpperCase() }
 function whTag(wh) { return wh.warehouse.indexOf('Available WH') !== -1 ? 'Available' : wh.warehouse.indexOf('Reserved WH') !== -1 ? 'Reserved' : 'Other' }
@@ -638,67 +779,95 @@ function sd_count(el, target, pre, suf, dur) {
   requestAnimationFrame(step)
 }
 
-function sd_donut(el, avail, reserved) {
-  const total = (avail || 0) + (reserved || 0)
+function sd_donut(el, avail_nos, reserved_nos, unreserved_nos, avail_litres, reserved_litres, unreserved_litres) {
+  if (arguments.length < 4) unreserved_nos = 0
+  if (arguments.length < 7) { unreserved_litres = unreserved_nos; reserved_litres = reserved_nos; avail_litres = avail_nos }
+  var avail = avail_nos || 0, reserved = reserved_nos || 0, unreserved = unreserved_nos || 0
+  var total = avail + unreserved + reserved
   if (total === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:11px;">No stock data</div>'; return }
-  const pct = Math.round((reserved / total) * 100)
-  const uid = 'sddu' + Math.random().toString(36).slice(2, 8)
-  const sz = 100, st = 14, r = (sz - st) / 2, circ = 2 * Math.PI * r, ct = sz / 2
-  const agap = 0.015, cAvail = '#3b82f6', cRes = '#f59e0b'
-  const aDash = circ * Math.max(0, (100 - pct) / 100 - agap)
-  const rDash = circ * Math.max(0, pct / 100 - agap)
-  const rOff = -circ * (100 - pct) / 100
-  let s = '<div style="display:flex;align-items:center;gap:16px;justify-content:center;padding:6px 0;">'
+  var uid = 'sddu' + Math.random().toString(36).slice(2, 8)
+  var sz = 100, st = 14, r = (sz - st) / 2, circ = 2 * Math.PI * r, ct = sz / 2
+  var agap = 0.015
+  var litres = [avail_litres || 0, unreserved_litres || 0, reserved_litres || 0]
+  var segs = [
+    { label: 'Available', val: avail, lit: litres[0], color: '#3b82f6', wh: 'Available' },
+    { label: 'Unreserved', val: unreserved, lit: litres[1], color: '#10b981', wh: 'Unreserved' },
+    { label: 'Reserved', val: reserved, lit: litres[2], color: '#f59e0b', wh: 'Reserved' },
+  ]
+  var dashes = []
+  var offset = 0
+  segs.forEach(function (s) {
+    var p = total > 0 ? s.val / total : 0
+    var dash = circ * Math.max(0, p - agap / segs.length)
+    var gap = circ * agap / segs.length
+    dashes.push({ dash: dash, gap: gap, offset: -offset })
+    offset += dash + gap
+  })
+  var rsvIdx = 2
+  var s = '<div style="display:flex;align-items:center;gap:16px;justify-content:center;padding:6px 0;">'
   s += '<div style="position:relative;width:' + sz + 'px;height:' + sz + 'px;flex-shrink:0;">'
   s += '<svg width="' + sz + '" height="' + sz + '" style="transform:rotate(-90deg);">'
   s += '<circle cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="#f1f5f9" stroke-width="' + st + '"/>'
-  s += '<circle data-idx="0" cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="' + cAvail + '" stroke-width="' + st + '" stroke-linecap="round" stroke-dasharray="0 ' + circ + '" data-target="' + aDash + '" style="cursor:pointer;transition:stroke-dasharray 0.6s ease,stroke-width 0.2s,opacity 0.2s;">'
-  s += '<title>Available: ' + sd_n(avail) + ' (' + (100 - pct) + '%)</title></circle>'
-  s += '<circle data-idx="1" cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="' + cRes + '" stroke-width="' + st + '" stroke-linecap="round" stroke-dasharray="0 ' + circ + '" stroke-dashoffset="' + rOff + '" data-target="' + rDash + '" style="cursor:pointer;transition:stroke-dasharray 0.6s ease,stroke-width 0.2s,opacity 0.2s;">'
-  s += '<title>Reserved: ' + sd_n(reserved) + ' (' + pct + '%)</title></circle>'
+  segs.forEach(function (seg, i) {
+    var d = dashes[i]
+    s += '<circle data-idx="' + i + '" cx="' + ct + '" cy="' + ct + '" r="' + r + '" fill="none" stroke="' + seg.color + '" stroke-width="' + st + '" stroke-linecap="round" stroke-dasharray="0 ' + circ + '" stroke-dashoffset="' + d.offset + '" data-target="' + d.dash + '" style="cursor:pointer;transition:stroke-dasharray 0.6s ease,stroke-width 0.2s,opacity 0.2s;">'
+    s += '<title>' + seg.label + ': ' + sd_n(seg.val) + ' (' + sd_n(seg.lit) + ' L)</title></circle>'
+  })
   s += '</svg>'
   s += '<div id="' + uid + '-ctr" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transition:all 0.2s;">'
-  s += '<span id="' + uid + '-pct" style="font-size:20px;font-weight:800;color:#1e293b;line-height:1;">' + pct + '%</span>'
+  s += '<span id="' + uid + '-pct" style="font-size:20px;font-weight:800;color:#1e293b;line-height:1;">' + Math.round((reserved / total) * 100) + '%</span>'
   s += '<span id="' + uid + '-lbl" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:#64748b;margin-top:2px;">Reserved</span>'
   s += '</div></div>'
-  s += '<div id="' + uid + '-leg" style="display:flex;flex-direction:column;gap:5px;">'
-  s += '<div class="sd-donut-leg" data-idx="0" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">'
-  s += '<div style="width:8px;height:8px;border-radius:2px;background:' + cAvail + ';flex-shrink:0;"></div>'
-  s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Available</div><div style="font-size:8px;color:#64748b;">' + sd_n(avail) + ' L</div></div>'
-  s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + (100 - pct) + '%;background:' + cAvail + ';border-radius:3px;"></div></div></div>'
-  s += '<div class="sd-donut-leg" data-idx="1" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">'
-  s += '<div style="width:8px;height:8px;border-radius:2px;background:' + cRes + ';flex-shrink:0;"></div>'
-  s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">Reserved</div><div style="font-size:8px;color:#64748b;">' + sd_n(reserved) + ' L</div></div>'
-  s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + cRes + ';border-radius:3px;"></div></div></div>'
+  s += '<div id="' + uid + '-leg" style="display:flex;flex-direction:column;gap:4px;">'
+  segs.forEach(function (seg, i) {
+    var spct = total > 0 ? Math.round((seg.val / total) * 100) : 0
+    s += '<div class="sd-donut-leg" data-idx="' + i + '" style="display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;">'
+    s += '<div style="width:8px;height:8px;border-radius:2px;background:' + seg.color + ';flex-shrink:0;"></div>'
+    s += '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#1e293b;">' + seg.label + '</div><div style="font-size:8px;color:#64748b;">' + sd_n(seg.val) + ' \u00B7 ' + sd_n(seg.lit) + ' L</div></div>'
+    s += '<div style="width:30px;height:3px;border-radius:3px;background:#f1f5f9;overflow:hidden;"><div style="height:100%;width:' + spct + '%;background:' + seg.color + ';border-radius:3px;"></div></div></div>'
+  })
   s += '<div style="display:flex;align-items:center;gap:6px;padding:2px 8px;margin-top:2px;border-top:1px solid #f1f5f9;">'
   s += '<div style="width:8px;height:8px;border-radius:2px;background:#cbd5e1;flex-shrink:0;"></div>'
   s += '<div style="font-size:9px;font-weight:600;color:#64748b;flex:1;">Total</div>'
-  s += '<div style="font-size:10px;font-weight:700;color:#1e293b;">' + sd_n(total) + ' L</div>'
+  s += '<div style="font-size:10px;font-weight:700;color:#1e293b;">' + sd_n(total) + ' (' + sd_n(litres[0] + litres[1] + litres[2]) + ' L)</div>'
   s += '</div></div></div>'
   el.innerHTML = s
-  setTimeout(() => {
-    el.querySelectorAll('circle[data-target]').forEach(a => {
-      const t = a.getAttribute('data-target')
-      requestAnimationFrame(() => { a.setAttribute('stroke-dasharray', t + ' ' + (circ - t)) })
+  setTimeout(function () {
+    var arcs = el.querySelectorAll('circle[data-target]')
+    arcs.forEach(function (a) {
+      var t = a.getAttribute('data-target')
+      requestAnimationFrame(function () { a.setAttribute('stroke-dasharray', t + ' ' + (circ - t)) })
     })
   }, 80)
-  setTimeout(() => {
-    const segs = el.querySelectorAll('circle[data-idx]')
-    const legs = el.querySelectorAll('.sd-donut-leg')
-    const ctr = document.getElementById(uid + '-ctr')
-    const pctEl = document.getElementById(uid + '-pct')
-    const lblEl = document.getElementById(uid + '-lbl')
-    const colors = [cAvail, cRes]
-    const labels = ['Available', 'Reserved']
-    const pcts = [100 - pct, pct]
+  setTimeout(function () {
+    var circles = el.querySelectorAll('circle[data-idx]')
+    var legs = el.querySelectorAll('.sd-donut-leg')
+    var pctEl = document.getElementById(uid + '-pct')
+    var lblEl = document.getElementById(uid + '-lbl')
     function hl(idx) {
-      segs.forEach((c, i) => { if (idx === null) { c.style.strokeWidth = st; c.style.opacity = 1 } else if (i === idx) { c.style.strokeWidth = st + 4; c.style.opacity = 1 } else { c.style.strokeWidth = st - 4; c.style.opacity = 0.3 } })
-      legs.forEach((l, i) => { if (idx === null) { l.style.borderColor = 'transparent'; l.style.background = 'transparent' } else if (i === idx) { l.style.borderColor = colors[i]; l.style.background = colors[i] + '0c' } else { l.style.borderColor = 'transparent'; l.style.background = 'transparent' } })
-      if (idx !== null && pctEl) { pctEl.textContent = pcts[idx] + '%'; pctEl.style.color = colors[idx]; lblEl.textContent = labels[idx] }
-      else if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = '#1e293b'; lblEl.textContent = 'Reserved' }
+      circles.forEach(function (c, i) {
+        if (idx === null) { c.style.strokeWidth = st; c.style.opacity = 1 }
+        else if (i === idx) { c.style.strokeWidth = st + 4; c.style.opacity = 1 }
+        else { c.style.strokeWidth = st - 4; c.style.opacity = 0.3 }
+      })
+      legs.forEach(function (l, i) {
+        if (idx === null) { l.style.borderColor = 'transparent'; l.style.background = 'transparent' }
+        else if (i === idx) { l.style.borderColor = segs[i].color; l.style.background = segs[i].color + '0c' }
+        else { l.style.borderColor = 'transparent'; l.style.background = 'transparent' }
+      })
+      if (idx !== null && pctEl) {
+        var spct = total > 0 ? Math.round((segs[idx].val / total) * 100) : 0
+        pctEl.textContent = spct + '%'
+        pctEl.style.color = segs[idx].color
+        lblEl.textContent = segs[idx].label
+      } else if (pctEl) {
+        pctEl.textContent = Math.round((reserved / total) * 100) + '%'
+        pctEl.style.color = '#1e293b'
+        lblEl.textContent = 'Reserved'
+      }
     }
-    segs.forEach((c, i) => { c.addEventListener('mouseenter', () => hl(i)); c.addEventListener('mouseleave', () => hl(null)) })
-    legs.forEach((l, i) => { l.addEventListener('mouseenter', () => hl(i)); l.addEventListener('mouseleave', () => hl(null)) })
+    circles.forEach(function (c, i) { c.addEventListener('mouseenter', function () { hl(i) }); c.addEventListener('mouseleave', function () { hl(null) }) })
+    legs.forEach(function (l, i) { l.addEventListener('mouseenter', function () { hl(i) }); l.addEventListener('mouseleave', function () { hl(null) }) })
   }, 100)
 }
 
@@ -785,9 +954,10 @@ function sd_bc_hover(el, label, idx) {
   if (!tip) return
   const raw = JSON.parse(svg.parentElement.getAttribute('data-raw') || '[]')
   const d = raw[idx] || {}
-  const total = (d.avail_qty || 0) + (d.reserved_qty || 0)
+  const total = (d.avail_qty || 0) + (d.unreserved_qty || 0) + (d.reserved_qty || 0)
   let html = '<div style="font-weight:800;margin-bottom:6px;font-size:12px;color:#f1f5f9;">' + (d.company || label) + '</div>'
   html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Available: <b style="color:#93c5fd;">' + sd_n(d.avail_qty || 0) + ' L</b></div>'
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Unreserved: <b style="color:#6ee7b7;">' + sd_n(d.unreserved_qty || 0) + ' L</b></div>'
   html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Reserved: <b style="color:#fcd34d;">' + sd_n(d.reserved_qty || 0) + ' L</b></div>'
   html += '<div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:5px;padding-top:5px;color:#cbd5e1;font-size:11px;">Total: <b>' + sd_n(total) + ' L</b></div>'
   html += '<div style="color:#64748b;font-size:9px;margin-top:3px;">Value: ' + sd_k(d.total_value || 0) + ' · Items: ' + (d.item_count || 0) + '</div>'
@@ -875,7 +1045,7 @@ async function load_all() {
       setTimeout(() => {
         kpiAnimated.value = true
         nextTick(() => {
-          if (chartWhEl.value) sd_donut(chartWhEl.value, d.available_stock || d.available_qty || 0, d.reserved_stock || d.reserved_qty || 0)
+          if (chartWhEl.value) sd_donut(chartWhEl.value, d.available_nos || 0, d.reserved_nos || 0, d.unreserved_nos || 0, d.available_qty || 0, d.reserved_qty || 0, d.unreserved_qty || 0)
         })
       }, 1300)
     }).catch(() => { kpiData.value = null }),
@@ -887,6 +1057,7 @@ async function load_all() {
           const labels = d.map(x => x.company.replace(' Enterprise', '').replace(' Export', ''))
           sd_stacked_bars(chartCompanyEl.value, labels, [
             { name: 'Available', values: d.map(x => x.avail_qty), color: '#3b82f6' },
+            { name: 'Unreserved', values: d.map(x => x.unreserved_qty || 0), color: '#10b981' },
             { name: 'Reserved', values: d.map(x => x.reserved_qty), color: '#f59e0b' }
           ], d)
         }
@@ -907,7 +1078,11 @@ async function load_all() {
 
     frappeRequest({ url: API + '.get_swastik_detail', params: args }).then(d => {
       swastikData.value = d || null
-    }).catch(() => { swastikData.value = null })
+    }).catch(() => { swastikData.value = null }),
+
+    frappeRequest({ url: API + '.get_unreserved_detail', params: args }).then(d => {
+      unreservedData.value = d || null
+    }).catch(() => { unreservedData.value = null })
   ])
 }
 

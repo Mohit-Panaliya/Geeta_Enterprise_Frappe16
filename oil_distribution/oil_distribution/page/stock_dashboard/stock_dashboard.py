@@ -340,6 +340,85 @@ def get_swastik_detail():
 
 
 @frappe.whitelist()
+def get_unreserved_detail():
+    company, item = _get_filters()
+    co_f, co_a = _co_filter()
+    it_f, it_a = _item_filter()
+    UOM_JOIN = "LEFT JOIN `tabUOM Conversion Detail` ucd ON ucd.parent = b.item_code AND ucd.uom = 'Litre'"
+    UOM_SEL = "COALESCE(ucd.conversion_factor, 1.0)"
+
+    total = frappe.db.sql(
+        """SELECT COALESCE(SUM(b.actual_qty), 0) as nos,
+            COALESCE(SUM(b.actual_qty * {f}), 0) as qty,
+            COALESCE(SUM(b.stock_value), 0) as val
+        FROM `tabBin` b JOIN `tabWarehouse` w ON w.name = b.warehouse {j}
+        WHERE w.name LIKE 'Unreserved WH - %%' AND b.actual_qty > 0 """.format(f=UOM_SEL, j=UOM_JOIN)
+        + co_f + it_f,
+        tuple(co_a) + tuple(it_a), as_dict=True,
+    )
+
+    by_company = frappe.db.sql(
+        """SELECT w.company,
+            SUM(b.actual_qty) as nos,
+            SUM(b.actual_qty * {f}) as qty,
+            SUM(b.stock_value) as val
+        FROM `tabBin` b JOIN `tabWarehouse` w ON w.name = b.warehouse {j}
+        WHERE w.name LIKE 'Unreserved WH - %%' AND b.actual_qty > 0 """.format(f=UOM_SEL, j=UOM_JOIN)
+        + co_f + it_f + """
+        GROUP BY w.company ORDER BY val DESC""",
+        tuple(co_a) + tuple(it_a), as_dict=True,
+    )
+
+    by_item = frappe.db.sql(
+        """SELECT b.item_code,
+            SUM(b.actual_qty) as nos,
+            SUM(b.actual_qty * {f}) as qty,
+            SUM(b.stock_value) as val
+        FROM `tabBin` b JOIN `tabWarehouse` w ON w.name = b.warehouse {j}
+        WHERE w.name LIKE 'Unreserved WH - %%' AND b.actual_qty > 0 """.format(f=UOM_SEL, j=UOM_JOIN)
+        + co_f + it_f + """
+        GROUP BY b.item_code ORDER BY val DESC""",
+        tuple(co_a) + tuple(it_a), as_dict=True,
+    )
+
+    detail = frappe.db.sql(
+        """SELECT w.company, b.item_code, b.warehouse, b.actual_qty as qty, b.stock_value as val,
+            {f} as litre_factor
+        FROM `tabBin` b JOIN `tabWarehouse` w ON w.name = b.warehouse {j}
+        WHERE w.name LIKE 'Unreserved WH - %%' AND b.actual_qty > 0 """.format(f=UOM_SEL, j=UOM_JOIN)
+        + co_f + it_f + """
+        ORDER BY w.company, b.item_code""",
+        tuple(co_a) + tuple(it_a), as_dict=True,
+    )
+
+    released = frappe.db.sql(
+        """SELECT COALESCE(SUM(sri.qty), 0) as qty,
+            COALESCE(SUM(sri.qty * COALESCE(ucd.conversion_factor, 1.0)), 0) as litres,
+            COUNT(DISTINCT sr.name) as cnt
+        FROM `tabStock Release` sr
+        INNER JOIN `tabStock Release Item` sri ON sri.parent = sr.name
+        LEFT JOIN `tabUOM Conversion Detail` ucd ON ucd.parent = sri.item AND ucd.uom = 'Litre'
+        WHERE sr.docstatus = 1 """
+        + co_f.replace("w.", "sr.").replace("b.", "sri.") + it_f.replace("b.item_code", "sri.item"),
+        tuple(co_a) + tuple(it_a), as_dict=True,
+    )
+
+    return {
+        "total_nos": flt(total[0].nos) if total else 0,
+        "total_qty": flt(total[0].qty) if total else 0,
+        "total_value": flt(total[0].val) if total else 0,
+        "companies_count": len(by_company),
+        "items_count": len(by_item),
+        "by_company": by_company,
+        "by_item": by_item,
+        "detail": detail,
+        "released_qty": flt(released[0].qty) if released else 0,
+        "released_litres": flt(released[0].litres) if released else 0,
+        "release_count": int(released[0].cnt) if released else 0,
+    }
+
+
+@frappe.whitelist()
 def get_negative_stock():
     company, item = _get_filters()
     co_f, co_a = _co_filter()
