@@ -30,6 +30,13 @@ fixtures = [
     {"dt": "Role", "filters": [["name", "in",
         ["Intercompany Manager", "Reservation Manager", "Stock Reservation User"]]]},
     {"dt": "Workspace Sidebar", "filters": [["name", "in", ["Oil Distribution"]]]},
+    {"dt": "Item", "filters": [["disabled", "=", 0]]},
+    {"dt": "Customer"},
+    {"dt": "Supplier"},
+    {"dt": "Item Group"},
+    {"dt": "Customer Group"},
+    {"dt": "Supplier Group"},
+    {"dt": "Territory"},
 ]
 
 doc_events = {
